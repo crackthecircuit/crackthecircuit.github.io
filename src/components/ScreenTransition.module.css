@@ -1,6 +1,7 @@
 .layer {
   height: 100%;
-  animation: screenIn var(--t-screen) var(--ease-out) both;
+  /* backwards, not both: a transform left on the layer would trap position: fixed children (the dragged gate, the result card). */
+  animation: screenIn var(--t-screen) var(--ease-out) backwards;
 }
 
 .layer[data-leaving] {

@@ -13,16 +13,25 @@ body,
   margin: 0;
 }
 
+html {
+  /* Mobile browsers must not enlarge the text on their own when turned sideways. */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 body {
   background: var(--bg-board);
   color: var(--text-1);
   font-family: var(--font-display);
   -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
 }
 
 button {
   font: inherit;
   color: inherit;
+  /* No double-tap zoom (and no tap delay) on buttons. */
+  touch-action: manipulation;
 }
 
 :focus-visible {

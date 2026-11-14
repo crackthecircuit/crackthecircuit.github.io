@@ -226,15 +226,19 @@ export function LevelScreen({ levelId }: { levelId: string }) {
       </header>
 
       <aside className={styles.left}>
-        <Palette
-          ref={paletteRef}
-          gates={level.palette}
-          deleteHover={deleteHover}
-          disabled={locked}
-          onGatePointerDown={onPalettePointerDown}
-          onGateActivate={onPaletteActivate}
-        />
-        <Hints key={level.id} hints={level.hints} />
+        <div className={styles.paletteSlot}>
+          <Palette
+            ref={paletteRef}
+            gates={level.palette}
+            deleteHover={deleteHover}
+            disabled={locked}
+            onGatePointerDown={onPalettePointerDown}
+            onGateActivate={onPaletteActivate}
+          />
+        </div>
+        <div className={styles.hintsSlot}>
+          <Hints key={level.id} hints={level.hints} />
+        </div>
       </aside>
 
       <main className={styles.center}>

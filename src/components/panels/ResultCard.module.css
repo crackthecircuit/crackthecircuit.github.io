@@ -48,6 +48,25 @@
   margin-top: var(--s-3);
 }
 
+/* Upright tablets: the page scrolls, so the card sits at the bottom of the screen where it's always seen. */
+@media (max-width: 900px) {
+  .card {
+    position: fixed;
+    bottom: max(var(--s-4), env(safe-area-inset-bottom));
+    gap: var(--s-1);
+    padding: var(--s-4) var(--s-4) var(--s-3);
+  }
+
+  .title {
+    font-size: 20px;
+  }
+
+  .actions {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
+
 @keyframes cardIn {
   from {
     opacity: 0;

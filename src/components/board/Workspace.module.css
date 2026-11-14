@@ -54,3 +54,21 @@
 .zoomLevel:focus-visible {
   outline-offset: -2px;
 }
+
+/* Finger-sized on touch screens. */
+@media (pointer: coarse) {
+  .zoom {
+    right: var(--s-2);
+    bottom: var(--s-2);
+  }
+
+  .zoomButton,
+  .zoomLevel {
+    height: 40px;
+  }
+
+  .zoomButton {
+    width: 42px;
+    font-size: 20px;
+  }
+}

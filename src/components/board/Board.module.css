@@ -4,6 +4,9 @@
   height: 100%;
   background: var(--bg-board);
   user-select: none;
+  -webkit-user-select: none;
+  /* A long press on a touch screen must not open the copy / save menu. */
+  -webkit-touch-callout: none;
 }
 
 .gridDot {

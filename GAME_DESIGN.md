@@ -128,7 +128,14 @@ the stars, gates used vs par, and **Next Level**.
   zooms at the pointer (50–300%). Dragging empty board pans while zoomed in (a press that doesn't move still clears the
   selection). The `− 100% +` control in the board's corner zooms in steps, and clicking the percentage fits the board
   again. Zoomed out, the whole board always stays in view. The view resets when a level opens and isn't saved.
-- **Devices:** desktop/laptop first (1280px+). Pointer Events give basic tablet touch, and phones see a "best on a larger screen" notice.
+- **Devices:** laptop/desktop (1280px+) and tablets, by mouse, keyboard or touch (Pointer Events). Phones aren't
+  supported yet: screens under 600px wide or 480px tall show a "built for a laptop, desktop or tablet" notice.
+  - Tablets held sideways (and small laptops) keep the three-column layout with narrower side panels.
+  - Upright tablets (up to 900px wide) get one scrolling column: header, a row of compact gate buttons, the board
+    (8:5) with its toolbar, then objective and truth table beside the hints. The result card sits at the bottom
+    of the screen there.
+  - Touch: a finger snaps to the nearest port within about 22 screen pixels (capped at 34 board units), the gate
+    `− N inputs +` control grows to finger size, buttons are at least 40px tall, and keyboard-shortcut labels hide.
 - **Autosave:** each level's board is saved along with progress, and solved levels can be replayed for more stars.
 
 ## Accessibility

@@ -13,13 +13,9 @@
   text-align: center;
 }
 
-@media (max-width: 899px) {
+/* Phones: upright (narrow) or sideways (short). Tablets and laptops get no notice. */
+@media (max-width: 599px), (max-height: 480px) {
   .smallScreen {
     display: block;
-  }
-
-  .screen {
-    height: auto;
-    overflow-x: auto;
   }
 }

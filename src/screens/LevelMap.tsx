@@ -7,12 +7,14 @@ import { useAppStore } from '../store/appStore';
 import { useProgressStore } from '../store/progressStore';
 import styles from './LevelMap.module.css';
 
-const W = 1040;
+// The side margins keep the wrap traces and the finish lamp inside the drawing when it fills the screen edge to
+// edge (an upright tablet), where anything past the viewBox is cut off.
+const W = 1064;
 const H = 640;
 const CHIP_W = 140;
 const CHIP_H = 96;
 const PER_ROW = 6;
-const COLUMNS = [100, 268, 436, 604, 772, 940];
+const COLUMNS = [112, 280, 448, 616, 784, 952];
 const ROWS = [110, 320, 530];
 /** How far traces swing past the chips when wrapping to the next row. */
 const WRAP = 40;

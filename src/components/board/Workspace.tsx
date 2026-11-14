@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState } from 'react';
 import type { PointerEvent as ReactPointerEvent } from 'react';
 import type { Circuit, Point } from '../../engine';
 import { BOARD_HEIGHT, BOARD_WIDTH } from '../../lib/board';
@@ -9,9 +9,11 @@ import {
   gatePositionAt,
   isInputPort,
   nearestPort,
+  PORT_HIT_RADIUS,
   portKey,
   portPosition,
 } from '../../lib/geometry';
+import { COARSE_POINTER, useMediaQuery } from '../../lib/useMediaQuery';
 import type { PortRef } from '../../lib/geometry';
 import { portName } from '../../lib/describe';
 import { playSound } from '../../lib/sound';
@@ -26,6 +28,12 @@ import styles from './Workspace.module.css';
 
 /** How far (in screen pixels) the pointer must travel before a press counts as a drag. */
 const DRAG_THRESHOLD = 4;
+/** A fingertip reaches about this far (screen pixels) from where it lands, so touch snaps to ports this close. */
+const FINGER_RADIUS = 22;
+/** Never snap a finger further than this (board units), or a press beside a gate would grab its ports. */
+const MAX_TOUCH_SNAP = 34;
+/** On a touch screen the − / + buttons above a selected gate grow to at least this radius (screen pixels). */
+const TOUCH_BUTTON_RADIUS = 16;
 
 export interface WorkspaceHandle {
   /** Board coordinates for a screen point, or null when the point is outside the board. */
@@ -69,6 +77,8 @@ type WireDrag = {
   moved: boolean;
   /** Click-click mode: the first click started the wire; the next click on a port finishes it. */
   sticky: boolean;
+  /** How close (board units) the loose end must come to a port to snap onto it. Wider for a finger. */
+  snap: number;
 };
 
 /** Dragging empty board pans the view; a press that doesn't move clears the selection. */
@@ -199,6 +209,25 @@ export const Workspace = forwardRef<WorkspaceHandle, WorkspaceProps>(function Wo
     scale: () => svgRef.current?.getScreenCTM()?.a ?? 1,
   }));
 
+  // Screen pixels per board unit, kept current so touch targets can grow when the board is drawn small.
+  const [pxPerUnit, setPxPerUnit] = useState(1);
+  useLayoutEffect(() => {
+    const svg = svgRef.current;
+    if (!svg) return;
+    const update = () => setPxPerUnit(svg.getScreenCTM()?.a || 1);
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(svg);
+    return () => observer.disconnect();
+  }, [view]);
+  const coarse = useMediaQuery(COARSE_POINTER);
+
+  /** Snap radius (board units) for a press: a finger is wider than the drawn port when the board is small. */
+  const snapRadius = (e: { pointerType: string }) =>
+    e.pointerType === 'mouse'
+      ? PORT_HIT_RADIUS
+      : Math.min(Math.max(PORT_HIT_RADIUS, FINGER_RADIUS / pxPerUnit), MAX_TOUCH_SNAP);
+
   const rejectAt = (target: PortRef) => {
     playSound('reject');
     announce(`Can't connect to ${portName(useCircuitStore.getState().circuit, target)}.`);
@@ -277,7 +306,7 @@ export const Workspace = forwardRef<WorkspaceHandle, WorkspaceProps>(function Wo
         return;
       }
       if (d.sticky) return; // waiting for the second click
-      if (d.moved) return finishWireRef.current(d, nearestPort(store.circuit, d.pointer));
+      if (d.moved) return finishWireRef.current(d, nearestPort(store.circuit, d.pointer, d.snap));
       if (d.reroute) {
         // A plain click on a connected input selects its wire.
         setDrag(null);
@@ -329,6 +358,7 @@ export const Workspace = forwardRef<WorkspaceHandle, WorkspaceProps>(function Wo
       start: { x: e.clientX, y: e.clientY },
       moved: false,
       sticky: false,
+      snap: snapRadius(e),
     });
   };
 
@@ -370,6 +400,7 @@ export const Workspace = forwardRef<WorkspaceHandle, WorkspaceProps>(function Wo
       start: { x: 0, y: 0 },
       moved: false,
       sticky: true,
+      snap: PORT_HIT_RADIUS,
     });
     const want = isInputPort(target.port) ? 'an output' : 'an input';
     announce(`Wiring from ${portName(circuit, target)}. Go to ${want} and press Enter. Escape cancels.`);
@@ -393,6 +424,12 @@ export const Workspace = forwardRef<WorkspaceHandle, WorkspaceProps>(function Wo
   };
 
   const onBackgroundPointerDown = (e: ReactPointerEvent) => {
+    // A finger that lands just beside a small port means that port.
+    if (e.pointerType !== 'mouse' && !locked) {
+      const world = clientToWorld(e.clientX, e.clientY, true);
+      const near = world && nearestPort(circuit, world, snapRadius(e));
+      if (near) return onPortPointerDown(near, e);
+    }
     if (dragRef.current?.kind === 'wire') return setDrag(null);
     if (e.button !== 0 && e.button !== 1) return;
     if (e.button === 1) e.preventDefault(); // no autoscroll on middle-drag
@@ -427,7 +464,7 @@ export const Workspace = forwardRef<WorkspaceHandle, WorkspaceProps>(function Wo
     const originNode = circuit.nodes.find((n) => n.id === drag.origin.nodeId);
     if (originNode) {
       // Snap the loose end onto a valid port near the pointer.
-      const hover = nearestPort(circuit, drag.pointer);
+      const hover = nearestPort(circuit, drag.pointer, drag.snap);
       const hoverNode =
         hover && hints[portKey(hover)] === 'valid' ? circuit.nodes.find((n) => n.id === hover.nodeId) : null;
       const loose = hover && hoverNode ? portPosition(hoverNode, hover.port) : drag.pointer;
@@ -444,7 +481,11 @@ export const Workspace = forwardRef<WorkspaceHandle, WorkspaceProps>(function Wo
       : undefined;
   if (selectedGate?.kind === 'gate' && level && !locked && !drag) {
     const range = gateSizeRange(selectedGate.gateType, level);
-    if (range.max > range.min) gateResize = { nodeId: selectedGate.id, ...range };
+    if (range.max > range.min) {
+      // The buttons are 11 board units across; on a touch screen keep them finger-sized however small the board is.
+      const scale = coarse ? Math.min(Math.max(TOUCH_BUTTON_RADIUS / (11 * pxPerUnit), 1), 2.5) : 1;
+      gateResize = { nodeId: selectedGate.id, ...range, scale };
+    }
   }
 
   const percent = Math.round(view.zoom * 100);

@@ -45,8 +45,8 @@ export interface BoardProps {
   /** Gate being dragged over the palette, about to be deleted. */
   deletingGateId?: string | null;
   draggingGateId?: string | null;
-  /** Show the input-count control on this gate, with the sizes it allows. */
-  gateResize?: { nodeId: string; min: number; max: number } | null;
+  /** Show the input-count control on this gate, with the sizes it allows. `scale` enlarges it for fingers. */
+  gateResize?: { nodeId: string; min: number; max: number; scale?: number } | null;
   onResizeGate?: (nodeId: string, inputs: number) => void;
 
   // Interaction
@@ -311,7 +311,7 @@ function Gate(props: {
   dragging: boolean;
   onPointerDown?: PointerHandler<string>;
   onFocusGate?: (id: string) => void;
-  resize: { min: number; max: number } | null;
+  resize: { min: number; max: number; scale?: number } | null;
   onResize?: (nodeId: string, inputs: number) => void;
   children: React.ReactNode;
 }) {
@@ -365,7 +365,7 @@ function Gate(props: {
       {resize && (
         <ResizeControl
           x={node.pos.x + GATE_W / 2}
-          y={node.pos.y - 22}
+          y={node.pos.y - 8 - 14 * (resize.scale ?? 1)}
           inputs={inputs}
           {...resize}
           onChange={(n) => onResize?.(node.id, n)}
@@ -382,9 +382,10 @@ function ResizeControl(props: {
   inputs: number;
   min: number;
   max: number;
+  scale?: number;
   onChange: (inputs: number) => void;
 }) {
-  const { x, y, inputs, min, max, onChange } = props;
+  const { x, y, inputs, min, max, scale = 1, onChange } = props;
   const button = (dx: number, label: string, next: number, name: string) => {
     const disabled = next < min || next > max;
     return (
@@ -408,7 +409,12 @@ function ResizeControl(props: {
   };
   return (
     // Hidden from assistive tech: keyboard users press + / − on the focused gate instead.
-    <g className={styles.resize} aria-hidden onPointerDown={(e) => e.stopPropagation()}>
+    <g
+      className={styles.resize}
+      aria-hidden
+      transform={scale === 1 ? undefined : `translate(${x} ${y}) scale(${scale}) translate(${-x} ${-y})`}
+      onPointerDown={(e) => e.stopPropagation()}
+    >
       <rect x={x - 58} y={y - 14} width={116} height={28} rx={14} />
       {button(-44, '−', inputs - 1, 'Fewer inputs')}
       <text className={styles.resizeLabel} x={x} y={y + 4}>

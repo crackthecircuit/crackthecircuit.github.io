@@ -16,6 +16,15 @@ describe('geometry', () => {
     expect(nearestPort(circuit, { x: p.x + 60, y: p.y })).toBeNull();
   });
 
+  it('reaches further for a finger when given a wider radius', () => {
+    const circuit = createStartingCircuit(level);
+    const a = circuit.nodes.find((n) => n.id === 'in-A')!;
+    const p = portPosition(a, 'out');
+    const beside = { x: p.x + 30, y: p.y };
+    expect(nearestPort(circuit, beside)).toBeNull();
+    expect(nearestPort(circuit, beside, 34)).toEqual({ nodeId: 'in-A', port: 'out' });
+  });
+
   it('snaps dropped gates to the grid and keeps them on the board', () => {
     expect(gatePositionAt({ x: 413, y: 247 })).toEqual({ x: 380, y: 220 });
     const corner = gatePositionAt({ x: -50, y: 5000 });

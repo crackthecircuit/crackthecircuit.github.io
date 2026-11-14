@@ -142,3 +142,49 @@
 .palette[data-delete] .deleteZone {
   opacity: 1;
 }
+
+/* Upright tablets: a row of compact gate buttons above the board. */
+@media (max-width: 900px) {
+  .heading,
+  .desc,
+  .tip {
+    display: none;
+  }
+
+  .list {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .list > li {
+    flex: 1 1 0;
+    min-width: 60px;
+    max-width: 120px;
+  }
+
+  .item {
+    flex-direction: column;
+    gap: 2px;
+    padding: var(--s-1) var(--s-2);
+    text-align: center;
+  }
+
+  .icon {
+    width: 44px;
+    height: 33px;
+  }
+
+  .text {
+    align-items: center;
+  }
+
+  .name {
+    font-size: 12px;
+  }
+
+  .deleteZone {
+    inset: calc(-1 * var(--s-1));
+    font-size: 13px;
+  }
+}
+

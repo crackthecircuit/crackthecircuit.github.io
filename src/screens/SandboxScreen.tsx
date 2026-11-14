@@ -126,13 +126,15 @@ export function SandboxScreen() {
       </header>
 
       <aside className={layout.left}>
-        <Palette
-          ref={paletteRef}
-          gates={level.palette}
-          deleteHover={deleteHover}
-          onGatePointerDown={onPalettePointerDown}
-          onGateActivate={onPaletteActivate}
-        />
+        <div className={layout.paletteSlot}>
+          <Palette
+            ref={paletteRef}
+            gates={level.palette}
+            deleteHover={deleteHover}
+            onGatePointerDown={onPalettePointerDown}
+            onGateActivate={onPaletteActivate}
+          />
+        </div>
       </aside>
 
       <main className={layout.center}>

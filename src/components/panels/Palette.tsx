@@ -55,7 +55,7 @@ export const Palette = forwardRef<HTMLElement, PaletteProps>(function Palette(pr
           </li>
         ))}
       </ul>
-      <p className={styles.tip}>Drag onto the board, or click to add.</p>
+      <p className={styles.tip}>Drag onto the board, or click or tap to add.</p>
       <div className={styles.deleteZone} aria-hidden>
         Drop to delete
       </div>

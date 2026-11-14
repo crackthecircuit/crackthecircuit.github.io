@@ -113,6 +113,8 @@
   grid-area: center;
   display: grid;
   grid-template-rows: minmax(0, 1fr) auto;
+  /* An explicit column, or the board's aspect-ratio would size it from its height and overflow. */
+  grid-template-columns: minmax(0, 1fr);
   min-width: 0;
 }
 
@@ -180,4 +182,127 @@
 
 .right {
   gap: var(--s-6);
+}
+
+/* Wrappers for the left panel's parts, so smaller layouts can place them apart. */
+.paletteSlot,
+.hintsSlot {
+  min-width: 0;
+}
+
+.left {
+  gap: var(--s-8);
+}
+
+/* ---------- Tablets in landscape, small laptops ---------- */
+@media (max-width: 1180px) {
+  /* The toolbar already shows the gate target. */
+  .headerRight > .par {
+    display: none;
+  }
+}
+
+/* ---------- Tablets held upright: one column that scrolls ---------- */
+@media (max-width: 900px) {
+  .screen {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto;
+    grid-template-areas:
+      'header'
+      'palette'
+      'center'
+      'right'
+      'hints';
+    height: auto;
+    min-height: 100%;
+  }
+
+  .header {
+    flex-wrap: wrap;
+    gap: var(--s-2) var(--s-3);
+    padding: var(--s-2) var(--s-3);
+  }
+
+  .titleBlock {
+    gap: var(--s-2);
+  }
+
+  .title {
+    font-size: 17px;
+  }
+
+  .headerRight {
+    gap: var(--s-2);
+  }
+
+  .best {
+    padding-left: var(--s-2);
+  }
+
+  /* The palette and hints become their own rows. */
+  .left {
+    display: contents;
+  }
+
+  .paletteSlot {
+    grid-area: palette;
+    padding: var(--s-3);
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-panel);
+  }
+
+  .hintsSlot {
+    grid-area: hints;
+    padding: var(--s-4) var(--s-3) var(--s-8);
+    border-top: 1px solid var(--border);
+    background: var(--bg-panel);
+  }
+
+  .right {
+    overflow: visible;
+    padding: var(--s-4) var(--s-3);
+    border-left: 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .boardArea {
+    aspect-ratio: 8 / 5;
+    min-height: 220px;
+    max-height: calc(100svh - 120px);
+  }
+
+  .toolbar {
+    flex-wrap: wrap;
+    gap: var(--s-2) var(--s-3);
+    padding: var(--s-2) var(--s-3);
+  }
+
+  .toolbar > button:last-child {
+    flex: 1 1 140px;
+  }
+
+  .tools {
+    flex-wrap: wrap;
+  }
+}
+
+/* Tablets held upright: objective and truth table beside the hints. */
+@media (min-width: 600px) and (max-width: 900px) {
+  .screen {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas:
+      'header header'
+      'palette palette'
+      'center center'
+      'right hints';
+  }
+
+  .hintsSlot {
+    border-left: 1px solid var(--border);
+  }
+
+  /* The sandbox has no hints, so its panel takes the whole row. */
+  .screen:not(:has(.hintsSlot)) .right {
+    grid-column: 1 / -1;
+  }
 }

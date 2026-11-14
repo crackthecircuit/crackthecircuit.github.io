@@ -74,9 +74,9 @@ export function HowToPlay({ open, onClose }: { open: boolean; onClose: () => voi
             <div>
               <h3>Build</h3>
               <p>
-                Drag gates from the palette onto the board, or click one to drop it in. Drag from one port to
-                another to wire them (or click one port, then the other). Drag a wire’s end away to disconnect
-                it.
+                Drag gates from the palette onto the board, or click (or tap) one to drop it in. Drag from one
+                port to another to wire them (or click one port, then the other). Drag a wire’s end away to
+                disconnect it. On a touch screen, pinch to zoom in on small ports.
               </p>
               <svg className={styles.gates} viewBox="0 0 280 60" aria-hidden>
                 {(['AND', 'OR', 'NOT'] as const).map((type, i) => (
@@ -92,8 +92,8 @@ export function HowToPlay({ open, onClose }: { open: boolean; onClose: () => voi
             <div>
               <h3>Run and debug</h3>
               <p>
-                Press <kbd>Space</kbd> to test every row. Click any row to light up its signals on the board:
-                amber wires carry a 1. Incomplete circuits won’t run; the problem parts pulse red.
+                Press <kbd>Space</kbd> or ▶ Run to test every row. Click any row to light up its signals on
+                the board: amber wires carry a 1. Incomplete circuits won’t run; the problem parts pulse red.
               </p>
             </div>
           </li>

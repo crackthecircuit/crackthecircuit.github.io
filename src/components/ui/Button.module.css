@@ -80,3 +80,14 @@
   border: 1px solid currentColor;
   opacity: 0.55;
 }
+
+/* Touch screens: taller buttons and no keyboard shortcut labels. */
+@media (pointer: coarse) {
+  .button {
+    height: 40px;
+  }
+
+  .kbd {
+    display: none;
+  }
+}

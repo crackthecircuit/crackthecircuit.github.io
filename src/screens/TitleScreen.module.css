@@ -334,3 +334,11 @@
 .item:focus-visible {
   outline: none;
 }
+
+/* Touch screens have no arrow keys to hint at. */
+@media (pointer: coarse) {
+  .hintKeys {
+    display: none;
+  }
+}
+

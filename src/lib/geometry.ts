@@ -60,10 +60,10 @@ export function allPorts(circuit: Circuit): (PortRef & { pos: Point })[] {
   });
 }
 
-/** The port nearest to `point` within the hit radius, if any. */
-export function nearestPort(circuit: Circuit, point: Point): PortRef | null {
+/** The port nearest to `point` within `radius` board units (a finger gets a wider one), if any. */
+export function nearestPort(circuit: Circuit, point: Point, radius = PORT_HIT_RADIUS): PortRef | null {
   let best: PortRef | null = null;
-  let bestDist = PORT_HIT_RADIUS;
+  let bestDist = radius;
   for (const p of allPorts(circuit)) {
     const d = Math.hypot(p.pos.x - point.x, p.pos.y - point.y);
     if (d <= bestDist) {
