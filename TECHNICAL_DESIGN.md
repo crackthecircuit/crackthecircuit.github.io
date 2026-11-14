@@ -42,7 +42,9 @@ src/
   `moveGate` once on release (dropping on the palette calls `removeGate`). A wire is drawn by dragging port → port,
   or by clicking one port then another. Pressing a connected input port picks up that wire's end:
   drop it on another input to reroute it (`moveWireEnd`), or on empty board to detach it. Drop targets are found with
-  `nearestPort` (22-unit radius), not by DOM hit-testing.
+  `nearestPort` (22-unit radius), not by DOM hit-testing. Workspace also owns the **view** (zoom/pan): a `{ zoom, center }`
+  that only changes the SVG `viewBox` (pure math in `src/lib/view.ts`), so stored positions stay in world units and
+  screen→world conversion keeps using `getScreenCTM()`.
 - **LevelScreen** owns the run. `simulate()` runs on Run/Space. The result belongs to the exact `Circuit` object that
   was run, so any edit makes it stale automatically. Rows reveal every 80ms while the board shows each row's signals.
   A pass then plays a ~650ms flowing-wire celebration and the result card. Any click or key skips the sweep.
@@ -56,7 +58,7 @@ type GateType = 'AND' | 'OR' | 'NOT' | 'NAND' | 'NOR' | 'XOR';
 type InputPortId = 'in0' | 'in1' | 'in2' | 'in3';   // top to bottom
 type PortId = InputPortId | 'out';
 
-// A node is a discriminated union on `kind`. Positions are world coordinates (ready for zoom/pan).
+// A node is a discriminated union on `kind`. Positions are world coordinates (zoom/pan only moves the view).
 type CircuitNode =
   | { id: string; kind: 'input'; label: string; pos: Point }   // switch, e.g. 'A'
   | { id: string; kind: 'output'; label: string; pos: Point }  // lamp, e.g. 'Q'

@@ -1,5 +1,5 @@
-// Board world coordinates. The SVG viewBox uses these units and scales to the window,
-// so zoom/pan can be added later without touching stored positions.
+// Board world coordinates. The SVG viewBox uses these units and scales to the window;
+// zoom/pan (src/lib/view.ts) only changes the viewBox, never stored positions.
 export const BOARD_WIDTH = 960;
 export const BOARD_HEIGHT = 600;
 export const GRID = 20;

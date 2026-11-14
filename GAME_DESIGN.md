@@ -121,7 +121,10 @@ the stars, gates used vs par, and **Next Level**.
   keys do the same. Narrowing removes wires on the ports that disappear. It's undoable like any edit.
 - **Undo/redo:** Ctrl+Z / Ctrl+Shift+Z for every edit.
 - **Reset:** clears the board straight away (terminals stay) and can be undone. There's no confirm dialog.
-- **Board:** fixed size and scaled to the window in the MVP. Zoom/pan is a week-3 extra.
+- **Board:** fixed size (960×600 world units) and fitted to the window at 100%. The mouse wheel or a trackpad/touch pinch
+  zooms at the pointer (50–300%). Dragging empty board pans while zoomed in (a press that doesn't move still clears the
+  selection). The `− 100% +` control in the board's corner zooms in steps, and clicking the percentage fits the board
+  again. Zoomed out, the whole board always stays in view. The view resets when a level opens and isn't saved.
 - **Devices:** desktop/laptop first (1280px+). Pointer Events give basic tablet touch, and phones see a "best on a larger screen" notice.
 - **Autosave:** each level's board is saved along with progress, and solved levels can be replayed for more stars.
 

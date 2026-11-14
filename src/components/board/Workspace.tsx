@@ -13,10 +13,13 @@ import {
   portPosition,
 } from '../../lib/geometry';
 import type { PortRef } from '../../lib/geometry';
+import { FIT_VIEW, MAX_ZOOM, MIN_ZOOM, panBy, viewBoxOf, ZOOM_STEP, zoomAround } from '../../lib/view';
+import type { View } from '../../lib/view';
 import { gateSizeRange } from '../../levels/rules';
 import { useCircuitStore } from '../../store/circuitStore';
 import { Board } from './Board';
 import type { BoardProps } from './Board';
+import styles from './Workspace.module.css';
 
 /** How far (in screen pixels) the pointer must travel before a press counts as a drag. */
 const DRAG_THRESHOLD = 4;
@@ -65,7 +68,20 @@ type WireDrag = {
   sticky: boolean;
 };
 
-type Drag = GateDrag | WireDrag;
+/** Dragging empty board pans the view; a press that doesn't move clears the selection. */
+type PanDrag = {
+  kind: 'pan';
+  start: Point;
+  from: View;
+  /** World units per screen pixel when the pan started. */
+  unitsPerPx: number;
+  moved: boolean;
+};
+
+type Drag = GateDrag | WireDrag | PanDrag;
+
+/** Wheel delta in pixels, whatever unit the device reports. */
+const wheelPixels = (e: WheelEvent) => e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 400 : 1);
 
 /** The interactive circuit editor: dragging gates, drawing and rerouting wires, selection. */
 export const Workspace = forwardRef<WorkspaceHandle, WorkspaceProps>(function Workspace(props, ref) {
@@ -86,13 +102,94 @@ export const Workspace = forwardRef<WorkspaceHandle, WorkspaceProps>(function Wo
   const deleteZoneRef = useRef(isOverDeleteZone);
   deleteZoneRef.current = isOverDeleteZone;
 
+  // Zoom/pan. Read by native listeners through the ref.
+  const [view, setViewState] = useState<View>(FIT_VIEW);
+  const viewRef = useRef(view);
+  const setView = (v: View) => {
+    viewRef.current = v;
+    setViewState(v);
+  };
+
   const clientToWorld = (clientX: number, clientY: number, clamp = false): Point | null => {
-    const ctm = svgRef.current?.getScreenCTM();
-    if (!ctm) return null;
+    const svg = svgRef.current;
+    const ctm = svg?.getScreenCTM();
+    if (!svg || !ctm) return null;
     const p = new DOMPoint(clientX, clientY).matrixTransform(ctm.inverse());
-    const inside = p.x >= 0 && p.y >= 0 && p.x <= BOARD_WIDTH && p.y <= BOARD_HEIGHT;
+    // Zoomed in, a point beside the board element can still map onto the world, so check the element too.
+    const r = svg.getBoundingClientRect();
+    const onElement = clientX >= r.left && clientX <= r.right && clientY >= r.top && clientY <= r.bottom;
+    const inside = onElement && p.x >= 0 && p.y >= 0 && p.x <= BOARD_WIDTH && p.y <= BOARD_HEIGHT;
     return inside || clamp ? { x: p.x, y: p.y } : null;
   };
+  const clientToWorldRef = useRef(clientToWorld);
+  clientToWorldRef.current = clientToWorld;
+
+  /** Zoom by `factor` around a screen point, or around the middle of the view. */
+  const zoomBy = (factor: number, client?: Point) => {
+    const v = viewRef.current;
+    const anchor = (client && clientToWorldRef.current(client.x, client.y, true)) || v.center;
+    setView(zoomAround(v, anchor, v.zoom * factor));
+  };
+  const zoomByRef = useRef(zoomBy);
+  zoomByRef.current = zoomBy;
+
+  // Wheel and trackpad pinch (a wheel event with ctrlKey) zoom at the pointer. React's onWheel is passive,
+  // so it can't stop the page from scrolling; use a native listener.
+  useEffect(() => {
+    const svg = svgRef.current;
+    if (!svg) return;
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const px = wheelPixels(e);
+      zoomByRef.current(Math.exp(-px * (e.ctrlKey ? 0.01 : 0.0015)), { x: e.clientX, y: e.clientY });
+    };
+    svg.addEventListener('wheel', onWheel, { passive: false });
+    return () => svg.removeEventListener('wheel', onWheel);
+  }, []);
+
+  // Two-finger pinch on a touch screen. Runs in the capture phase so the second finger never starts an edit.
+  useEffect(() => {
+    const svg = svgRef.current;
+    if (!svg) return;
+    const touches = new Map<number, Point>();
+    let pinch: { distance: number; from: View; anchor: Point } | null = null;
+    const spread = () => {
+      const [a, b] = [...touches.values()];
+      return a && b ? Math.hypot(a.x - b.x, a.y - b.y) : 0;
+    };
+    const onDown = (e: PointerEvent) => {
+      if (e.pointerType !== 'touch') return;
+      touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (touches.size !== 2) return;
+      e.stopPropagation();
+      dragRef.current = null;
+      setDragState(null);
+      const [a, b] = [...touches.values()] as [Point, Point];
+      const mid = clientToWorldRef.current((a.x + b.x) / 2, (a.y + b.y) / 2, true);
+      pinch = { distance: spread(), from: viewRef.current, anchor: mid ?? viewRef.current.center };
+    };
+    const onMove = (e: PointerEvent) => {
+      if (!touches.has(e.pointerId)) return;
+      touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (pinch && touches.size === 2 && pinch.distance > 0) {
+        setView(zoomAround(pinch.from, pinch.anchor, (pinch.from.zoom * spread()) / pinch.distance));
+      }
+    };
+    const onEnd = (e: PointerEvent) => {
+      touches.delete(e.pointerId);
+      if (touches.size < 2) pinch = null;
+    };
+    svg.addEventListener('pointerdown', onDown, true);
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onEnd);
+    window.addEventListener('pointercancel', onEnd);
+    return () => {
+      svg.removeEventListener('pointerdown', onDown, true);
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onEnd);
+      window.removeEventListener('pointercancel', onEnd);
+    };
+  }, []);
 
   useImperativeHandle(ref, () => ({
     clientToWorld: (x, y) => clientToWorld(x, y),
@@ -139,7 +236,14 @@ export const Workspace = forwardRef<WorkspaceHandle, WorkspaceProps>(function Wo
       const world = clientToWorld(e.clientX, e.clientY, true);
       if (!d || !world) return;
       const moved = d.moved || Math.hypot(e.clientX - d.start.x, e.clientY - d.start.y) > DRAG_THRESHOLD;
-      if (d.kind === 'wire') {
+      if (d.kind === 'pan') {
+        if (moved) {
+          const dx = (e.clientX - d.start.x) * d.unitsPerPx;
+          const dy = (e.clientY - d.start.y) * d.unitsPerPx;
+          setView(panBy(d.from, dx, dy));
+        }
+        if (moved !== d.moved) setDrag({ ...d, moved });
+      } else if (d.kind === 'wire') {
         setDrag({ ...d, pointer: world, moved });
       } else {
         const pos = gatePositionAt({
@@ -154,6 +258,11 @@ export const Workspace = forwardRef<WorkspaceHandle, WorkspaceProps>(function Wo
       const d = dragRef.current;
       if (!d) return;
       const store = useCircuitStore.getState();
+      if (d.kind === 'pan') {
+        setDrag(null);
+        if (!d.moved) store.select(null);
+        return;
+      }
       if (d.kind === 'gate') {
         setDrag(null);
         if (!d.moved) return;
@@ -186,9 +295,9 @@ export const Workspace = forwardRef<WorkspaceHandle, WorkspaceProps>(function Wo
     };
   }, [dragging]);
 
-  // Cancel any drag if editing gets locked (e.g. Run pressed mid-wire).
+  // Cancel any edit if editing gets locked (e.g. Run pressed mid-wire). Panning is only a view change.
   useEffect(() => {
-    if (locked) setDrag(null);
+    if (locked && dragRef.current?.kind !== 'pan') setDrag(null);
   }, [locked]);
 
   const gateOverDelete = drag?.kind === 'gate' && drag.overDelete;
@@ -240,9 +349,18 @@ export const Workspace = forwardRef<WorkspaceHandle, WorkspaceProps>(function Wo
     useCircuitStore.getState().select({ kind: 'wire', id });
   };
 
-  const onBackgroundPointerDown = () => {
+  const onBackgroundPointerDown = (e: ReactPointerEvent) => {
     if (dragRef.current?.kind === 'wire') return setDrag(null);
-    useCircuitStore.getState().select(null);
+    if (e.button !== 0 && e.button !== 1) return;
+    if (e.button === 1) e.preventDefault(); // no autoscroll on middle-drag
+    const ctm = svgRef.current?.getScreenCTM();
+    setDrag({
+      kind: 'pan',
+      start: { x: e.clientX, y: e.clientY },
+      from: viewRef.current,
+      unitsPerPx: ctm ? 1 / ctm.a : 1,
+      moved: false,
+    });
   };
 
   // What to draw this frame.
@@ -286,24 +404,61 @@ export const Workspace = forwardRef<WorkspaceHandle, WorkspaceProps>(function Wo
     if (range.max > range.min) gateResize = { nodeId: selectedGate.id, ...range };
   }
 
+  const percent = Math.round(view.zoom * 100);
   return (
-    <Board
-      {...display}
-      circuit={shown}
-      svgRef={svgRef}
-      selection={selection}
-      draftWire={draftWire}
-      hiddenWireId={drag?.kind === 'wire' ? drag.reroute?.wireId : undefined}
-      portHints={portHints}
-      shakePortKey={shake}
-      draggingGateId={drag?.kind === 'gate' && drag.moved ? drag.id : null}
-      deletingGateId={drag?.kind === 'gate' && drag.overDelete ? drag.id : null}
-      onPortPointerDown={onPortPointerDown}
-      onGatePointerDown={onGatePointerDown}
-      onWirePointerDown={onWirePointerDown}
-      onBackgroundPointerDown={onBackgroundPointerDown}
-      gateResize={gateResize}
-      onResizeGate={(id, n) => useCircuitStore.getState().setGateInputs(id, n)}
-    />
+    <>
+      <Board
+        {...display}
+        circuit={shown}
+        svgRef={svgRef}
+        viewBox={viewBoxOf(view)}
+        pannable={view.zoom > 1}
+        panning={drag?.kind === 'pan' && drag.moved}
+        selection={selection}
+        draftWire={draftWire}
+        hiddenWireId={drag?.kind === 'wire' ? drag.reroute?.wireId : undefined}
+        portHints={portHints}
+        shakePortKey={shake}
+        draggingGateId={drag?.kind === 'gate' && drag.moved ? drag.id : null}
+        deletingGateId={drag?.kind === 'gate' && drag.overDelete ? drag.id : null}
+        onPortPointerDown={onPortPointerDown}
+        onGatePointerDown={onGatePointerDown}
+        onWirePointerDown={onWirePointerDown}
+        onBackgroundPointerDown={onBackgroundPointerDown}
+        gateResize={gateResize}
+        onResizeGate={(id, n) => useCircuitStore.getState().setGateInputs(id, n)}
+      />
+      <div className={styles.zoom} role="group" aria-label="Zoom">
+        <button
+          type="button"
+          className={styles.zoomButton}
+          aria-label="Zoom out"
+          title="Zoom out (scroll wheel)"
+          disabled={view.zoom <= MIN_ZOOM}
+          onClick={() => zoomBy(1 / ZOOM_STEP)}
+        >
+          −
+        </button>
+        <button
+          type="button"
+          className={styles.zoomLevel}
+          aria-label={`Zoom ${percent}%. Fit the board`}
+          title="Fit the board"
+          onClick={() => setView(FIT_VIEW)}
+        >
+          {percent}%
+        </button>
+        <button
+          type="button"
+          className={styles.zoomButton}
+          aria-label="Zoom in"
+          title="Zoom in (scroll wheel)"
+          disabled={view.zoom >= MAX_ZOOM}
+          onClick={() => zoomBy(ZOOM_STEP)}
+        >
+          +
+        </button>
+      </div>
+    </>
   );
 });

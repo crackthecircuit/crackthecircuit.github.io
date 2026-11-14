@@ -14,6 +14,11 @@ type PointerHandler<T> = (target: T, event: ReactPointerEvent) => void;
 export interface BoardProps {
   circuit: Circuit;
   svgRef?: Ref<SVGSVGElement>;
+  /** Visible part of the world (zoom/pan). Defaults to the whole board. */
+  viewBox?: { x: number; y: number; width: number; height: number };
+  /** The background can be dragged to pan (zoomed in), and is being dragged now. */
+  pannable?: boolean;
+  panning?: boolean;
 
   // Simulation display
   /** Signal on each wire for the inspected truth-table row. Omit before a run. */
@@ -60,6 +65,9 @@ export function Board(props: BoardProps) {
   const {
     circuit,
     svgRef,
+    viewBox = { x: 0, y: 0, width: BOARD_WIDTH, height: BOARD_HEIGHT },
+    pannable,
+    panning,
     wireValues,
     inputValues,
     unusedGateIds = [],
@@ -124,24 +132,38 @@ export function Board(props: BoardProps) {
     <svg
       ref={svgRef}
       className={styles.board}
-      viewBox={`0 0 ${BOARD_WIDTH} ${BOARD_HEIGHT}`}
+      viewBox={`${viewBox.x} ${viewBox.y} ${viewBox.width} ${viewBox.height}`}
       preserveAspectRatio="xMidYMid meet"
       role="application"
       aria-label="Circuit board"
       data-wiring={flag(!!draftWire)}
       data-celebrate={flag(celebrate)}
+      data-pannable={flag(pannable)}
+      data-panning={flag(panning)}
     >
       <defs>
         <pattern id={gridId} width={GRID} height={GRID} patternUnits="userSpaceOnUse">
           <circle className={styles.gridDot} cx={GRID / 2} cy={GRID / 2} r={1.2} />
         </pattern>
       </defs>
+      {/* Everything around the board (visible when zoomed out) behaves like empty board. */}
       <rect
+        className={styles.background}
+        x={-BOARD_WIDTH * 4}
+        y={-BOARD_HEIGHT * 4}
+        width={BOARD_WIDTH * 9}
+        height={BOARD_HEIGHT * 9}
+        fill="transparent"
+        onPointerDown={onBackgroundPointerDown}
+      />
+      <rect
+        className={styles.background}
         width={BOARD_WIDTH}
         height={BOARD_HEIGHT}
         fill={`url(#${gridId})`}
         onPointerDown={onBackgroundPointerDown}
       />
+      <rect className={styles.frame} width={BOARD_WIDTH} height={BOARD_HEIGHT} aria-hidden />
 
       <g>
         {circuit.wires.map((w) => {
