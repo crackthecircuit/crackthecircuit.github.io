@@ -340,7 +340,7 @@ export function LevelScreen({ levelId }: { levelId: string }) {
               Reset
             </Button>
           </div>
-          <span className={styles.gateCount} data-over={gateCount > level.par || undefined}>
+          <span key={gateCount} className={styles.gateCount} data-over={gateCount > level.par || undefined}>
             {gateCount} gate{gateCount === 1 ? '' : 's'} · par {level.par}
           </span>
           <Button variant="primary" size="lg" shortcut="Space" disabled={locked || !ready} onClick={startRun}>

@@ -20,7 +20,18 @@ export function HowToPlay({ open, onClose }: { open: boolean; onClose: () => voi
     const dialog = ref.current;
     if (!dialog) return;
     if (open && !dialog.open) dialog.showModal();
-    if (!open && dialog.open) dialog.close();
+    if (!open && dialog.open) {
+      // Play the exit animation, then really close.
+      dialog.dataset.closing = 'true';
+      const t = window.setTimeout(() => {
+        delete dialog.dataset.closing;
+        if (dialog.open) dialog.close();
+      }, 160);
+      return () => {
+        window.clearTimeout(t);
+        delete dialog.dataset.closing;
+      };
+    }
   }, [open]);
 
   return (
@@ -29,6 +40,11 @@ export function HowToPlay({ open, onClose }: { open: boolean; onClose: () => voi
       className={styles.dialog}
       aria-labelledby="how-to-play-title"
       onClose={onClose}
+      onCancel={(e) => {
+        // Esc: let the parent close it so the exit animation can play.
+        e.preventDefault();
+        onClose();
+      }}
       onClick={(e) => e.target === e.currentTarget && onClose()} // click outside the panel
     >
       <div className={styles.panel}>

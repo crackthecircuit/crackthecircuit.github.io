@@ -127,6 +127,16 @@
   fill: var(--signal-on);
   stroke: var(--signal-on);
   filter: drop-shadow(0 0 10px var(--signal-on-glow));
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: lampBloom var(--t-slow) var(--ease-out);
+}
+
+@keyframes lampBloom {
+  30% {
+    transform: scale(1.18);
+    filter: drop-shadow(0 0 20px var(--signal-on-glow));
+  }
 }
 
 .terminal[data-error='true'] .lamp,
@@ -164,6 +174,27 @@
 
 .wireGroup {
   cursor: pointer;
+  animation: wireIn var(--t-panel) var(--ease-out) backwards;
+}
+
+@keyframes wireIn {
+  from {
+    opacity: 0;
+  }
+}
+
+/* New gates pop in. The outer group has no transform of its own, so this is safe while dragging. */
+.gate {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: gatePop var(--t-panel) var(--ease-pop) backwards;
+}
+
+@keyframes gatePop {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
 }
 
 /* Wide invisible stroke so thin wires are easy to click. */
@@ -216,6 +247,18 @@
   opacity: 0.6;
 }
 
+/* Shrinks while it is held over the palette, ready to be dropped. */
+.gate {
+  transition:
+    transform var(--t-panel) var(--ease-out),
+    opacity var(--t-panel) var(--ease-out);
+}
+
+.gate[data-deleting='true'] {
+  transform: scale(0.9);
+  opacity: 0.7;
+}
+
 .portGroup {
   cursor: crosshair;
   transition: opacity var(--t-fast) var(--ease-out);
@@ -258,6 +301,8 @@
 
 /* Success sweep: signal flows along every wire. */
 .board[data-celebrate='true'] .wire {
+  /* --delay (set per wire from its x position) makes the light travel left to right. */
+  transition-delay: var(--delay, 0ms);
   stroke: var(--signal-on);
   filter: drop-shadow(0 0 4px var(--signal-on-glow));
   stroke-dasharray: 10 8;

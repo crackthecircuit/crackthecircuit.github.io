@@ -13,6 +13,22 @@
   animation: dialogIn 260ms var(--ease-out);
 }
 
+.dialog[data-closing] {
+  animation: dialogOut 160ms ease-in forwards;
+}
+
+.dialog[data-closing]::backdrop {
+  opacity: 0;
+  transition: opacity 160ms ease-in;
+}
+
+@keyframes dialogOut {
+  to {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+}
+
 .dialog::backdrop {
   background: rgb(5 7 9 / 0.7);
   backdrop-filter: blur(4px);

@@ -139,6 +139,18 @@
   color: var(--text-3);
 }
 
+/* The element is re-keyed on every change of count, so this replays as gates are added or removed. */
+.gateCount {
+  display: inline-block;
+  animation: countBump var(--t-panel) var(--ease-pop);
+}
+
+@keyframes countBump {
+  from {
+    transform: scale(1.18);
+  }
+}
+
 .ghost {
   position: fixed;
   z-index: 50;

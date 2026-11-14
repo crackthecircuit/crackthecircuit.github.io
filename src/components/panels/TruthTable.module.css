@@ -112,12 +112,27 @@
   font-weight: 700;
 }
 
+.mark {
+  transform-origin: center;
+}
+
+.row[data-status] .mark {
+  animation: markPop var(--t-panel) var(--ease-pop) both;
+}
+
 .row[data-status='pass'] .mark {
   color: var(--ok);
 }
 
 .row[data-status='fail'] .mark {
   color: var(--err);
+}
+
+@keyframes markPop {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
 }
 
 .tip {

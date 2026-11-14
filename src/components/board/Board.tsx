@@ -136,6 +136,9 @@ export function Board(props: BoardProps) {
               <path
                 className={styles.wire}
                 d={d}
+                style={
+                  { '--delay': `${Math.round((from.pos.x / BOARD_WIDTH) * 300)}ms` } as React.CSSProperties
+                }
                 data-signal={signalAttr(wireValues?.[w.id])}
                 data-selected={flag(isSelected('wire', w.id))}
                 data-error={flag(errorWireIds.includes(w.id))}

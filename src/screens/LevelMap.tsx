@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import type { KeyboardEvent } from 'react';
 import { Button } from '../components/ui/Button';
 import { Stars } from '../components/ui/Stars';
@@ -39,9 +40,22 @@ function tracePath(from: number, to: number) {
   return `M ${edge} ${a.y} H ${edge + side * WRAP} V ${b.y} H ${b.x + (side * CHIP_W) / 2}`;
 }
 
+/** Level ids that were completed when the map was last shown, so the next visit can animate what changed. */
+let lastCompleted: Set<string> | null = null;
+
 export function LevelMap() {
   const go = useAppStore((s) => s.go);
   const stars = useProgressStore((s) => s.stars);
+  // Levels completed since the map was last shown: their trace lights up and the chip after them unlocks.
+  const [fresh] = useState(() => {
+    const ids = new Set<string>();
+    if (lastCompleted)
+      for (const id of Object.keys(stars)) if (stars[id] && !lastCompleted.has(id)) ids.add(id);
+    return ids;
+  });
+  useEffect(() => {
+    lastCompleted = new Set(Object.keys(stars).filter((id) => stars[id]));
+  }, [stars]);
   const isUnlocked = useProgressStore((s) => s.isUnlocked);
   const resetProgress = useProgressStore((s) => s.resetProgress);
   const total = Object.values(stars).reduce((a, b) => a + b, 0);
@@ -94,6 +108,7 @@ export function LevelMap() {
               key={`t${i}`}
               className={styles.trace}
               data-lit={stars[l.id] ? true : undefined}
+              data-fresh={fresh.has(l.id) || undefined}
               d={tracePath(i, i + 1)}
             />
           ))}
@@ -109,6 +124,7 @@ export function LevelMap() {
                 className={styles.chip}
                 data-state={state}
                 data-next={level.id === nextId || undefined}
+                data-fresh={(i > 0 && fresh.has(LEVELS[i - 1]!.id)) || undefined}
                 role="button"
                 tabIndex={unlocked ? 0 : -1}
                 aria-disabled={!unlocked}

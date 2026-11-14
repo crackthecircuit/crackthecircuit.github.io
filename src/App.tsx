@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { ScreenTransition } from './components/ScreenTransition';
 import { LevelMap } from './screens/LevelMap';
 import { LevelScreen } from './screens/LevelScreen';
 import { TitleScreen } from './screens/TitleScreen';
@@ -22,11 +23,13 @@ export function App() {
         Crack the Circuit is built for a laptop or desktop screen. Some things won’t fit here.
       </p>
       <div className={styles.screen}>
-        {screen.name === 'title' && <TitleScreen />}
-        {screen.name === 'map' && <LevelMap />}
-        {screen.name === 'level' && !lockedLevel && (
-          <LevelScreen key={screen.levelId} levelId={screen.levelId} />
-        )}
+        <ScreenTransition id={screen.name === 'level' ? `level-${screen.levelId}` : screen.name}>
+          {screen.name === 'title' && <TitleScreen />}
+          {screen.name === 'map' && <LevelMap />}
+          {screen.name === 'level' && !lockedLevel && (
+            <LevelScreen key={screen.levelId} levelId={screen.levelId} />
+          )}
+        </ScreenTransition>
       </div>
     </>
   );

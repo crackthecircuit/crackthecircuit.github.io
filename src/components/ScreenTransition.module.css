@@ -1,0 +1,23 @@
+.layer {
+  height: 100%;
+  animation: screenIn var(--t-screen) var(--ease-out) both;
+}
+
+.layer[data-leaving] {
+  animation: screenOut 180ms ease-in both;
+  pointer-events: none;
+}
+
+@keyframes screenIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@keyframes screenOut {
+  to {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}

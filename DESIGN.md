@@ -67,6 +67,15 @@ A sum never breaks inside a term: lines wrap only between terms.
 | Panels, cards | 200ms ease-out |
 | Success sweep | 80ms per truth-table row |
 | Rejected connection shake | 300ms |
+| Screen change | 180ms fade out, 280ms fade and slide in |
+| Gate placed | 200ms pop-in; new wires fade in over 200ms |
+| Success celebration | Wires light left to right (up to 300ms stagger) |
+| Truth-table ✓/✗, gate-count change | 200ms pop |
+| Stars on the result card | 400ms pop, 120ms apart |
+| Level map after a win | Trace draws in (700ms), then the next chip wakes up |
+| Dialog close | 160ms fade out |
+
+Looping animations run once under `prefers-reduced-motion`.
 
 The success sequence lasts about 1.5s and can be skipped.
 

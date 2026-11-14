@@ -14,3 +14,23 @@
   fill: var(--text-1);
   stroke: var(--text-1);
 }
+
+/* Lit stars pop in one after another. */
+.stars svg[data-on] {
+  animation: starPop var(--t-slow) var(--ease-pop) both;
+}
+
+.stars svg:nth-child(2) {
+  animation-delay: 120ms;
+}
+
+.stars svg:nth-child(3) {
+  animation-delay: 240ms;
+}
+
+@keyframes starPop {
+  from {
+    opacity: 0;
+    transform: scale(0.3) rotate(-20deg);
+  }
+}
