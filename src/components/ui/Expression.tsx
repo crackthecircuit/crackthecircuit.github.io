@@ -4,7 +4,7 @@ import { flatten, parseExpressions } from '../../engine';
 import type { Expr } from '../../engine';
 import styles from './Expression.module.css';
 
-// Precedence, loosest first: OR < XOR < AND < NOT/atoms (AND before OR, as in the lecture notes).
+// Precedence, loosest first: OR < XOR < AND < NOT/atoms (AND before OR, the standard convention).
 const PREC = { or: 1, xor: 2, and: 3 } as const;
 
 const isLiteral = (e: Expr) =>
@@ -37,7 +37,7 @@ function render(e: Expr, parentPrec: number): ReactNode {
     case 'or':
     case 'xor': {
       const prec = PREC[e.kind];
-      // Products of plain literals are written side by side (A̅BC̅), like the slides; anything else uses ·.
+      // Products of plain literals are written side by side (A̅BC̅), as in textbooks; anything else uses ·.
       const sep = e.kind === 'or' ? ' + ' : e.kind === 'xor' ? ' ⊕ ' : e.args.every(isLiteral) ? '' : '·';
       const body = e.args.map((arg, i) => (
         <Fragment key={i}>
@@ -50,7 +50,7 @@ function render(e: Expr, parentPrec: number): ReactNode {
   }
 }
 
-/** A Boolean expression in lecture notation: overbars for NOT, AB or A·B for AND, + for OR, ⊕ for XOR. */
+/** A Boolean expression in standard notation: overbars for NOT, AB or A·B for AND, + for OR, ⊕ for XOR. */
 export function Expression({ expr }: { expr: Expr }) {
   return <span className={styles.expr}>{render(flatten(expr), 0)}</span>;
 }

@@ -48,7 +48,7 @@ No other font families.
 
 ## Gates and wires
 - Gates use the **standard IEEE distinctive shapes** (D-shaped AND, curved OR, triangle + bubble for NOT, a bubble for
-  NAND/NOR, and the double curve for XOR), restyled cleanly with a small mono label underneath. These are the same symbols used in lectures.
+  NAND/NOR, and the double curve for XOR), restyled cleanly with a small mono label underneath. These are the standard symbols students learn in class.
 - **Wide gates** (3–4 inputs) stretch the same symbol vertically: the box grows 20 units per extra input, ports stay
   20 apart, and strokes keep their width (`vector-effect: non-scaling-stroke`). A selected widenable gate shows a
   `− N inputs +` pill above it, outlined in the focus colour.
@@ -56,7 +56,7 @@ No other font families.
 - Unused gates are dimmed and carry an "unused" tag.
 
 ## Boolean notation
-Expressions follow the lecture slides: NOT is an **overbar** (nested overbars stack), AND is written side by side
+Expressions use standard Boolean notation: NOT is an **overbar** (nested overbars stack), AND is written side by side
 (A̅BC̅) when every factor is a single variable and as A·B otherwise, OR is +, XOR is ⊕. Expressions use JetBrains Mono.
 A sum never breaks inside a term: lines wrap only between terms.
 

@@ -4,17 +4,17 @@
 It holds only decisions agreed in the design workshop. Discuss changes before you edit it.
 
 ## Academic scope
-Aligned with the BCIS 1302 Topic 10 slides (Dr. Noor Azura Zakaria, KICT). Learning objectives: the basic operations
-of Boolean algebra, and using a Karnaugh map to simplify a Boolean expression.
+Learning objectives: the basic operations of Boolean algebra, and simplifying a Boolean expression (algebra or a
+Karnaugh map).
 
-| Slide topic | Where it appears in the game |
+| Syllabus topic | Where it appears in the game |
 |---|---|
 | AND, OR, NOT; AND before OR | Levels 1–3; the live equation and hints use this precedence |
 | NAND, NOR, XOR; multi-input gates (XOR = odd number of 1s) | Levels 4–9, wide gates from level 12 |
 | Identities, De Morgan's theorem | Levels 5–6 and 16 (hints show the De Morgan step) |
 | Combinational circuit = truth table + graphical symbols + Boolean equation | Truth table, board, and the live **Your circuit** equation |
 | Sum of products / product of sums | Levels 10, 13 and 17 are SOP-shaped puzzles; hint 2 of levels 16 and 17 shows each answer's SOP and POS forms |
-| Algebraic simplification, K-maps (2–4 variables) | Stars reward fewer gates, so simplifying earns 3★. Levels 16–18 use the slides' example functions; level 18's hint mentions K-map grouping |
+| Algebraic simplification, K-maps (2–4 variables) | Stars reward fewer gates, so simplifying earns 3★. Levels 16–18 reward simplifying; level 18's hint mentions K-map grouping |
 
 BCIS 1302, Topic 10 (Digital Logic): Boolean algebra, truth tables, Boolean expressions and combinational
 circuits built from AND, OR, NOT, NAND, NOR and XOR gates.
@@ -64,9 +64,9 @@ and that restriction is where the puzzle comes from.
 | 13 | Two Pairs: A·B + C·D | AND, OR (≤4) | 3 | Sum of products; widening doesn't help |
 | 14 | Even Count (even number of switches on) | XOR (≤4), NOT | 2 | ¬(A⊕B⊕C⊕D); wide XOR as parity |
 | 15 | Security System: armed · (door + window) · ¬maintenance | AND, OR, NOT (≤3) | 3 | Word problem; A·(B+C)·¬D with a 3-input AND |
-| 16 | Smart Lamp: on with B, off when curtains open (A) and daytime (C) | AND, OR, NOT (≤3) | 3 | B(AC)'; the slides' SOP example A'BC' + A'BC + ABC', simplified |
-| 17 | Selector Switch: B picks whether Q copies A or C | AND, OR, NOT | 4 | AB' + BC, the slides' POS example (A + B)(B' + C) |
-| 18 | Vending Machine: powered, and coin in coin mode or card in card mode | AND, OR, NOT (≤3) | 4 | BC'D + ACD, the slides' 4-variable K-map example |
+| 16 | Smart Lamp: on with B, off when curtains open (A) and daytime (C) | AND, OR, NOT (≤3) | 3 | B(AC)', the simplified form of A'BC' + A'BC + ABC' |
+| 17 | Selector Switch: B picks whether Q copies A or C | AND, OR, NOT | 4 | AB' + BC, equivalent to the POS form (A + B)(B' + C) |
+| 18 | Vending Machine: powered, and coin in coin mode or card in card mode | AND, OR, NOT (≤3) | 4 | BC'D + ACD, found by grouping a 4-variable K-map |
 
 Par values will be tuned in playtesting. Each level ships with a reference solution that meets par (verified by tests).
 
@@ -87,7 +87,7 @@ Hints never place gates for the player.
 ## Representations
 - **Truth table:** the target is always shown as a truth table. A K-map view was tried and removed to keep levels
   focused on building. Simplifying with a K-map is left to the player, as in the exam.
-- **Your circuit:** the player's circuit is read back as a live Boolean equation in lecture notation (overbar for NOT,
+- **Your circuit:** the player's circuit is read back as a live Boolean equation in standard notation (overbar for NOT,
   AB or A·B for AND, + for OR, ⊕ for XOR). Unconnected inputs show as a red ?, and feedback loops as ↻.
 - **Hints and briefs** write expressions in the same notation.
 

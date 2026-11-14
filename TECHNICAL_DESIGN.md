@@ -134,7 +134,7 @@ The UI is checked by a manual playtest checklist and by browser checks through P
 
 ## Boolean expressions
 `src/engine/expression.ts` holds an `Expr` tree with three uses:
-- `parseExpressions()` reads lecture notation: juxtaposition or `·` for AND, `+` for OR, `⊕` for XOR, postfix `'` or
+- `parseExpressions()` reads standard Boolean notation: juxtaposition or `·` for AND, `+` for OR, `⊕` for XOR, postfix `'` or
   prefix `¬` for NOT, and chains of equal forms joined by `=`.
 - `circuitExpression()` reads the player's circuit backwards from the output into an `Expr`. Unconnected inputs become
   `unknown` and feedback loops become `loop`, never 0.

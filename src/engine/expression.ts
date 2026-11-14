@@ -1,6 +1,6 @@
-// Boolean expressions, in the notation used in the BCIS 1302 lecture slides:
+// Boolean expressions, in standard textbook notation:
 //   A·B or AB (AND, binds tighter than OR) · A + B (OR) · A ⊕ B (XOR) · A' or ¬A (NOT, drawn as an overbar).
-// Used to show hints/briefs in lecture notation and to describe the player's own circuit as an equation.
+// Used to show hints/briefs in that notation and to describe the player's own circuit as an equation.
 import { gateInputCount, INPUT_PORTS } from './gates';
 import type { Circuit, Level } from './types';
 
@@ -186,7 +186,7 @@ export function circuitExpression(circuit: Circuit, level: Level, output = level
   return exprOf(driver.get(`${outNode.id}:in0`), new Set());
 }
 
-/** Merge nested ANDs/ORs/XORs (A·(B·C) → A·B·C) so the equation reads like the lecture notes. */
+/** Merge nested ANDs/ORs/XORs (A·(B·C) → A·B·C) so the equation reads the way it is usually written. */
 export function flatten(e: Expr): Expr {
   switch (e.kind) {
     case 'not':

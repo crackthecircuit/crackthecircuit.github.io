@@ -19,7 +19,7 @@ const B = v('B');
 const C = v('C');
 
 describe('parseExpression', () => {
-  it('reads lecture notation: juxtaposition, postfix complement and AND-before-OR', () => {
+  it('reads standard notation: juxtaposition, postfix complement and AND-before-OR', () => {
     expect(parseExpression("A'BC' + A'BC")).toEqual(or(and(not(A), B, not(C)), and(not(A), B, C)));
     expect(parseExpression('A·B + C')).toEqual(or(and(A, B), C));
     expect(parseExpression('A + B·C')).toEqual(or(A, and(B, C)));

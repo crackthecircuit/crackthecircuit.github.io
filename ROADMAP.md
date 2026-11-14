@@ -1,8 +1,9 @@
 # Crack the Circuit — Roadmap
 
 > **Status: Weeks 1–2 done: the MVP is playable at https://crackthecircuit.github.io.** Added after the MVP for the
-> syllabus: levels 11–15 (4 inputs, 16 rows), gates widenable to 3–4 inputs, and (from the Topic 10 slides) a live
-> Boolean equation of the player's circuit, lecture notation, and levels 16–18 (scenario puzzles built on the slides' SOP, POS and K-map examples).
+> syllabus: levels 11–15 (4 inputs, 16 rows), gates widenable to 3–4 inputs, a live
+> Boolean equation of the player's circuit, standard Boolean notation, and levels 16–18 (scenario puzzles that reward
+> SOP/POS and K-map simplification).
 > **Decision:** stick to the core game. Remaining time goes to polish and playtesting the 18 levels. Sandbox/creative mode
 > and zoom/pan are optional ideas, not planned.
 
