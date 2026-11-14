@@ -163,3 +163,20 @@
     grid-template-columns: 210px minmax(0, 1fr) 280px;
   }
 }
+
+/* The player's circuit, read back as a Boolean equation (updates live). */
+.equation p {
+  margin: var(--s-3) 0 0;
+  padding: var(--s-2) var(--s-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+  font-family: var(--font-mono);
+  font-size: 15px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.right {
+  gap: var(--s-6);
+}

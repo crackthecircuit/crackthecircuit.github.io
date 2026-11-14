@@ -1,4 +1,4 @@
-import { rowInputs } from '../engine';
+import { evaluateExpr, parseExpression, rowInputs } from '../engine';
 import type { Bit, Level } from '../engine';
 
 /**
@@ -28,6 +28,12 @@ function level(
 /** How many inputs are 1 in a row. */
 const onCount = (v: Record<string, Bit>) => Object.values(v).filter((b) => b === 1).length;
 
+/** A level rule taken from a written expression, so the brief and the truth table can never disagree. */
+const fromExpression = (src: string) => {
+  const expr = parseExpression(src);
+  return (v: Record<string, Bit>) => evaluateExpr(expr, v) === 1;
+};
+
 const AB = ['A', 'B'];
 const ABC = ['A', 'B', 'C'];
 const ABCD = ['A', 'B', 'C', 'D'];
@@ -42,7 +48,7 @@ export const LEVELS: Level[] = [
     rule: ({ A, B }) => A === 1 && B === 1,
     hints: [
       'Drag the AND gate onto the board, then wire A and B into it and its output into Q.',
-      'Q = A · B',
+      'Q = $AB$',
       'One gate is all you need.',
     ],
   }),
@@ -55,7 +61,7 @@ export const LEVELS: Level[] = [
     rule: ({ A, B }) => A === 1 || B === 1,
     hints: [
       'Read the truth table: Q is 0 in only one row. Which row is it?',
-      'Q = A + B',
+      'Q = $A + B$',
       'One OR gate, with A and B as its inputs.',
     ],
   }),
@@ -66,7 +72,7 @@ export const LEVELS: Level[] = [
     palette: ['NOT'],
     par: 1,
     rule: ({ A }) => A === 0,
-    hints: ['A NOT gate flips its single input: 0 becomes 1, and 1 becomes 0.', 'Q = ¬A', 'A → NOT → Q.'],
+    hints: ['A NOT gate flips its single input: 0 becomes 1, and 1 becomes 0.', "Q = $A'$", 'A → NOT → Q.'],
   }),
   level(4, {
     title: 'Not Both',
@@ -77,7 +83,7 @@ export const LEVELS: Level[] = [
     rule: ({ A, B }) => !(A === 1 && B === 1),
     hints: [
       'Compare this truth table with level 1. Every output is flipped.',
-      'Q = ¬(A · B)',
+      "Q = $(AB)'$",
       'Feed the AND gate’s output into a NOT gate.',
     ],
   }),
@@ -90,7 +96,7 @@ export const LEVELS: Level[] = [
     rule: ({ A, B }) => !(A === 1 || B === 1),
     hints: [
       'Compare this truth table with level 2. Every output is flipped.',
-      'Q = ¬(A + B)',
+      "Q = $(A + B)'$",
       'Feed the OR gate’s output into a NOT gate.',
     ],
   }),
@@ -103,7 +109,7 @@ export const LEVELS: Level[] = [
     rule: ({ A, B }) => A === 1 || B === 1,
     hints: [
       'Wire the same signal into both inputs of a NAND. What does it do then?',
-      'Q = A + B = ¬(¬A · ¬B)  (De Morgan)',
+      "Q = $A + B = (A'B')'$ (De Morgan)",
       'Two NANDs act as NOT A and NOT B; a third NAND combines them.',
     ],
   }),
@@ -116,7 +122,7 @@ export const LEVELS: Level[] = [
     rule: ({ A, B, C }) => (A === 1 && B === 1) || C === 1,
     hints: [
       'Three inputs means 8 rows. Look at the rows where C = 1 first.',
-      'Q = (A · B) + C',
+      'Q = $AB + C$',
       'One AND for A and B, then OR its result with C.',
     ],
   }),
@@ -130,7 +136,7 @@ export const LEVELS: Level[] = [
     rule: ({ A, B }) => A !== B,
     hints: [
       'It’s like OR, except the row where both are on must be 0.',
-      'Q = (A + B) · ¬(A · B)',
+      "Q = $(A + B)(AB)'$",
       'OR the inputs, NOT the AND of the inputs, then AND those two results.',
     ],
   }),
@@ -143,7 +149,7 @@ export const LEVELS: Level[] = [
     rule: (v) => onCount(v) % 2 === 1,
     hints: [
       'XOR is 1 when its two inputs differ, so it tracks whether a count is odd.',
-      'Q = A ⊕ B ⊕ C',
+      'Q = $A ⊕ B ⊕ C$',
       'XOR two switches, then XOR the result with the third.',
     ],
   }),
@@ -157,8 +163,8 @@ export const LEVELS: Level[] = [
     rule: (v) => onCount(v) >= 2,
     hints: [
       'List the pairs of guards that could open it together. Any one pair is enough.',
-      'Q = A·B + A·C + B·C',
-      'Factor it: A·(B + C) + B·C needs just four gates.',
+      'Q = $AB + AC + BC$',
+      'Factor it: $A(B + C) + BC$ needs just four gates.',
     ],
   }),
   level(11, {
@@ -170,8 +176,8 @@ export const LEVELS: Level[] = [
     rule: (v) => onCount(v) === 4,
     hints: [
       'Each AND only takes two inputs. How can one AND’s result feed into the next?',
-      'Q = A · B · C · D = ((A · B) · C) · D',
-      'Chain three ANDs: A·B, then with C, then with D.',
+      'Q = $ABCD$',
+      'Chain three ANDs: $AB$, then with C, then with D.',
     ],
   }),
   level(12, {
@@ -185,7 +191,7 @@ export const LEVELS: Level[] = [
     rule: (v) => onCount(v) > 0,
     hints: [
       'An OR with more inputs is 1 when any of them is 1.',
-      'Q = A + B + C + D',
+      'Q = $A + B + C + D$',
       'Place one OR, select it, and press + twice to give it four inputs.',
     ],
   }),
@@ -199,7 +205,7 @@ export const LEVELS: Level[] = [
     rule: ({ A, B, C, D }) => (A === 1 && B === 1) || (C === 1 && D === 1),
     hints: [
       'Treat each pair separately, then combine the two answers.',
-      'Q = A·B + C·D',
+      'Q = $AB + CD$',
       'One AND per pair, then one OR. Wider gates won’t help here.',
     ],
   }),
@@ -213,7 +219,7 @@ export const LEVELS: Level[] = [
     rule: (v) => onCount(v) % 2 === 0,
     hints: [
       'A wide XOR is 1 when an odd number of its inputs are 1.',
-      'Q = ¬(A ⊕ B ⊕ C ⊕ D)',
+      "Q = $(A ⊕ B ⊕ C ⊕ D)'$",
       'One 4-input XOR, then a NOT.',
     ],
   }),
@@ -228,8 +234,52 @@ export const LEVELS: Level[] = [
     rule: ({ A, B, C, D }) => A === 1 && (B === 1 || C === 1) && D === 0,
     hints: [
       'Three conditions must all hold at once. Write each one as its own signal first.',
-      'Q = A · (B + C) · ¬D',
+      "Q = $A(B + C)D'$",
       'An OR for door/window and a NOT for maintenance, then one 3-input AND joins all three.',
+    ],
+  }),
+  level(16, {
+    title: 'Simplify It',
+    brief:
+      "From the lecture: $Q = A'BC' + A'BC + ABC'$. Built exactly as written it takes 7 gates. Simplify it first, with Boolean algebra or the K-map view, to crack it in 3.",
+    inputs: ABC,
+    palette: ['AND', 'OR', 'NOT'],
+    maxGateInputs: 3,
+    par: 3,
+    rule: fromExpression("A'BC' + A'BC + ABC'"),
+    hints: [
+      "Factor $A'B$ out of the first two terms: $C' + C = 1$.",
+      "Q = $B(A' + C') = B(AC)'$ (De Morgan)",
+      'AND A with C, NOT the result, then AND it with B: three gates.',
+    ],
+  }),
+  level(17, {
+    title: 'Product of Sums',
+    brief:
+      "This one is written as a product of sums: $Q = (A + B)(B' + C)$. Each bracket is an OR; the brackets are ANDed together.",
+    inputs: ABC,
+    palette: ['AND', 'OR', 'NOT'],
+    par: 4,
+    rule: fromExpression("(A + B)(B' + C)"),
+    hints: [
+      'POS form: OR inside each bracket, AND between the brackets.',
+      "Q = $(A + B)(B' + C) = AB' + BC$",
+      "One NOT for B', two ORs for the brackets, one AND to join them.",
+    ],
+  }),
+  level(18, {
+    title: 'K-Map Challenge',
+    brief:
+      "Four minterms: $Q = A'BC'D + ABC'D + ABCD + AB'CD$. Switch the truth table to K-map view and group the 1s before you build.",
+    inputs: ABCD,
+    palette: ['AND', 'OR', 'NOT'],
+    maxGateInputs: 3,
+    par: 4,
+    rule: fromExpression("A'BC'D + ABC'D + ABCD + AB'CD"),
+    hints: [
+      'In the K-map, every 1 has a neighbouring 1. Find two groups of two (groups may overlap).',
+      "Q = $BC'D + ACD$",
+      'One NOT for C, two 3-input ANDs, one OR.',
     ],
   }),
 ];

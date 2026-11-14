@@ -31,6 +31,12 @@ The approved specs are the source of truth. Read the relevant one before changin
 - Pushing to `main` runs `.github/workflows/deploy.yml` (typecheck, lint, test, build) and deploys to GitHub Pages.
 - ESLint blocks React/store/component imports inside `src/engine/`.
 
+## Level text
+Briefs and hints write Boolean expressions in lecture notation between dollar signs, e.g. `"Q = $(AB)' + C$"`. Use
+`'` for complement and juxtaposition for AND. Hint 2 must state the level's expression, and `levels.test.ts` checks it
+against the truth table. To build a replacement string in a script, pass a function to `String.replace`: `$'` in a
+replacement string means "the rest of the input".
+
 ## Architecture rules
 - `src/engine/` is **pure TypeScript with no React or DOM imports**. Validation, simulation and scoring live only there,
   and the UI calls the engine instead of re-implementing logic. The UI reads per-row `wireValues` from the engine result.

@@ -22,7 +22,7 @@ the engine and the UI be built in parallel.
 ## Folder structure
 ```
 src/
-  engine/      types.ts · gates.ts · validate.ts · simulate.ts · score.ts · __tests__/
+  engine/      types.ts · gates.ts · validate.ts · simulate.ts · score.ts · expression.ts · __tests__/
   levels/      levels.ts (level data) · solutions.ts (reference circuits, tests only) · startingCircuit.ts
   store/       appStore.ts (screen + URL hash) · circuitStore.ts (board, selection, undo)
                progressStore.ts + persistence.ts (stars, unlocks, autosaved boards)
@@ -32,6 +32,7 @@ src/
     ui/        Button · Stars
   screens/     TitleScreen · LevelMap · LevelScreen (run flow, sweep, shortcuts, palette drag)
   lib/         board.ts (960×600 world, grid) · geometry.ts (ports, wire paths, hit-testing, placement)
+               kmap.ts (Gray-code K-map layout)
   styles/      tokens.css · global.css
 ```
 
@@ -131,6 +132,18 @@ Vitest unit tests cover:
 - progress load, version mismatch and corrupt-data fallback.
 
 The UI is checked by a manual playtest checklist and by browser checks through Playwright MCP (see CLAUDE.md).
+
+## Boolean expressions
+`src/engine/expression.ts` holds an `Expr` tree with three uses:
+- `parseExpressions()` reads lecture notation: juxtaposition or `·` for AND, `+` for OR, `⊕` for XOR, postfix `'` or
+  prefix `¬` for NOT, and chains of equal forms joined by `=`.
+- `circuitExpression()` reads the player's circuit backwards from the output into an `Expr`. Unconnected inputs become
+  `unknown` and feedback loops become `loop`, never 0.
+- `evaluateExpr()` evaluates an `Expr`. Lecture-example levels define their truth table with `fromExpression("…")`,
+  so the brief and the table can't disagree.
+
+Level text (briefs and hints) embeds expressions between dollar signs (`"Q = $A'B + AB'$"`), and `RichText` renders them.
+`levels.test.ts` parses every embedded expression and checks that **hint 2's expressions match the level's truth table**.
 
 ## Deployment
 `.github/workflows/deploy.yml` runs typecheck, lint, tests and build on every push and pull request. Pushes to `main`

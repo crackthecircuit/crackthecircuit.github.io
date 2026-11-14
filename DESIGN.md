@@ -55,6 +55,11 @@ No other font families.
 - Wires are **smooth bezier curves** from port to port.
 - Unused gates are dimmed and carry an "unused" tag.
 
+## Boolean notation
+Expressions follow the lecture slides: NOT is an **overbar** (nested overbars stack), AND is written side by side
+(A̅BC̅) when every factor is a single variable and as A·B otherwise, OR is +, XOR is ⊕. Expressions use JetBrains Mono.
+A sum never breaks inside a term: lines wrap only between terms.
+
 ## Motion
 | Interaction | Timing |
 |---|---|

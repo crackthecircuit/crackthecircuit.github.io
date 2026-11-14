@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { PointerEvent as ReactPointerEvent } from 'react';
-import { countGates, gateInputCount, score, simulate } from '../engine';
+import { circuitExpression, countGates, gateInputCount, score, simulate } from '../engine';
 import type { Circuit, GateType, SimulationResult } from '../engine';
 import { GateShape } from '../components/board/GateShape';
 import { Workspace } from '../components/board/Workspace';
@@ -11,6 +11,7 @@ import { Problems } from '../components/panels/Problems';
 import { ResultCard } from '../components/panels/ResultCard';
 import { TruthTable } from '../components/panels/TruthTable';
 import { Button } from '../components/ui/Button';
+import { Expression, RichText } from '../components/ui/Expression';
 import { Stars } from '../components/ui/Stars';
 import { freeGatePosition, GATE_H, GATE_W, gatePositionAt } from '../lib/geometry';
 import { getLevel, LEVELS } from '../levels/levels';
@@ -337,8 +338,18 @@ export function LevelScreen({ levelId }: { levelId: string }) {
       <aside className={styles.right}>
         <section className={styles.brief}>
           <h2 className={styles.sectionHeading}>Objective</h2>
-          <p>{level.brief}</p>
+          <p>
+            <RichText text={level.brief} />
+          </p>
         </section>
+        {ready && (
+          <section className={styles.equation} aria-label="Your circuit as a Boolean equation">
+            <h2 className={styles.sectionHeading}>Your circuit</h2>
+            <p>
+              {level.outputs[0]} = <Expression expr={circuitExpression(circuit, level)} />
+            </p>
+          </section>
+        )}
         <TruthTable
           level={level}
           rows={rows}

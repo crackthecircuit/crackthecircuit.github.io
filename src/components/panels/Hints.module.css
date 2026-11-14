@@ -50,10 +50,6 @@
   color: var(--text-3);
 }
 
-.expression {
-  font-family: var(--font-mono);
-  font-size: 14px;
-}
 
 .reveal {
   padding: var(--s-2) var(--s-3);

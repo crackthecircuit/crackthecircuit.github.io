@@ -4,6 +4,18 @@
 It holds only decisions agreed in the design workshop. Discuss changes before you edit it.
 
 ## Academic scope
+Aligned with the BCIS 1302 Topic 10 slides (Dr. Noor Azura Zakaria, KICT). Learning objectives: the basic operations
+of Boolean algebra, and using a Karnaugh map to simplify a Boolean expression.
+
+| Slide topic | Where it appears in the game |
+|---|---|
+| AND, OR, NOT; AND before OR | Levels 1–3; the live equation and hints use this precedence |
+| NAND, NOR, XOR; multi-input gates (XOR = odd number of 1s) | Levels 4–9, wide gates from level 12 |
+| Identities, De Morgan's theorem | Levels 5–6 and 16 (hints show the De Morgan step) |
+| Combinational circuit = truth table + graphical symbols + Boolean equation | Truth table, board, and the live **Your circuit** equation |
+| Sum of products / product of sums | Levels 10, 13 (SOP), 16 (canonical SOP), 17 (POS) |
+| Algebraic simplification, K-maps (2–4 variables) | Stars reward fewer gates; the **K-map view**; levels 16 and 18 use the slides' own examples |
+
 BCIS 1302, Topic 10 (Digital Logic): Boolean algebra, truth tables, Boolean expressions and combinational
 circuits built from AND, OR, NOT, NAND, NOR and XOR gates.
 **Out of scope:** sequential logic, flip-flops, memory and CPU architecture.
@@ -49,6 +61,9 @@ and that restriction is where the puzzle comes from.
 | 13 | Two Pairs: A·B + C·D | AND, OR (≤4) | 3 | Sum of products; widening doesn't help |
 | 14 | Even Count (even number of switches on) | XOR (≤4), NOT | 2 | ¬(A⊕B⊕C⊕D); wide XOR as parity |
 | 15 | Security System: armed · (door + window) · ¬maintenance | AND, OR, NOT (≤3) | 3 | Word problem; A·(B+C)·¬D with a 3-input AND |
+| 16 | Simplify It: A'BC' + A'BC + ABC' (lecture SOP example) | AND, OR, NOT (≤3) | 3 | Simplification: built as written it takes 7 gates; B(AC)' takes 3 |
+| 17 | Product of Sums: (A + B)(B' + C) (lecture POS example) | AND, OR, NOT | 4 | Reading POS form |
+| 18 | K-Map Challenge: A'BC'D + ABC'D + ABCD + AB'CD (lecture K-map example) | AND, OR, NOT (≤3) | 4 | K-map grouping → BC'D + ACD |
 
 Par values will be tuned in playtesting. Each level ships with a reference solution that meets par (verified by tests).
 
@@ -65,6 +80,14 @@ Up to 3 per level, each revealed on demand:
 3. A structure / gate-count clue.
 
 Hints never place gates for the player.
+
+## Representations
+- **Truth table / K-map:** the target can be shown as a table or a Karnaugh map (2–4 inputs, Gray-code axes laid out
+  like the slides: AB across for 2 variables, A × BC for 3, AB × CD for 4). After a run, K-map cells are tinted
+  pass/fail and can be clicked to inspect, like table rows. The chosen view is remembered per browser.
+- **Your circuit:** the player's circuit is read back as a live Boolean equation in lecture notation (overbar for NOT,
+  AB or A·B for AND, + for OR, ⊕ for XOR). Unconnected inputs show as a red ?, and feedback loops as ↻.
+- **Hints and briefs** write expressions in the same notation.
 
 ## Mistakes and feedback
 - **Failed run:** each row is marked ✓/✗. Clicking a row inspects that input and shows each wire as 0 or 1.

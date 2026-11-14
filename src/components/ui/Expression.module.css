@@ -1,0 +1,27 @@
+.expr {
+  font-family: var(--font-mono);
+  font-size: 0.95em;
+  white-space: normal;
+}
+
+.var {
+  font-weight: 600;
+}
+
+/* NOT as an overbar. Inline-block so nested overbars stack instead of overlapping. */
+.bar {
+  display: inline-block;
+  padding-top: 2px;
+  border-top: 1.5px solid currentColor;
+  line-height: 1.15;
+}
+
+.unknown {
+  color: var(--err);
+  font-weight: 700;
+}
+
+/* Keep each term of a sum together; lines may only break between terms. */
+.term {
+  white-space: nowrap;
+}

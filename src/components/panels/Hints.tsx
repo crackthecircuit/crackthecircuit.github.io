@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { RichText } from '../ui/Expression';
 import styles from './Hints.module.css';
 
 const TIER_NAMES = ['Nudge', 'Expression', 'Structure'];
@@ -18,7 +19,9 @@ export function Hints({ hints }: { hints: readonly string[] }) {
         {hints.slice(0, shown).map((hint, i) => (
           <li key={i} className={styles.hint}>
             <span className={styles.tier}>{TIER_NAMES[i]}</span>
-            <span className={i === 1 ? styles.expression : undefined}>{hint}</span>
+            <span>
+              <RichText text={hint} />
+            </span>
           </li>
         ))}
       </ol>

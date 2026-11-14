@@ -1,13 +1,21 @@
 import { describe, expect, it } from 'vitest';
-import { countGates, GATE_TYPES, gateInputCount, simulate } from '../engine';
+import {
+  countGates,
+  evaluateExpr,
+  GATE_TYPES,
+  gateInputCount,
+  parseExpressions,
+  rowInputs,
+  simulate,
+} from '../engine';
 import { LEVELS } from './levels';
 import { gateSizeRange } from './rules';
 import { buildCircuit, SOLUTIONS } from './solutions';
 import { isUsableBoard } from './startingCircuit';
 
 describe('level data', () => {
-  it('has 15 levels numbered 1–15 with unique ids', () => {
-    expect(LEVELS.map((l) => l.number)).toEqual(Array.from({ length: 15 }, (_, i) => i + 1));
+  it('has 18 levels numbered 1–18 with unique ids', () => {
+    expect(LEVELS.map((l) => l.number)).toEqual(Array.from({ length: 18 }, (_, i) => i + 1));
     expect(new Set(LEVELS.map((l) => l.id)).size).toBe(LEVELS.length);
   });
 
@@ -30,6 +38,22 @@ describe('level data', () => {
         expect(level.palette.length).toBeGreaterThan(0);
         for (const g of level.palette) expect(GATE_TYPES).toContain(g);
         expect(level.hints.every((h) => h.trim().length > 0)).toBe(true);
+      });
+
+      it('writes every $expression$ in its text in valid notation, and hint 2’s expressions match the truth table', () => {
+        const embedded = (text: string) => [...text.matchAll(/\$([^$]+)\$/g)].map((m) => m[1]!);
+        for (const text of [level.brief, ...level.hints]) {
+          for (const src of embedded(text)) expect(() => parseExpressions(src), src).not.toThrow();
+        }
+        const shown = embedded(level.hints[1]).flatMap((src) => parseExpressions(src));
+        expect(shown.length, 'hint 2 should state the expression').toBeGreaterThan(0);
+        const out = level.outputs[0]!;
+        for (const expr of shown) {
+          const column = Array.from({ length: 2 ** level.inputs.length }, (_, i) =>
+            evaluateExpr(expr, rowInputs(i, level.inputs)),
+          );
+          expect(column).toEqual(level.expected[out]);
+        }
       });
 
       it('has a reference solution that passes every row at exactly par, within the level’s rules', () => {

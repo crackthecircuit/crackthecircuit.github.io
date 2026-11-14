@@ -8,10 +8,10 @@ import styles from './LevelMap.module.css';
 
 const W = 1040;
 const H = 640;
-const CHIP_W = 156;
+const CHIP_W = 140;
 const CHIP_H = 96;
-const PER_ROW = 5;
-const COLUMNS = [130, 325, 520, 715, 910];
+const PER_ROW = 6;
+const COLUMNS = [100, 268, 436, 604, 772, 940];
 const ROWS = [110, 320, 530];
 /** How far traces swing past the chips when wrapping to the next row. */
 const WRAP = 40;

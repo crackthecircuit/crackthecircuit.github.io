@@ -200,4 +200,46 @@ export const SOLUTIONS: Record<string, Recipe> = {
       ['alarm', 'Q'],
     ],
   },
+  'level-16': {
+    // B·(AC)' — the lecture's simplified form, B(A' + C'), via De Morgan
+    gates: { ac: 'AND', nac: 'NOT', out: 'AND' },
+    wires: [
+      ['A', 'ac.in0'],
+      ['C', 'ac.in1'],
+      ['ac', 'nac.in0'],
+      ['B', 'out.in0'],
+      ['nac', 'out.in1'],
+      ['out', 'Q'],
+    ],
+  },
+  'level-17': {
+    // (A + B)(B' + C), built as written
+    gates: { ab: 'OR', nb: 'NOT', bc: 'OR', out: 'AND' },
+    wires: [
+      ['A', 'ab.in0'],
+      ['B', 'ab.in1'],
+      ['B', 'nb.in0'],
+      ['nb', 'bc.in0'],
+      ['C', 'bc.in1'],
+      ['ab', 'out.in0'],
+      ['bc', 'out.in1'],
+      ['out', 'Q'],
+    ],
+  },
+  'level-18': {
+    // BC'D + ACD, from grouping the K-map
+    gates: { nc: 'NOT', g1: ['AND', 3], g2: ['AND', 3], out: 'OR' },
+    wires: [
+      ['C', 'nc.in0'],
+      ['B', 'g1.in0'],
+      ['nc', 'g1.in1'],
+      ['D', 'g1.in2'],
+      ['A', 'g2.in0'],
+      ['C', 'g2.in1'],
+      ['D', 'g2.in2'],
+      ['g1', 'out.in0'],
+      ['g2', 'out.in1'],
+      ['out', 'Q'],
+    ],
+  },
 };
