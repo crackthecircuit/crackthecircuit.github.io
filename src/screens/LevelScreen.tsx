@@ -13,6 +13,7 @@ import { TruthTable } from '../components/panels/TruthTable';
 import { Button } from '../components/ui/Button';
 import { Expression, RichText } from '../components/ui/Expression';
 import { Stars } from '../components/ui/Stars';
+import { HowToPlay } from '../components/menu/HowToPlay';
 import { freeGatePosition, GATE_H, GATE_W, gatePositionAt } from '../lib/geometry';
 import { getLevel, LEVELS } from '../levels/levels';
 import { isUsableBoard } from '../levels/startingCircuit';
@@ -84,6 +85,7 @@ export function LevelScreen({ levelId }: { levelId: string }) {
   const [deleteHover, setDeleteHover] = useState(false);
   const [ghost, setGhost] = useState<{ type: GateType; x: number; y: number; scale: number } | null>(null);
   const [run, setRun] = useState<Run | null>(null);
+  const [helpOpen, setHelpOpen] = useState(false);
 
   // Open the level, restoring its autosaved board.
   useEffect(() => {
@@ -152,7 +154,7 @@ export function LevelScreen({ levelId }: { levelId: string }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
-      if (target.closest('input, textarea, select')) return;
+      if (target.closest('input, textarea, select, dialog[open]')) return;
       const store = useCircuitStore.getState();
       const mod = e.ctrlKey || e.metaKey;
       if (mod && e.key.toLowerCase() === 'z') {
@@ -184,7 +186,11 @@ export function LevelScreen({ levelId }: { levelId: string }) {
     // Buttons activate on Space *release*, so cancel that too or a clicked button fires as well as Run.
     const onKeyUp = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
-      if (e.key === ' ' && !target.closest('input, textarea, select') && !isKeyboardFocused(target))
+      if (
+        e.key === ' ' &&
+        !target.closest('input, textarea, select, dialog[open]') &&
+        !isKeyboardFocused(target)
+      )
         e.preventDefault();
     };
     window.addEventListener('keydown', onKey);
@@ -254,6 +260,14 @@ export function LevelScreen({ levelId }: { levelId: string }) {
         <div className={styles.headerRight}>
           <span className={styles.par}>Par {level.par}</span>
           <Stars count={bestStars} label={`Best: ${bestStars} of 3 stars`} />
+          <Button
+            variant="ghost"
+            onClick={() => setHelpOpen(true)}
+            aria-label="How to play"
+            title="How to play"
+          >
+            ?
+          </Button>
         </div>
       </header>
 
@@ -376,6 +390,8 @@ export function LevelScreen({ levelId }: { levelId: string }) {
           <GateShape type={ghost.type} />
         </svg>
       )}
+
+      <HowToPlay open={helpOpen} onClose={() => setHelpOpen(false)} />
     </div>
   );
 }

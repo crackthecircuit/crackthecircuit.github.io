@@ -1,0 +1,90 @@
+.backdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* Traces etch themselves in when the menu powers on. */
+.trace {
+  fill: none;
+  stroke: #232b35;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  animation: etch 1.4s var(--ease-out) forwards;
+}
+
+.via {
+  fill: var(--bg-board);
+  stroke: #2a323d;
+  stroke-width: 2;
+  opacity: 0;
+  animation: appear 0.4s 1.2s forwards;
+}
+
+/* A short amber signal that runs from one end of a trace to the other, then waits and repeats. */
+.pulse {
+  fill: none;
+  stroke: var(--signal-on);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dasharray: 90 1200;
+  stroke-dashoffset: 90;
+  filter: drop-shadow(0 0 6px var(--signal-on-glow));
+  opacity: 0.9;
+  animation-name: travel;
+  animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1);
+  animation-iteration-count: infinite;
+  animation-fill-mode: backwards;
+}
+
+.chip rect {
+  fill: #12161c;
+  stroke: #262d37;
+  stroke-width: 2;
+  opacity: 0;
+  animation: appear 0.6s 0.4s forwards;
+}
+
+.chip line {
+  stroke: #262d37;
+  stroke-width: 3;
+  opacity: 0;
+  animation: appear 0.6s 0.4s forwards;
+}
+
+@keyframes etch {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes appear {
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes travel {
+  0% {
+    stroke-dashoffset: 90;
+  }
+  60%,
+  100% {
+    stroke-dashoffset: -1000;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trace {
+    stroke-dashoffset: 0;
+  }
+
+  .pulse {
+    display: none;
+  }
+}
