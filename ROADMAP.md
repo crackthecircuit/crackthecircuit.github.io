@@ -4,8 +4,7 @@
 > Boolean equation of the player's circuit, standard Boolean notation, and levels 16–18 (scenario puzzles that reward
 > SOP/POS and K-map simplification). Then the remaining extras: zoom/pan, a sandbox mode, sound effects with a mute
 > toggle, and an accessibility pass (full keyboard play, screen-reader labels and announcements, 4.5:1 text contrast).
-> **Next:** playtesting the 18 levels and tuning par and hints. Multi-output levels (half adder) are the one planned
-> feature not built yet.
+> **Next:** playtesting the 18 levels and tuning par and hints. Multi-output levels (half adder) are out of scope.
 
 Timeline: MVP in about 2 weeks, then 1 week of extra features, with a buffer up to 6 weeks in total.
 
@@ -38,7 +37,7 @@ Timeline: MVP in about 2 weeks, then 1 week of extra features, with a buffer up 
 - Playtest with classmates and tune par values and hints.
 
 ### Weeks 4–6 — Buffer / stretch
-- A half-adder level (multi-output).
+- ~~A half-adder level (multi-output).~~ Dropped: out of scope.
 - Sound. ✓
 - An accessibility pass. ✓
 - Report and demo preparation.

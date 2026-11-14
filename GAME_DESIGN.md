@@ -162,5 +162,6 @@ Free building, opened from **Sandbox** on the main menu (`#/sandbox`). It's alwa
   It's one undoable step: undo brings the inputs and their wires back.
 - The board is autosaved like a level's, and is cleared by a progress reset.
 
-## Planned after the MVP
-- **Multi-output levels** (e.g. half adder). The data model already stores outputs as a list.
+## Out of scope
+- **Multi-output levels** (e.g. a half adder) are not planned. Every level has one output, although the data model
+  stores outputs as a list.

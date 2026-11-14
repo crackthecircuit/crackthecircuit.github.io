@@ -27,8 +27,12 @@ The approved specs are the source of truth. Read the relevant one before changin
   reference solution per level), `startingCircuit.ts` (terminal layout, ids `in-<label>` / `out-<label>`).
 - `src/lib/board.ts` (960×600 world, grid) and `src/lib/geometry.ts` (port positions, wire paths, `nearestPort`, gate placement).
 - `src/components/board/`: `Board` only draws; `Workspace` owns drag/wire gestures. `src/screens/LevelScreen.tsx` owns the
-  run flow (sweep, inspection, result card), keyboard shortcuts and palette drag-and-drop.
-- `src/store/appStore.ts`: current screen, mirrored in the URL hash (`#/level/3`).
+  run flow (sweep, inspection, result card); `SandboxScreen.tsx` is free building with a live truth table; both use
+  `screens/editor.tsx` for keyboard shortcuts, palette drag-and-drop and edit sounds.
+- `src/store/`: zustand stores. `appStore.ts` holds the current screen, mirrored in the URL hash (`#/level/3`);
+  `circuitStore.ts` holds the circuit being edited plus undo/redo; `progressStore.ts` holds scores and unlocks;
+  `persistence.ts` is the localStorage layer.
+- `src/engine/expression.ts` builds the live Boolean equation of the player's circuit shown in the UI.
 - Pushing to `main` runs `.github/workflows/deploy.yml` (typecheck, lint, test, build) and deploys to GitHub Pages.
 - ESLint blocks React/store/component imports inside `src/engine/`.
 
@@ -48,7 +52,7 @@ replacement string means "the rest of the input".
 - Gates have 2–4 inputs (NOT exactly 1); a level's `maxGateInputs` (default 2) caps width via `gateSizeRange()` in
   `src/levels/rules.ts`. Use `portsOf()`/`gateInputCount()`, never assume two ports. Level outputs are a list even though
   current levels have one output.
-- Positions are world coordinates (zoom/pan comes later).
+- Positions are world coordinates. Zoom/pan only changes the SVG viewBox (`src/lib/view.ts`), never stored positions.
 - Styling uses CSS Modules + the CSS variables in `src/styles/tokens.css`. No hard-coded hex values in components.
   Colour means signal: amber = 1, cyan = selection/focus, green = pass, red = fail/invalid.
 - localStorage access (key `crackthecircuit:v1`) always goes through try/catch with a fresh-state fallback.
@@ -61,4 +65,6 @@ that passes tests and meets par.
 
 ## Tooling notes
 - A PostToolUse hook (`.claude/hooks/format.mjs`) runs Prettier on edited files once Prettier is installed in the project.
+- The Playwright MCP server in `.mcp.json` can time out on connect. If it is unavailable, say so when reporting
+  verification instead of claiming the browser smoke check passed.
 - Project plugins: `frontend-design` (UI quality guidance) and `typescript-lsp` (needs `typescript-language-server` installed globally).
