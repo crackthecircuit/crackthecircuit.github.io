@@ -8,7 +8,7 @@ gates and wires that produces it, and a real simulator tests your circuit agains
 Made for **BCIS 1302 — Introduction to Computer Organization and Architecture** (Topic 10: Digital Logic).
 
 ## Status
-Design is approved and implementation has not started. See [ROADMAP.md](ROADMAP.md).
+Week 1 is in progress: the simulation engine and level data are built and tested. See [ROADMAP.md](ROADMAP.md).
 
 ## Documentation
 | File | Contents |
@@ -21,4 +21,13 @@ Design is approved and implementation has not started. See [ROADMAP.md](ROADMAP.
 **Play:** https://crackthecircuit.github.io (once deployed)
 
 ## Setup
-Requires Node.js 20+ and npm. Setup commands will be added once the project is scaffolded (Week 1).
+Requires Node.js 20+ and npm.
+
+```bash
+npm install
+npm run dev        # start the dev server
+npm test           # run the unit tests
+npm run typecheck  # TypeScript checks
+npm run lint       # ESLint
+npm run build      # production build into dist/
+```

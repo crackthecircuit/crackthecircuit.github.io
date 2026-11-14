@@ -1,6 +1,6 @@
 # Crack the Circuit — Roadmap
 
-> **Status: draft for team review.** Implementation starts once the team approves this roadmap.
+> **Status: approved — Week 1 in progress.** Done so far: scaffold, tokens, engine + tests, level data + reference solutions.
 
 Timeline: MVP in about 2 weeks, then 1 week of extra features, with a buffer up to 6 weeks in total.
 

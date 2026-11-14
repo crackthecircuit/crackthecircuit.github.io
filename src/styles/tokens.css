@@ -1,0 +1,49 @@
+/* Design tokens — see DESIGN.md. Components use these variables, never raw hex values. */
+:root {
+  /* Surfaces */
+  --bg-board: #0b0d10;
+  --grid-dot: #1e242c;
+  --bg-panel: #12151a;
+  --bg-raised: #1a1f26;
+  --border: #262c35;
+
+  /* Text */
+  --text-1: #e6e8eb;
+  --text-2: #8b93a0;
+  --text-3: #5a626e;
+
+  /* Signals: colour means signal */
+  --signal-on: #ffb547;
+  --signal-on-glow: rgb(255 181 71 / 0.45);
+  --signal-off: #3a4250;
+  --wire: #4a5363;
+
+  /* Meaning */
+  --focus: #5cc8ff;
+  --ok: #5bd68a;
+  --err: #ff5d5d;
+
+  /* Gates */
+  --gate-fill: #161a20;
+  --gate-stroke: #9aa3b0;
+
+  /* Type */
+  --font-display: 'Space Grotesk', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  /* Motion */
+  --t-fast: 130ms;
+  --t-panel: 200ms;
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  /* Spacing (4px scale) and radius */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-6: 24px;
+  --s-8: 32px;
+  --radius: 8px;
+
+  color-scheme: dark;
+}

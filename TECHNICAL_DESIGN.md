@@ -39,15 +39,14 @@ Everything is plain JSON, so undo snapshots, autosave and level files work the s
 type GateType = 'AND' | 'OR' | 'NOT' | 'NAND' | 'NOR' | 'XOR';
 type PortId = 'in0' | 'in1' | 'out';
 
-interface Node {
-  id: string;
-  kind: 'input' | 'output' | 'gate';
-  gateType?: GateType;          // when kind === 'gate'
-  label?: string;               // terminal name, e.g. 'A', 'Q'
-  pos: { x: number; y: number }; // world coordinates (ready for zoom/pan)
-}
+// A node is a discriminated union on `kind`. Positions are world coordinates (ready for zoom/pan).
+type CircuitNode =
+  | { id: string; kind: 'input'; label: string; pos: Point }   // switch, e.g. 'A'
+  | { id: string; kind: 'output'; label: string; pos: Point }  // lamp, e.g. 'Q'
+  | { id: string; kind: 'gate'; gateType: GateType; pos: Point };
 // Ports come from kind/type: input terminal → out · output terminal → in0 ·
 // NOT → in0, out · other gates → in0, in1, out
+// Terminal ids are `in-<label>` / `out-<label>` (see src/levels/startingCircuit.ts).
 
 interface Wire {
   id: string;
@@ -55,10 +54,11 @@ interface Wire {
   to:   { nodeId: string; port: 'in0' | 'in1' };
 }
 
-interface Circuit { nodes: Node[]; wires: Wire[] }
+interface Circuit { nodes: CircuitNode[]; wires: Wire[] }
 
 interface Level {
-  id: string;
+  id: string;                               // 'level-1'
+  number: number;
   title: string;
   brief: string;
   inputs: string[];                         // ['A', 'B', 'C']
@@ -75,8 +75,8 @@ interface Level {
 
 ## Engine pipeline
 1. **`validate(circuit, level)` → `ValidationError[]`**
-   `{ code, nodeIds, wireIds, message }` with codes `FLOATING_INPUT`, `OUTPUT_UNCONNECTED`, `MULTIPLE_DRIVERS`,
-   `INVALID_WIRE`, `CYCLE`. It walks **backwards from the output terminals** to find the gates that matter, and only
+   `{ code, nodeIds, wireIds, message }` with codes `MISSING_TERMINAL`, `INVALID_WIRE`, `FLOATING_INPUT`,
+   `OUTPUT_UNCONNECTED`, `MULTIPLE_DRIVERS`, `CYCLE`. It walks **backwards from the output terminals** to find the gates that matter, and only
    those are checked. Unused gates are reported separately as `unusedGateIds` (not an error). The UI stops invalid wires
    being drawn, but the engine still checks for them.
 2. **Topological sort (Kahn's algorithm)** over the gates that matter: repeatedly take a gate whose inputs are all known.
@@ -84,7 +84,11 @@ interface Level {
 3. **`simulate(circuit, level)`:** for each of the 2^n rows, evaluate the gates in sorted order and return
    `{ inputs, wireValues: Record<wireId, 0|1>, outputs, pass }`, plus totals. `wireValues` drives row inspection
    and the success sweep, so the UI never computes signals itself.
-4. **`score(result, gateCount, par)`** → 0–3 stars. `gateCount` counts every gate on the board.
+4. **`score(allPassed, gateCount, par)`** → 0–3 stars (see GAME_DESIGN.md §Scoring). `countGates()` counts every gate on the board.
+
+Level truth tables are written as rules in `src/levels/levels.ts` and expanded into arrays at load time. The engine
+only ever compares against the arrays. `src/levels/solutions.ts` holds a reference circuit per level (via
+`buildCircuit()`), and `levels.test.ts` checks that each one passes every row at exactly par using only palette gates.
 
 ## State
 - **`circuitStore`:** the current circuit, the selection, and actions `addGate`, `moveGate`, `connect`, `disconnect`,

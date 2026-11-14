@@ -45,7 +45,7 @@ Par values will be tuned in playtesting. Each level ships with a reference solut
 
 ## Scoring
 - Passing all rows = **1★** and unlocks the next level.
-- Stars go up to **3★** by meeting the level's par gate count.
+- Stars go up to **3★** by meeting the level's par gate count: **3★** at or under par, **2★** within 2 gates of par, otherwise **1★**.
 - The gate count includes **every gate on the board**, including unused ones.
 - Hints never reduce stars.
 

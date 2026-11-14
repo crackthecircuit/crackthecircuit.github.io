@@ -11,14 +11,21 @@ The approved specs are the source of truth. Read the relevant one before changin
 - `TECHNICAL_DESIGN.md`: architecture, data model, engine pipeline
 - `ROADMAP.md`: milestones, team split, definition of done
 
-**Status:** design approved, code not yet scaffolded. Don't start implementing until the team has approved ROADMAP.md.
+**Status:** see the status line at the top of ROADMAP.md. The repo owner approves work directly.
 
-## Commands (defined when the project is scaffolded)
+## Commands
 - `npm run dev`: Vite dev server
-- `npm run build`: production build
+- `npm run build`: typecheck + production build into `dist/`
 - `npm run typecheck` / `npm run lint`
-- `npm test`: Vitest; run a single file with `npx vitest run src/engine/__tests__/simulate.test.ts`,
-  or a single test with `npx vitest run -t "detects cycles"`
+- `npm test`: Vitest (`src/**/*.test.ts`); run a single file with `npx vitest run src/engine/__tests__/simulate.test.ts`,
+  or a single test by name with `npx vitest run -t "feedback loop"`
+
+## Where things live
+- `src/engine/`: types, gates, `analyze`/`validate`, `simulate`, `score`. Import from `src/engine` (index.ts).
+- `src/levels/`: `levels.ts` (level data; truth tables written as rules), `solutions.ts` (`buildCircuit` + one
+  reference solution per level), `startingCircuit.ts` (terminal layout, ids `in-<label>` / `out-<label>`).
+- `src/lib/board.ts`: board world size, grid and snapping.
+- ESLint blocks React/store/component imports inside `src/engine/`.
 
 ## Architecture rules
 - `src/engine/` is **pure TypeScript with no React or DOM imports**. Validation, simulation and scoring live only there,
