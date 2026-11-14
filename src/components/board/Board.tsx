@@ -3,7 +3,7 @@ import type { PointerEvent as ReactPointerEvent, Ref } from 'react';
 import { portsOf } from '../../engine';
 import type { Bit, Circuit, CircuitNode, GateNode, InputNode, OutputNode, Point, PortId } from '../../engine';
 import { BOARD_HEIGHT, BOARD_WIDTH, GRID } from '../../lib/board';
-import { GATE_H, GATE_W, portKey, portPosition, wirePath } from '../../lib/geometry';
+import { GATE_W, gateHeightFor, portKey, portPosition, wirePath } from '../../lib/geometry';
 import type { PortRef } from '../../lib/geometry';
 import type { Selection } from '../../store/circuitStore';
 import { GateShape } from './GateShape';
@@ -39,6 +39,9 @@ export interface BoardProps {
   /** Gate being dragged over the palette, about to be deleted. */
   deletingGateId?: string | null;
   draggingGateId?: string | null;
+  /** Show the input-count control on this gate, with the sizes it allows. */
+  gateResize?: { nodeId: string; min: number; max: number } | null;
+  onResizeGate?: (nodeId: string, inputs: number) => void;
 
   // Interaction
   onPortPointerDown?: PointerHandler<PortRef>;
@@ -158,6 +161,8 @@ export function Board(props: BoardProps) {
                   deleting={deletingGateId === node.id}
                   dragging={draggingGateId === node.id}
                   onPointerDown={props.onGatePointerDown}
+                  resize={props.gateResize?.nodeId === node.id ? props.gateResize : null}
+                  onResize={props.onResizeGate}
                 >
                   {portsOf(node).inputs.map((p) => port(node, p, incoming.get(`${node.id}:${p}`)))}
                   {port(node, 'out', outgoing.get(node.id))}
@@ -218,9 +223,14 @@ function Gate(props: {
   deleting: boolean;
   dragging: boolean;
   onPointerDown?: PointerHandler<string>;
+  resize: { min: number; max: number } | null;
+  onResize?: (nodeId: string, inputs: number) => void;
   children: React.ReactNode;
 }) {
-  const { node, selected, unused, error, deleting, dragging, onPointerDown, children } = props;
+  const { node, selected, unused, error, deleting, dragging, onPointerDown, resize, onResize, children } =
+    props;
+  const inputs = portsOf(node).inputs.length;
+  const height = gateHeightFor(inputs);
   return (
     <g
       className={styles.gate}
@@ -235,18 +245,70 @@ function Gate(props: {
         transform={`translate(${node.pos.x} ${node.pos.y})`}
         onPointerDown={(e) => onPointerDown?.(node.id, e)}
       >
-        <rect className={styles.gateHit} x={10} y={0} width={GATE_W - 20} height={GATE_H} />
-        <GateShape type={node.gateType} />
-        <text className={styles.gateLabel} x={GATE_W / 2} y={GATE_H + 12}>
+        <rect className={styles.gateHit} x={10} y={0} width={GATE_W - 20} height={height} />
+        <GateShape type={node.gateType} inputs={inputs} />
+        <text className={styles.gateLabel} x={GATE_W / 2} y={height + 12}>
           {node.gateType}
         </text>
-        {unused && (
+        {unused && !resize && (
           <text className={styles.unusedTag} x={GATE_W / 2} y={-6}>
             unused
           </text>
         )}
       </g>
       {children}
+      {resize && (
+        <ResizeControl
+          x={node.pos.x + GATE_W / 2}
+          y={node.pos.y - 22}
+          inputs={inputs}
+          {...resize}
+          onChange={(n) => onResize?.(node.id, n)}
+        />
+      )}
+    </g>
+  );
+}
+
+/** "−  3 inputs  +" pill above a selected gate. */
+function ResizeControl(props: {
+  x: number;
+  y: number;
+  inputs: number;
+  min: number;
+  max: number;
+  onChange: (inputs: number) => void;
+}) {
+  const { x, y, inputs, min, max, onChange } = props;
+  const button = (dx: number, label: string, next: number, name: string) => {
+    const disabled = next < min || next > max;
+    return (
+      <g
+        className={styles.resizeButton}
+        data-disabled={flag(disabled)}
+        role="button"
+        aria-label={name}
+        aria-disabled={disabled}
+        onPointerDown={(e) => {
+          e.stopPropagation();
+          if (!disabled) onChange(next);
+        }}
+      >
+        <circle cx={x + dx} cy={y} r={11} />
+        <text x={x + dx} y={y + 5}>
+          {label}
+        </text>
+      </g>
+    );
+  };
+  return (
+    <g className={styles.resize} onPointerDown={(e) => e.stopPropagation()}>
+      <rect x={x - 58} y={y - 14} width={116} height={28} rx={14} />
+      {button(-44, '−', inputs - 1, 'Fewer inputs')}
+      <text className={styles.resizeLabel} x={x} y={y + 4}>
+        {inputs} inputs
+      </text>
+      {button(44, '+', inputs + 1, 'More inputs')}
     </g>
   );
 }

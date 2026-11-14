@@ -1,19 +1,21 @@
+import { gateInputCount } from '../engine';
 import type { Circuit, Level } from '../engine';
 import { BOARD_HEIGHT, GRID, INPUT_TERMINAL_X, OUTPUT_TERMINAL_X, snapToGrid } from '../lib/board';
+import { gateSizeRange } from './rules';
 
 export const inputTerminalId = (label: string) => `in-${label}`;
 export const outputTerminalId = (label: string) => `out-${label}`;
 
-/** Spread `count` terminals evenly down the board, snapped to the grid. */
+/** Spread `count` terminals evenly down the board, on the grid. */
 function terminalYs(count: number): number[] {
-  const spacing = Math.min(160, (BOARD_HEIGHT - 4 * GRID) / count);
-  const top = BOARD_HEIGHT / 2 - (spacing * (count - 1)) / 2;
-  return Array.from({ length: count }, (_, i) => snapToGrid(top + i * spacing));
+  const spacing = Math.floor(Math.min(160, (BOARD_HEIGHT - 4 * GRID) / count) / GRID) * GRID;
+  const top = snapToGrid(BOARD_HEIGHT / 2 - (spacing * (count - 1)) / 2);
+  return Array.from({ length: count }, (_, i) => top + i * spacing);
 }
 
 /**
  * Whether an autosaved board still fits the level: every terminal is present and every gate is one the
- * palette offers. Boards saved before a level-data change are discarded instead of loading broken.
+ * palette offers, no wider than the level allows. Boards saved before a level-data change are discarded instead of loading broken.
  */
 export function isUsableBoard(saved: Circuit | undefined, level: Level): saved is Circuit {
   if (!saved) return false;
@@ -21,7 +23,11 @@ export function isUsableBoard(saved: Circuit | undefined, level: Level): saved i
   return (
     level.inputs.every((l) => ids.has(inputTerminalId(l))) &&
     level.outputs.every((l) => ids.has(outputTerminalId(l))) &&
-    saved.nodes.every((n) => n.kind !== 'gate' || level.palette.includes(n.gateType))
+    saved.nodes.every(
+      (n) =>
+        n.kind !== 'gate' ||
+        (level.palette.includes(n.gateType) && gateInputCount(n) <= gateSizeRange(n.gateType, level).max),
+    )
   );
 }
 

@@ -8,7 +8,7 @@ gates and wires that produces it, and a real simulator tests your circuit agains
 Made for **BCIS 1302 — Introduction to Computer Organization and Architecture** (Topic 10: Digital Logic).
 
 ## Status
-The MVP is playable: all 10 levels, the circuit editor, the run/inspect flow, progress saving and deployment. See [ROADMAP.md](ROADMAP.md).
+The game is playable: 15 levels (up to 4 inputs and 16-row truth tables), the circuit editor with widenable gates, the run/inspect flow, progress saving and deployment. See [ROADMAP.md](ROADMAP.md).
 
 ## Documentation
 | File | Contents |

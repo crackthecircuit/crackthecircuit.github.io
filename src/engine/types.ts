@@ -5,8 +5,8 @@ export type Bit = 0 | 1;
 
 export type GateType = 'AND' | 'OR' | 'NOT' | 'NAND' | 'NOR' | 'XOR';
 
-/** Gate/terminal input ports. 2-input gates use in0 + in1; NOT and output terminals use in0 only. */
-export type InputPortId = 'in0' | 'in1';
+/** Input ports, top to bottom. A gate with n inputs uses in0…in(n-1); NOT and output terminals use in0 only. */
+export type InputPortId = 'in0' | 'in1' | 'in2' | 'in3';
 export type PortId = InputPortId | 'out';
 
 export interface Point {
@@ -34,6 +34,8 @@ export interface GateNode {
   id: string;
   kind: 'gate';
   gateType: GateType;
+  /** Number of inputs (2–4) for gates that can be widened. Omitted means the gate type's minimum. */
+  inputs?: number;
   pos: Point;
 }
 
@@ -62,6 +64,8 @@ export interface Level {
   /** Expected value of each output for every row, indexed by row number (length 2^inputs). */
   expected: Record<string, Bit[]>;
   palette: GateType[];
+  /** Widest gate allowed (inputs per gate). Defaults to 2. */
+  maxGateInputs?: number;
   par: number;
   hints: [string, string, string];
   /** Gate added to the player's unlocked gates when this level is passed. */

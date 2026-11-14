@@ -30,6 +30,7 @@ const onCount = (v: Record<string, Bit>) => Object.values(v).filter((b) => b ===
 
 const AB = ['A', 'B'];
 const ABC = ['A', 'B', 'C'];
+const ABCD = ['A', 'B', 'C', 'D'];
 
 export const LEVELS: Level[] = [
   level(1, {
@@ -158,6 +159,77 @@ export const LEVELS: Level[] = [
       'List the pairs of guards that could open it together. Any one pair is enough.',
       'Q = A·B + A·C + B·C',
       'Factor it: A·(B + C) + B·C needs just four gates.',
+    ],
+  }),
+  level(11, {
+    title: 'Four-Key Lock',
+    brief: 'Four switches, 16 rows. Q should light only when all four switches A, B, C and D are on.',
+    inputs: ABCD,
+    palette: ['AND'],
+    par: 3,
+    rule: (v) => onCount(v) === 4,
+    hints: [
+      'Each AND only takes two inputs. How can one AND’s result feed into the next?',
+      'Q = A · B · C · D = ((A · B) · C) · D',
+      'Chain three ANDs: A·B, then with C, then with D.',
+    ],
+  }),
+  level(12, {
+    title: 'Any Alarm',
+    brief:
+      'Gates can now take more inputs: select a gate and press + to widen it. Q should light when any of the four sensors is on.',
+    inputs: ABCD,
+    palette: ['OR'],
+    maxGateInputs: 4,
+    par: 1,
+    rule: (v) => onCount(v) > 0,
+    hints: [
+      'An OR with more inputs is 1 when any of them is 1.',
+      'Q = A + B + C + D',
+      'Place one OR, select it, and press + twice to give it four inputs.',
+    ],
+  }),
+  level(13, {
+    title: 'Two Pairs',
+    brief: 'Q should light when both A and B are on, or both C and D are on.',
+    inputs: ABCD,
+    palette: ['AND', 'OR'],
+    maxGateInputs: 4,
+    par: 3,
+    rule: ({ A, B, C, D }) => (A === 1 && B === 1) || (C === 1 && D === 1),
+    hints: [
+      'Treat each pair separately, then combine the two answers.',
+      'Q = A·B + C·D',
+      'One AND per pair, then one OR. Wider gates won’t help here.',
+    ],
+  }),
+  level(14, {
+    title: 'Even Count',
+    brief: 'Q should light when an even number of the four switches are on (none counts as even).',
+    inputs: ABCD,
+    palette: ['XOR', 'NOT'],
+    maxGateInputs: 4,
+    par: 2,
+    rule: (v) => onCount(v) % 2 === 0,
+    hints: [
+      'A wide XOR is 1 when an odd number of its inputs are 1.',
+      'Q = ¬(A ⊕ B ⊕ C ⊕ D)',
+      'One 4-input XOR, then a NOT.',
+    ],
+  }),
+  level(15, {
+    title: 'Security System',
+    brief:
+      'A is the arm switch, B the door sensor, C the window sensor and D maintenance mode. The siren Q sounds when the system is armed, the door or window opens, and maintenance mode is off.',
+    inputs: ABCD,
+    palette: ['AND', 'OR', 'NOT'],
+    maxGateInputs: 3,
+    par: 3,
+    rule: ({ A, B, C, D }) => A === 1 && (B === 1 || C === 1) && D === 0,
+    hints: [
+      'Three conditions must all hold at once. Write each one as its own signal first.',
+      'Q = A · (B + C) · ¬D',
+      'An OR for door/window and a NOT for maintenance, then one 3-input AND joins all three.',
     ],
   }),
 ];

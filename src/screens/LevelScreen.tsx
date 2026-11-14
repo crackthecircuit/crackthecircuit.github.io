@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { PointerEvent as ReactPointerEvent } from 'react';
-import { countGates, score, simulate } from '../engine';
+import { countGates, gateInputCount, score, simulate } from '../engine';
 import type { Circuit, GateType, SimulationResult } from '../engine';
 import { GateShape } from '../components/board/GateShape';
 import { Workspace } from '../components/board/Workspace';
@@ -165,6 +165,14 @@ export function LevelScreen({ levelId }: { levelId: string }) {
         // (A palette button that was just clicked keeps focus, but must not swallow Space.)
         e.preventDefault();
         if (!locked && !e.repeat) startRun();
+      } else if ((e.key === '+' || e.key === '=' || e.key === '-' || e.key === '_') && !locked && !mod) {
+        // Widen or narrow the selected gate.
+        const sel = store.selection;
+        const node = sel?.kind === 'node' ? store.circuit.nodes.find((n) => n.id === sel.id) : undefined;
+        if (node?.kind === 'gate') {
+          e.preventDefault();
+          store.setGateInputs(node.id, gateInputCount(node) + (e.key === '+' || e.key === '=' ? 1 : -1));
+        }
       } else if ((e.key === 'Delete' || e.key === 'Backspace') && !locked) {
         e.preventDefault();
         store.removeSelection();
@@ -237,6 +245,11 @@ export function LevelScreen({ levelId }: { levelId: string }) {
           <h1 className={styles.title}>{level.title}</h1>
         </div>
         <span className={styles.chip}>{paletteRule(level.palette)}</span>
+        {(level.maxGateInputs ?? 2) > 2 && (
+          <span className={styles.chip} title="Select a gate and press + or − to change its inputs">
+            gates up to {level.maxGateInputs} inputs
+          </span>
+        )}
         <div className={styles.headerRight}>
           <span className={styles.par}>Par {level.par}</span>
           <Stars count={bestStars} label={`Best: ${bestStars} of 3 stars`} />

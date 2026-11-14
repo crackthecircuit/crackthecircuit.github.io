@@ -1,10 +1,21 @@
-import { portsOf } from '../engine';
+import { INPUT_PORTS, portsOf } from '../engine';
 import type { Circuit, CircuitNode, InputPortId, PortId, Point } from '../engine';
 import { BOARD_HEIGHT, BOARD_WIDTH, GRID, snapToGrid } from './board';
 
-/** Gates are drawn in an 80×60 box; `pos` is its top-left corner. */
+/** Gates are drawn in an 80×60 box (taller when widened); `pos` is its top-left corner. */
 export const GATE_W = 80;
 export const GATE_H = 60;
+/** Vertical gap between a gate's input ports. */
+export const PORT_SPACING = 20;
+
+/** Height of a gate's box: room for its inputs, never shorter than the standard 60. */
+export const gateHeightFor = (inputCount: number) => Math.max(GATE_H, PORT_SPACING * (inputCount + 1));
+
+/** Y of each input port inside a gate's box, top to bottom. */
+export const inputPortYs = (inputCount: number): number[] =>
+  inputCount === 1
+    ? [gateHeightFor(1) / 2]
+    : Array.from({ length: inputCount }, (_, i) => PORT_SPACING * (i + 1));
 /** Terminals are drawn centred on `pos`; their port sits this far to the side. */
 export const TERMINAL_PORT_OFFSET = 36;
 /** How close (in board units) the pointer must be to a port to snap a wire onto it. */
@@ -19,10 +30,9 @@ export function portPosition(node: CircuitNode, port: PortId): Point {
     case 'output':
       return { x: x - TERMINAL_PORT_OFFSET, y };
     case 'gate': {
-      if (port === 'out') return { x: x + GATE_W, y: y + GATE_H / 2 };
-      const single = portsOf(node).inputs.length === 1;
-      if (single) return { x, y: y + GATE_H / 2 };
-      return { x, y: y + (port === 'in0' ? 20 : 40) };
+      const count = portsOf(node).inputs.length;
+      if (port === 'out') return { x: x + GATE_W, y: y + gateHeightFor(count) / 2 };
+      return { x, y: y + inputPortYs(count)[INPUT_PORTS.indexOf(port)]! };
     }
   }
 }

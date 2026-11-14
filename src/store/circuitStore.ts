@@ -1,6 +1,7 @@
 import { create } from 'zustand';
-import { portsOf } from '../engine';
+import { gateInputCount, portsOf } from '../engine';
 import type { Circuit, GateType, InputPortId, Level, Point, Wire } from '../engine';
+import { gateSizeRange } from '../levels/rules';
 import { createStartingCircuit } from '../levels/startingCircuit';
 
 const HISTORY_LIMIT = 100;
@@ -18,6 +19,11 @@ export interface CircuitState {
   loadLevel: (level: Level, saved?: Circuit) => void;
   /** Place a gate from the palette. Returns its id, or null if the level's palette doesn't allow it. */
   addGate: (gateType: GateType, pos: Point) => string | null;
+  /**
+   * Change how many inputs a gate has, within its type's range and the level's limit. Wires on ports that
+   * disappear are removed. One undo step. Returns false if the size isn't allowed.
+   */
+  setGateInputs: (nodeId: string, inputs: number) => boolean;
   /** Commit a gate's new position (call once when a drag ends). */
   moveGate: (nodeId: string, pos: Point) => void;
   /**
@@ -88,6 +94,22 @@ export const useCircuitStore = create<CircuitState>()((set, get) => {
         { kind: 'node', id },
       );
       return id;
+    },
+
+    setGateInputs: (nodeId, inputs) => {
+      const { circuit, level } = get();
+      const node = circuit.nodes.find((n) => n.id === nodeId);
+      if (!node || node.kind !== 'gate' || !level) return false;
+      const { min, max } = gateSizeRange(node.gateType, level);
+      if (inputs < min || inputs > max) return false;
+      if (inputs === gateInputCount(node)) return true;
+      const resized = { ...node, inputs };
+      const kept = new Set(portsOf(resized).inputs);
+      commit({
+        nodes: circuit.nodes.map((n) => (n.id === nodeId ? resized : n)),
+        wires: circuit.wires.filter((w) => w.to.nodeId !== nodeId || kept.has(w.to.port)),
+      });
+      return true;
     },
 
     moveGate: (nodeId, pos) => {

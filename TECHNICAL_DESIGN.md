@@ -53,21 +53,22 @@ Everything is plain JSON, so undo snapshots, autosave and level files work the s
 
 ```ts
 type GateType = 'AND' | 'OR' | 'NOT' | 'NAND' | 'NOR' | 'XOR';
-type PortId = 'in0' | 'in1' | 'out';
+type InputPortId = 'in0' | 'in1' | 'in2' | 'in3';   // top to bottom
+type PortId = InputPortId | 'out';
 
 // A node is a discriminated union on `kind`. Positions are world coordinates (ready for zoom/pan).
 type CircuitNode =
   | { id: string; kind: 'input'; label: string; pos: Point }   // switch, e.g. 'A'
   | { id: string; kind: 'output'; label: string; pos: Point }  // lamp, e.g. 'Q'
-  | { id: string; kind: 'gate'; gateType: GateType; pos: Point };
+  | { id: string; kind: 'gate'; gateType: GateType; inputs?: number; pos: Point };
 // Ports come from kind/type: input terminal → out · output terminal → in0 ·
-// NOT → in0, out · other gates → in0, in1, out
+// NOT → in0, out · other gates → in0…in(n-1), out, where n = inputs (default 2, max 4; see GATE_SPECS)
 // Terminal ids are `in-<label>` / `out-<label>` (see src/levels/startingCircuit.ts).
 
 interface Wire {
   id: string;
   from: { nodeId: string; port: 'out' };
-  to:   { nodeId: string; port: 'in0' | 'in1' };
+  to:   { nodeId: string; port: InputPortId };
 }
 
 interface Circuit { nodes: CircuitNode[]; wires: Wire[] }
@@ -81,6 +82,7 @@ interface Level {
   outputs: string[];                        // ['Q'] (list, ready for multi-output)
   expected: Record<string, (0 | 1)[]>;      // output → value for each row
   palette: GateType[];
+  maxGateInputs?: number;                   // widest gate allowed; default 2 (src/levels/rules.ts)
   par: number;
   hints: [string, string, string];
   unlocksGate?: GateType;                   // level 8 → 'XOR'

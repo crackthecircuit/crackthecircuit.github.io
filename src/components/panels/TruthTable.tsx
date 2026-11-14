@@ -30,7 +30,7 @@ export function TruthTable({ level, rows, revealed, inspected, onInspect }: Trut
           </span>
         )}
       </div>
-      <table className={styles.table}>
+      <table className={styles.table} data-dense={count >= 16 || undefined}>
         <thead>
           <tr>
             {level.inputs.map((label) => (

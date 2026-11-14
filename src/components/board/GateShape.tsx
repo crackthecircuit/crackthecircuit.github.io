@@ -1,7 +1,8 @@
 import type { GateType } from '../../engine';
+import { gateHeightFor, inputPortYs } from '../../lib/geometry';
 
-// IEEE distinctive-shape gate symbols in an 80×60 local box.
-// Inputs enter at the left edge (y = 20 / 40, or 30 for NOT); the output leaves at (80, 30).
+// IEEE distinctive-shape gate symbols, drawn for an 80×60 box and stretched vertically for wider gates.
+// Inputs enter at the left edge; the output leaves at (80, height / 2).
 
 const AND_BODY = 'M16 6 H40 A24 24 0 0 1 40 54 H16 Z';
 const NAND_BODY = 'M16 6 H36 A24 24 0 0 1 36 54 H16 Z';
@@ -15,33 +16,37 @@ interface Shape {
   body: string;
   extra?: string;
   bubble?: { cx: number };
-  /** x where the input stubs meet the body. */
+  /** x where input stubs end. The body's fill covers any overlap with a curved back. */
   inX: number;
   /** x where the output stub starts. */
   outX: number;
-  inputs: number[];
 }
 
 const SHAPES: Record<GateType, Shape> = {
-  AND: { body: AND_BODY, inX: 16, outX: 64, inputs: [20, 40] },
-  NAND: { body: NAND_BODY, bubble: { cx: 64 }, inX: 16, outX: 68, inputs: [20, 40] },
-  OR: { body: OR_BODY, inX: 17, outX: 66, inputs: [20, 40] },
-  NOR: { body: NOR_BODY, bubble: { cx: 64 }, inX: 17, outX: 68, inputs: [20, 40] },
-  XOR: { body: XOR_BODY, extra: XOR_BACK, inX: 15, outX: 66, inputs: [20, 40] },
-  NOT: { body: NOT_BODY, bubble: { cx: 60 }, inX: 18, outX: 64, inputs: [30] },
+  AND: { body: AND_BODY, inX: 16, outX: 64 },
+  NAND: { body: NAND_BODY, bubble: { cx: 64 }, inX: 16, outX: 68 },
+  OR: { body: OR_BODY, inX: 18, outX: 66 },
+  NOR: { body: NOR_BODY, bubble: { cx: 64 }, inX: 18, outX: 68 },
+  XOR: { body: XOR_BODY, extra: XOR_BACK, inX: 13, outX: 66 },
+  NOT: { body: NOT_BODY, bubble: { cx: 60 }, inX: 18, outX: 64 },
 };
 
-export function GateShape({ type, className }: { type: GateType; className?: string }) {
+export function GateShape({ type, inputs = type === 'NOT' ? 1 : 2 }: { type: GateType; inputs?: number }) {
   const s = SHAPES[type];
+  const height = gateHeightFor(inputs);
+  const mid = height / 2;
+  const stretch = height / 60;
   return (
-    <g className={className}>
-      {s.inputs.map((y) => (
+    <g>
+      {inputPortYs(inputs).map((y) => (
         <line key={y} data-part="stub" x1={0} y1={y} x2={s.inX} y2={y} />
       ))}
-      <line data-part="stub" x1={s.outX} y1={30} x2={80} y2={30} />
-      {s.extra && <path data-part="extra" d={s.extra} />}
-      <path data-part="body" d={s.body} />
-      {s.bubble && <circle data-part="body" cx={s.bubble.cx} cy={30} r={4} />}
+      <line data-part="stub" x1={s.outX} y1={mid} x2={80} y2={mid} />
+      <g transform={stretch === 1 ? undefined : `scale(1 ${stretch})`}>
+        {s.extra && <path data-part="extra" d={s.extra} vectorEffect="non-scaling-stroke" />}
+        <path data-part="body" d={s.body} vectorEffect="non-scaling-stroke" />
+      </g>
+      {s.bubble && <circle data-part="body" cx={s.bubble.cx} cy={mid} r={4} />}
     </g>
   );
 }

@@ -280,3 +280,49 @@
     transform: translateX(4px);
   }
 }
+
+/* Input-count control above a selected gate */
+.resize rect {
+  fill: var(--bg-raised);
+  stroke: var(--focus);
+  stroke-width: 1.5;
+  filter: drop-shadow(0 4px 8px rgb(0 0 0 / 0.5));
+}
+
+.resizeLabel {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  fill: var(--text-1);
+  text-anchor: middle;
+  pointer-events: none;
+}
+
+.resizeButton {
+  cursor: pointer;
+}
+
+.resizeButton circle {
+  fill: var(--bg-panel);
+  stroke: var(--border);
+  transition: stroke var(--t-fast) var(--ease-out);
+}
+
+.resizeButton text {
+  font-size: 16px;
+  font-weight: 600;
+  fill: var(--text-1);
+  text-anchor: middle;
+  pointer-events: none;
+}
+
+.resizeButton:hover:not([data-disabled]) circle {
+  stroke: var(--focus);
+}
+
+.resizeButton[data-disabled] {
+  cursor: not-allowed;
+}
+
+.resizeButton[data-disabled] text {
+  fill: var(--text-3);
+}

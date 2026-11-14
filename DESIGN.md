@@ -42,12 +42,16 @@ Every colour is a CSS variable in `src/styles/tokens.css`. Components don't hard
 ## Typography
 - **Space Grotesk:** headings, logo, buttons.
 - **JetBrains Mono:** truth tables, port and gate labels, numbers. Use tabular alignment so 0/1 columns line up.
+  16-row tables (4 inputs) use a denser row height so they fit on a 768px-tall screen.
 
 No other font families.
 
 ## Gates and wires
 - Gates use the **standard IEEE distinctive shapes** (D-shaped AND, curved OR, triangle + bubble for NOT, a bubble for
   NAND/NOR, and the double curve for XOR), restyled cleanly with a small mono label underneath. These are the same symbols used in lectures.
+- **Wide gates** (3–4 inputs) stretch the same symbol vertically: the box grows 20 units per extra input, ports stay
+  20 apart, and strokes keep their width (`vector-effect: non-scaling-stroke`). A selected widenable gate shows a
+  `− N inputs +` pill above it, outlined in the focus colour.
 - Wires are **smooth bezier curves** from port to port.
 - Unused gates are dimmed and carry an "unused" tag.
 

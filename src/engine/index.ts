@@ -1,5 +1,13 @@
 export * from './types';
-export { GATE_SPECS, GATE_TYPES, evaluateGate, portsOf, describePort } from './gates';
+export {
+  GATE_SPECS,
+  GATE_TYPES,
+  INPUT_PORTS,
+  evaluateGate,
+  gateInputCount,
+  portsOf,
+  describePort,
+} from './gates';
 export { analyze, validate } from './validate';
 export type { Analysis } from './validate';
 export { simulate, rowInputs } from './simulate';

@@ -20,9 +20,13 @@ circuits built from AND, OR, NOT, NAND, NOR and XOR gates.
 ## Gates
 | Gate | Inputs | Notes |
 |---|---|---|
-| AND, OR, NAND, NOR | 2 (fixed) | Gates never have 3 or more inputs. A 3-input function needs several gates |
-| NOT | 1 | |
-| XOR | 2 | **Earned:** added to the palette after beating level 8 |
+| AND, OR, NAND, NOR | 2, widenable to 3–4 | Wide AND = all inputs 1; wide OR = any input 1; NAND/NOR invert them |
+| NOT | 1 | Never widens |
+| XOR | 2, widenable to 3–4 | Wide XOR = an odd number of inputs are 1. **Earned:** added to the palette after beating level 8 |
+
+**Gate width is a per-level rule.** Every gate is placed with 2 inputs. A level's `maxGateInputs` (default 2) sets how
+wide a gate may be made. Levels 1–11 stay 2-input, so building wider functions from 2-input gates is still the
+puzzle there. Wide gates arrive at level 12. A wide gate counts as **one** gate for par.
 
 ## Level progression
 Levels 1–3 are tutorials that offer exactly the gate being taught. Later levels **restrict the palette**,
@@ -40,6 +44,11 @@ and that restriction is where the puzzle comes from.
 | 8 | Build XOR | AND, OR, NOT | 4 | (A+B)·¬(A·B); unlocks XOR |
 | 9 | Odd-parity lamp (3 switches) | XOR | 2 | Using an earned gate |
 | 10 | Vault: opens when ≥2 of 3 guards agree | AND, OR | 4 | Word problem → Boolean function; A(B+C)+BC |
+| 11 | Four-Key Lock: A·B·C·D | AND (2-input) | 3 | 4 inputs, 16 rows; chaining 2-input gates |
+| 12 | Any Alarm: A+B+C+D | OR (≤4 inputs) | 1 | Introduces widening a gate |
+| 13 | Two Pairs: A·B + C·D | AND, OR (≤4) | 3 | Sum of products; widening doesn't help |
+| 14 | Even Count (even number of switches on) | XOR (≤4), NOT | 2 | ¬(A⊕B⊕C⊕D); wide XOR as parity |
+| 15 | Security System: armed · (door + window) · ¬maintenance | AND, OR, NOT (≤3) | 3 | Word problem; A·(B+C)·¬D with a 3-input AND |
 
 Par values will be tuned in playtesting. Each level ships with a reference solution that meets par (verified by tests).
 
@@ -83,6 +92,8 @@ the stars, gates used vs par, and **Next Level**.
   wire on an occupied input replaces the old one. Output→output and input→input wires are rejected with a shake.
 - **Selecting and deleting:** click a gate or wire to select it, then press Delete/Backspace or the trash button. Deleting a gate
   removes its wires. Dragging a wire's input end away detaches or reroutes it. There is no multi-select in the MVP.
+- **Widening gates** (levels that allow it): selecting a gate shows a `− N inputs +` control above it; the + and −
+  keys do the same. Narrowing removes wires on the ports that disappear. It's undoable like any edit.
 - **Undo/redo:** Ctrl+Z / Ctrl+Shift+Z for every edit.
 - **Reset:** clears the board straight away (terminals stay) and can be undone. There's no confirm dialog.
 - **Board:** fixed size and scaled to the window in the MVP. Zoom/pan is a week-3 extra.

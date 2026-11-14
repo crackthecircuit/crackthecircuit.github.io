@@ -7,20 +7,26 @@ import { useProgressStore } from '../store/progressStore';
 import styles from './LevelMap.module.css';
 
 const W = 1040;
-const H = 560;
+const H = 640;
 const CHIP_W = 156;
 const CHIP_H = 96;
+const PER_ROW = 5;
 const COLUMNS = [130, 325, 520, 715, 910];
-const ROWS = [170, 410];
+const ROWS = [110, 320, 530];
+/** How far traces swing past the chips when wrapping to the next row. */
+const WRAP = 40;
 
-/** Levels snake across the board: 1–5 left to right, then 6–10 right to left. */
+/** Levels snake across the board: row 1 left to right, row 2 right to left, row 3 left to right. */
 function chipCenter(index: number) {
-  const row = index < 5 ? 0 : 1;
-  const col = row === 0 ? index : 9 - index;
+  const row = Math.floor(index / PER_ROW);
+  const col = row % 2 === 0 ? index % PER_ROW : PER_ROW - 1 - (index % PER_ROW);
   return { x: COLUMNS[col]!, y: ROWS[row]! };
 }
 
-/** Circuit-board trace from one chip to the next. */
+/** 1 when a row runs left to right, -1 when it runs right to left. */
+const rowDirection = (index: number) => (Math.floor(index / PER_ROW) % 2 === 0 ? 1 : -1);
+
+/** Circuit-board trace from one chip to the next, wrapping around the side between rows. */
 function tracePath(from: number, to: number) {
   const a = chipCenter(from);
   const b = chipCenter(to);
@@ -28,9 +34,9 @@ function tracePath(from: number, to: number) {
     const dir = Math.sign(b.x - a.x);
     return `M ${a.x + (dir * CHIP_W) / 2} ${a.y} H ${b.x - (dir * CHIP_W) / 2}`;
   }
-  // Wrap from the end of row 1 down to the start of row 2 around the right edge.
-  const x = a.x + CHIP_W / 2 + 40;
-  return `M ${a.x + CHIP_W / 2} ${a.y} H ${x} V ${b.y} H ${b.x + CHIP_W / 2}`;
+  const side = rowDirection(from);
+  const edge = a.x + (side * CHIP_W) / 2;
+  return `M ${edge} ${a.y} H ${edge + side * WRAP} V ${b.y} H ${b.x + (side * CHIP_W) / 2}`;
 }
 
 export function LevelMap() {
@@ -63,20 +69,25 @@ export function LevelMap() {
 
       <div className={styles.boardWrap}>
         <svg className={styles.board} viewBox={`0 0 ${W} ${H}`} role="group" aria-label="Level map">
-          {/* Power comes in from the left; the final trace runs out to the vault lamp. */}
+          {/* Power comes in from the left; the last trace runs out to the finish lamp. */}
           <path className={styles.trace} data-lit d={`M 0 ${ROWS[0]} H ${COLUMNS[0]! - CHIP_W / 2}`} />
-          <path
-            className={styles.trace}
-            data-lit={stars[LEVELS[9]!.id] ? true : undefined}
-            d={`M ${COLUMNS[0]! - CHIP_W / 2} ${ROWS[1]} H 30`}
-          />
-          <circle
-            className={styles.vault}
-            data-lit={stars[LEVELS[9]!.id] ? true : undefined}
-            cx={22}
-            cy={ROWS[1]}
-            r={12}
-          />
+          {(() => {
+            const lastIndex = LEVELS.length - 1;
+            const last = chipCenter(lastIndex);
+            const dir = rowDirection(lastIndex);
+            const lit = stars[LEVELS[lastIndex]!.id] ? true : undefined;
+            const lampX = dir > 0 ? W - 22 : 22;
+            return (
+              <>
+                <path
+                  className={styles.trace}
+                  data-lit={lit}
+                  d={`M ${last.x + (dir * CHIP_W) / 2} ${last.y} H ${lampX - dir * 12}`}
+                />
+                <circle className={styles.vault} data-lit={lit} cx={lampX} cy={last.y} r={12} />
+              </>
+            );
+          })()}
 
           {LEVELS.slice(0, -1).map((l, i) => (
             <path

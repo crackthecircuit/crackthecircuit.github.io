@@ -13,6 +13,7 @@ import {
   portPosition,
 } from '../../lib/geometry';
 import type { PortRef } from '../../lib/geometry';
+import { gateSizeRange } from '../../levels/rules';
 import { useCircuitStore } from '../../store/circuitStore';
 import { Board } from './Board';
 import type { BoardProps } from './Board';
@@ -71,6 +72,7 @@ export const Workspace = forwardRef<WorkspaceHandle, WorkspaceProps>(function Wo
   const { locked, isOverDeleteZone, onDeleteHover, ...display } = props;
   const circuit = useCircuitStore((s) => s.circuit);
   const selection = useCircuitStore((s) => s.selection);
+  const level = useCircuitStore((s) => s.level);
   const svgRef = useRef<SVGSVGElement>(null);
   const [shake, setShake] = useState<string | null>(null);
 
@@ -273,6 +275,17 @@ export const Workspace = forwardRef<WorkspaceHandle, WorkspaceProps>(function Wo
     }
   }
 
+  // Offer − / + on a selected gate when this level allows it to change size.
+  let gateResize: BoardProps['gateResize'] = null;
+  const selectedGate =
+    selection?.kind === 'node'
+      ? circuit.nodes.find((n) => n.id === selection.id && n.kind === 'gate')
+      : undefined;
+  if (selectedGate?.kind === 'gate' && level && !locked && !drag) {
+    const range = gateSizeRange(selectedGate.gateType, level);
+    if (range.max > range.min) gateResize = { nodeId: selectedGate.id, ...range };
+  }
+
   return (
     <Board
       {...display}
@@ -289,6 +302,8 @@ export const Workspace = forwardRef<WorkspaceHandle, WorkspaceProps>(function Wo
       onGatePointerDown={onGatePointerDown}
       onWirePointerDown={onWirePointerDown}
       onBackgroundPointerDown={onBackgroundPointerDown}
+      gateResize={gateResize}
+      onResizeGate={(id, n) => useCircuitStore.getState().setGateInputs(id, n)}
     />
   );
 });

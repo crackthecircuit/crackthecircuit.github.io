@@ -133,3 +133,45 @@ describe('circuit store', () => {
     expect(store().past).toEqual([]);
   });
 });
+
+describe('gate width', () => {
+  const level12 = getLevel('level-12')!; // OR, up to 4 inputs
+  const level13 = getLevel('level-13')!;
+
+  it('widens and narrows gates within the level limit, dropping wires on removed ports', () => {
+    store().loadLevel(level12);
+    const or = store().addGate('OR', { x: 300, y: 200 })!;
+    expect(store().setGateInputs(or, 4)).toBe(true);
+    for (const [label, port] of [
+      ['A', 'in0'],
+      ['B', 'in1'],
+      ['C', 'in2'],
+      ['D', 'in3'],
+    ] as const) {
+      store().connect(`in-${label}`, { nodeId: or, port });
+    }
+    expect(store().circuit.wires).toHaveLength(4);
+
+    expect(store().setGateInputs(or, 5)).toBe(false);
+    expect(store().setGateInputs(or, 3)).toBe(true);
+    expect(store().circuit.wires.map((w) => w.to.port)).toEqual(['in0', 'in1', 'in2']);
+    store().undo();
+    expect(store().circuit.wires).toHaveLength(4);
+  });
+
+  it('keeps gates at 2 inputs on levels that do not allow wide gates, and NOT at 1', () => {
+    store().loadLevel(level4);
+    const and = store().addGate('AND', { x: 300, y: 200 })!;
+    expect(store().setGateInputs(and, 3)).toBe(false);
+    const not = store().addGate('NOT', { x: 300, y: 300 })!;
+    expect(store().setGateInputs(not, 2)).toBe(false);
+  });
+
+  it('allows ports beyond in1 only on widened gates', () => {
+    store().loadLevel(level13);
+    const and = store().addGate('AND', { x: 300, y: 200 })!;
+    expect(store().connect('in-A', { nodeId: and, port: 'in2' })).toBe(false);
+    store().setGateInputs(and, 3);
+    expect(store().connect('in-A', { nodeId: and, port: 'in2' })).toBe(true);
+  });
+});

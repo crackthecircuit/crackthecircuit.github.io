@@ -5,22 +5,20 @@ import { createStartingCircuit, inputTerminalId, outputTerminalId } from './star
 
 /**
  * Compact circuit builder.
- * - gates: id → gate type
+ * - gates: id → gate type, or [gate type, number of inputs] for a widened gate
  * - wires: [source, target] where source is an input label ("A") or gate id,
  *   and target is "gateId.in0" / "gateId.in1" or an output label ("Q").
  */
 export function buildCircuit(
   level: Level,
-  gates: Record<string, GateType>,
+  gates: Record<string, GateSpec>,
   wires: [string, string][],
 ): Circuit {
   const base = createStartingCircuit(level);
-  const gateNodes = Object.entries(gates).map(([id, gateType], i) => ({
-    id,
-    kind: 'gate' as const,
-    gateType,
-    pos: { x: 300 + 120 * i, y: 200 },
-  }));
+  const gateNodes = Object.entries(gates).map(([id, spec], i) => {
+    const [gateType, inputs] = Array.isArray(spec) ? spec : [spec, undefined];
+    return { id, kind: 'gate' as const, gateType, inputs, pos: { x: 300 + 120 * i, y: 200 } };
+  });
   return {
     nodes: [...base.nodes, ...gateNodes],
     wires: wires.map(([source, target], i) => {
@@ -37,7 +35,8 @@ export function buildCircuit(
   };
 }
 
-type Recipe = { gates: Record<string, GateType>; wires: [string, string][] };
+type GateSpec = GateType | [GateType, number];
+type Recipe = { gates: Record<string, GateSpec>; wires: [string, string][] };
 
 export const SOLUTIONS: Record<string, Recipe> = {
   'level-1': {
@@ -139,6 +138,66 @@ export const SOLUTIONS: Record<string, Recipe> = {
       ['aAnd', 'out.in0'],
       ['bAndC', 'out.in1'],
       ['out', 'Q'],
+    ],
+  },
+  'level-11': {
+    // ((A·B)·C)·D with 2-input gates
+    gates: { ab: 'AND', abc: 'AND', abcd: 'AND' },
+    wires: [
+      ['A', 'ab.in0'],
+      ['B', 'ab.in1'],
+      ['ab', 'abc.in0'],
+      ['C', 'abc.in1'],
+      ['abc', 'abcd.in0'],
+      ['D', 'abcd.in1'],
+      ['abcd', 'Q'],
+    ],
+  },
+  'level-12': {
+    gates: { any: ['OR', 4] },
+    wires: [
+      ['A', 'any.in0'],
+      ['B', 'any.in1'],
+      ['C', 'any.in2'],
+      ['D', 'any.in3'],
+      ['any', 'Q'],
+    ],
+  },
+  'level-13': {
+    gates: { ab: 'AND', cd: 'AND', or: 'OR' },
+    wires: [
+      ['A', 'ab.in0'],
+      ['B', 'ab.in1'],
+      ['C', 'cd.in0'],
+      ['D', 'cd.in1'],
+      ['ab', 'or.in0'],
+      ['cd', 'or.in1'],
+      ['or', 'Q'],
+    ],
+  },
+  'level-14': {
+    // A 4-input XOR is 1 for an odd count; NOT turns that into "even".
+    gates: { odd: ['XOR', 4], even: 'NOT' },
+    wires: [
+      ['A', 'odd.in0'],
+      ['B', 'odd.in1'],
+      ['C', 'odd.in2'],
+      ['D', 'odd.in3'],
+      ['odd', 'even.in0'],
+      ['even', 'Q'],
+    ],
+  },
+  'level-15': {
+    // A · (B + C) · ¬D
+    gates: { entry: 'OR', notMaint: 'NOT', alarm: ['AND', 3] },
+    wires: [
+      ['B', 'entry.in0'],
+      ['C', 'entry.in1'],
+      ['D', 'notMaint.in0'],
+      ['A', 'alarm.in0'],
+      ['entry', 'alarm.in1'],
+      ['notMaint', 'alarm.in2'],
+      ['alarm', 'Q'],
     ],
   },
 };

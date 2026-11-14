@@ -139,3 +139,13 @@
     opacity: 0.3;
   }
 }
+
+/* 16-row tables (4 inputs) get tighter rows so they fit on a laptop screen. */
+.table[data-dense] {
+  font-size: 13px;
+  border-spacing: 0 1px;
+}
+
+.table[data-dense] td {
+  padding: 3px var(--s-2);
+}

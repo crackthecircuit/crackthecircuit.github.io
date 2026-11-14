@@ -27,8 +27,8 @@ export function simulate(circuit: Circuit, level: Level): SimulationResult {
     for (const label of level.inputs) signal.set(inputNodeIds[label]!, inputs[label]!);
 
     for (const gate of evalOrder) {
-      const [a, b] = portsOf(gate).inputs.map((port) => signal.get(driverOf(gate.id, port).from.nodeId)!);
-      signal.set(gate.id, evaluateGate(gate.gateType, a!, b));
+      const values = portsOf(gate).inputs.map((port) => signal.get(driverOf(gate.id, port).from.nodeId)!);
+      signal.set(gate.id, evaluateGate(gate.gateType, values));
     }
 
     const outputs: Record<string, Bit> = {};

@@ -5,12 +5,12 @@ import { GateShape } from '../board/GateShape';
 import styles from './Palette.module.css';
 
 const DESCRIPTIONS: Record<GateType, string> = {
-  AND: '1 when both inputs are 1',
-  OR: '1 when either input is 1',
+  AND: '1 when all inputs are 1',
+  OR: '1 when any input is 1',
   NOT: 'Flips its input',
   NAND: 'NOT of AND',
   NOR: 'NOT of OR',
-  XOR: '1 when the inputs differ',
+  XOR: '1 when an odd number of inputs are 1',
 };
 
 interface PaletteProps {

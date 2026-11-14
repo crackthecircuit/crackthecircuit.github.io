@@ -38,7 +38,9 @@ The approved specs are the source of truth. Read the relevant one before changin
   and never treat a missing connection as 0. An invalid circuit returns `ValidationError`s and blocks Run.
 - Circuits, levels and progress are plain JSON (see TECHNICAL_DESIGN.md). Store actions replace state immutably;
   undo history stores `Circuit` snapshots, and a drag is committed once on release.
-- Gates have fixed inputs (2, or 1 for NOT). Level outputs are a list even though MVP levels have one output.
+- Gates have 2–4 inputs (NOT exactly 1); a level's `maxGateInputs` (default 2) caps width via `gateSizeRange()` in
+  `src/levels/rules.ts`. Use `portsOf()`/`gateInputCount()`, never assume two ports. Level outputs are a list even though
+  current levels have one output.
 - Positions are world coordinates (zoom/pan comes later).
 - Styling uses CSS Modules + the CSS variables in `src/styles/tokens.css`. No hard-coded hex values in components.
   Colour means signal: amber = 1, cyan = selection/focus, green = pass, red = fail/invalid.
