@@ -1,6 +1,7 @@
 # Crack the Circuit — Roadmap
 
-> **Status: approved — Week 1 in progress.** Done so far: scaffold, tokens, engine + tests, level data + reference solutions.
+> **Status: approved. Week 1 done; Week 2 next.** Done: scaffold, tokens, engine + tests, level data + reference
+> solutions, circuit store with undo/redo, progress persistence, static board rendering (temporary preview in `src/dev/`).
 
 Timeline: MVP in about 2 weeks, then 1 week of extra features, with a buffer up to 6 weeks in total.
 

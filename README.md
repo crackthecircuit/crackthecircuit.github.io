@@ -8,7 +8,7 @@ gates and wires that produces it, and a real simulator tests your circuit agains
 Made for **BCIS 1302 — Introduction to Computer Organization and Architecture** (Topic 10: Digital Logic).
 
 ## Status
-Week 1 is in progress: the simulation engine and level data are built and tested. See [ROADMAP.md](ROADMAP.md).
+Week 1 is done: the engine, level data, stores and board renderer are built and tested. Week 2 makes it playable. See [ROADMAP.md](ROADMAP.md).
 
 ## Documentation
 | File | Contents |

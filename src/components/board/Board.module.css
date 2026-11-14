@@ -1,0 +1,158 @@
+.board {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--bg-board);
+  user-select: none;
+}
+
+.gridDot {
+  fill: var(--grid-dot);
+}
+
+/* Wires — colour means signal */
+.wire {
+  fill: none;
+  stroke: var(--wire);
+  stroke-width: 3;
+  stroke-linecap: round;
+  transition:
+    stroke var(--t-fast) var(--ease-out),
+    opacity var(--t-fast) var(--ease-out);
+}
+
+.wire[data-signal='0'] {
+  stroke: var(--signal-off);
+}
+
+.wire[data-signal='1'] {
+  stroke: var(--signal-on);
+  filter: drop-shadow(0 0 4px var(--signal-on-glow));
+}
+
+.wire[data-selected='true'] {
+  stroke: var(--focus);
+}
+
+.wire[data-error='true'] {
+  stroke: var(--err);
+  animation: errorPulse 900ms ease-in-out infinite;
+}
+
+/* Gates */
+.gate [data-part='body'],
+.gate [data-part='extra'],
+.gate [data-part='stub'] {
+  fill: none;
+  stroke: var(--gate-stroke);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  transition: stroke var(--t-fast) var(--ease-out);
+}
+
+.gate [data-part='body'] {
+  fill: var(--gate-fill);
+}
+
+.gate[data-selected='true'] [data-part] {
+  stroke: var(--focus);
+}
+
+.gate[data-error='true'] [data-part] {
+  stroke: var(--err);
+  animation: errorPulse 900ms ease-in-out infinite;
+}
+
+/* Unused gates stay opaque (so wires never show through) but fade their outlines and labels. */
+.gate[data-unused='true'] [data-part] {
+  stroke: var(--text-3);
+}
+
+.gate[data-unused='true'] .gateLabel {
+  fill: var(--signal-off);
+}
+
+.gateLabel,
+.terminalLabel,
+.unusedTag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  fill: var(--text-3);
+  text-anchor: middle;
+  letter-spacing: 0.04em;
+}
+
+.unusedTag {
+  font-size: 10px;
+  fill: var(--text-2);
+}
+
+.terminalLabel {
+  font-size: 15px;
+  font-weight: 700;
+  fill: var(--text-1);
+}
+
+/* Ports */
+.port {
+  fill: var(--bg-board);
+  stroke: var(--gate-stroke);
+  stroke-width: 2;
+}
+
+.port[data-signal='1'] {
+  fill: var(--signal-on);
+  stroke: var(--signal-on);
+}
+
+/* Terminals */
+.terminalBody {
+  fill: var(--bg-raised);
+  stroke: var(--border);
+  stroke-width: 2;
+}
+
+.terminal[data-signal='1'] .terminalBody {
+  stroke: var(--signal-on);
+}
+
+.lamp {
+  fill: var(--bg-raised);
+  stroke: var(--border);
+  stroke-width: 2;
+  transition: fill var(--t-panel) var(--ease-out);
+}
+
+.terminal[data-signal='1'] .lamp {
+  fill: var(--signal-on);
+  stroke: var(--signal-on);
+  filter: drop-shadow(0 0 10px var(--signal-on-glow));
+}
+
+.terminal[data-error='true'] .lamp,
+.terminal[data-error='true'] .terminalBody {
+  stroke: var(--err);
+  animation: errorPulse 900ms ease-in-out infinite;
+}
+
+.terminalValue {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  fill: var(--text-2);
+  text-anchor: middle;
+}
+
+.terminal[data-signal='1'] .terminalValue {
+  fill: var(--signal-on);
+}
+
+.terminal[data-signal='1'] .lamp + .terminalValue {
+  fill: var(--bg-board);
+}
+
+@keyframes errorPulse {
+  50% {
+    opacity: 0.45;
+  }
+}
