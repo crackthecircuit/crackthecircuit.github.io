@@ -3,11 +3,11 @@
 *Build. Connect. Compute.* This document records the approved gameplay mechanics and rules.
 It holds only decisions agreed in the design workshop. Discuss changes before you edit it.
 
-## Academic scope
+## Learning scope
 Learning objectives: the basic operations of Boolean algebra, and simplifying a Boolean expression (algebra or a
 Karnaugh map).
 
-| Syllabus topic | Where it appears in the game |
+| Topic | Where it appears in the game |
 |---|---|
 | AND, OR, NOT; AND before OR | Levels 1–3; the live equation and hints use this precedence |
 | NAND, NOR, XOR; multi-input gates (XOR = odd number of 1s) | Levels 4–9, wide gates from level 12 |
@@ -16,8 +16,8 @@ Karnaugh map).
 | Sum of products / product of sums | Levels 10, 13 and 17 are SOP-shaped puzzles; hint 2 of levels 16 and 17 shows each answer's SOP and POS forms |
 | Algebraic simplification, K-maps (2–4 variables) | Stars reward fewer gates, so simplifying earns 3★. Levels 16–18 reward simplifying; level 18's hint mentions K-map grouping |
 
-BCIS 1302, Topic 10 (Digital Logic): Boolean algebra, truth tables, Boolean expressions and combinational
-circuits built from AND, OR, NOT, NAND, NOR and XOR gates.
+Digital logic: Boolean algebra, truth tables, Boolean expressions and combinational circuits built from AND, OR,
+NOT, NAND, NOR and XOR gates.
 **Out of scope:** sequential logic, flip-flops, memory and CPU architecture.
 
 ## Core loop

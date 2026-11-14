@@ -5,10 +5,8 @@
 A browser-based puzzle game about digital logic. Each level gives a target truth table. You build a circuit from logic
 gates and wires that produces it, and a real simulator tests your circuit against every input combination.
 
-Made for **BCIS 1302 — Introduction to Computer Organization and Architecture** (Topic 10: Digital Logic).
-
 ## Status
-The game is playable: 18 levels covering the Digital Logic syllabus (up to 4 inputs), the circuit editor with widenable gates, the run/inspect flow, progress saving and deployment. See [ROADMAP.md](ROADMAP.md).
+The game is playable: 18 levels (up to 4 inputs), the circuit editor with widenable gates, the run/inspect flow, progress saving and deployment. See [ROADMAP.md](ROADMAP.md).
 
 ## Documentation
 | File | Contents |

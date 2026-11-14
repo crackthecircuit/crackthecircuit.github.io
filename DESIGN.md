@@ -74,7 +74,7 @@ The success sequence lasts about 1.5s and can be skipped.
 1. **Main menu:** a game-style menu over an animated circuit board. Traces etch in on load, then amber signals pulse
    along them, and "Circuit" flickers on in the logo. Menu items are Start/Continue (showing the next level), Level Select
    and How to Play. Arrow keys or W/S move, Enter selects, and the selected item's pin lights amber. The footer shows
-   stars and levels cracked. No course name appears anywhere on screen (the project is public).
+   stars and levels cracked. The project is public, so the screen carries no course or school branding.
    **How to Play** is a modal dialog (also opened with the ? button in a level) covering the steps, scoring and shortcuts.
 2. **Level map:** drawn as a circuit board. Each level is a chip, and the traces between chips light amber as levels are completed.
    Stars show on each chip.

@@ -3,7 +3,8 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project
-Crack the Circuit is a browser puzzle game for BCIS 1302 (Digital Logic), built by a 5-person university team.
+Crack the Circuit is a browser puzzle game about digital logic. The project is public: keep course names, lecture
+material and personal details out of the game, docs and commit messages.
 Players build combinational circuits from gates and wires to match a target truth table.
 The approved specs are the source of truth. Read the relevant one before changing behaviour, and don't add features they don't list:
 - `GAME_DESIGN.md`: mechanics, levels, scoring, interaction rules
