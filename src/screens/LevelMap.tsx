@@ -76,8 +76,8 @@ export function LevelMap() {
           ← Title
         </Button>
         <h1 className={styles.title}>Levels</h1>
-        <span className={styles.total}>
-          <Stars count={3} size={14} label="Stars" /> {total}/{LEVELS.length * 3}
+        <span className={styles.total} role="img" aria-label={`${total} of ${LEVELS.length * 3} stars`}>
+          <Stars count={3} size={14} label="" /> {total}/{LEVELS.length * 3}
         </span>
       </header>
 

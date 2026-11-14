@@ -5,6 +5,9 @@ import { gateInputCount } from '../engine';
 import type { GateType } from '../engine';
 import { GateShape } from '../components/board/GateShape';
 import type { WorkspaceHandle } from '../components/board/Workspace';
+import { announce } from '../lib/announce';
+import { GRID } from '../lib/board';
+import { nodeName } from '../lib/describe';
 import { freeGatePosition, GATE_H, GATE_W, gatePositionAt } from '../lib/geometry';
 import { editSound, playSound } from '../lib/sound';
 import { useCircuitStore } from '../store/circuitStore';
@@ -23,6 +26,13 @@ if (typeof window !== 'undefined') {
 const isKeyboardFocused = (el: HTMLElement) => focusedByTab && !!el.closest('button, [tabindex]');
 const inTextField = (el: HTMLElement) => !!el.closest('input, textarea, select, dialog[open]');
 
+const ARROWS: Record<string, [number, number]> = {
+  ArrowLeft: [-1, 0],
+  ArrowRight: [1, 0],
+  ArrowUp: [0, -1],
+  ArrowDown: [0, 1],
+};
+
 interface EditorKeyOptions {
   /** Ignore edits (e.g. during the success sweep). */
   locked: boolean;
@@ -31,7 +41,10 @@ interface EditorKeyOptions {
   onEscape?: () => void;
 }
 
-/** Undo/redo, Delete, + / − to resize the selected gate, M to mute, and optional Space and Escape actions. */
+/**
+ * Undo/redo, Delete, + / − to resize and arrow keys to move the selected gate, M to mute, and optional Space and
+ * Escape actions.
+ */
 export function useEditorKeys({ locked, onSpace, onEscape }: EditorKeyOptions) {
   const options = useRef({ locked, onSpace, onEscape });
   useLayoutEffect(() => {
@@ -61,6 +74,21 @@ export function useEditorKeys({ locked, onSpace, onEscape }: EditorKeyOptions) {
         if (node?.kind === 'gate') {
           e.preventDefault();
           store.setGateInputs(node.id, gateInputCount(node) + (e.key === '+' || e.key === '=' ? 1 : -1));
+        }
+      } else if (e.key in ARROWS && !locked && !mod && !target.closest('tr, [role="radio"]')) {
+        const sel = store.selection;
+        const node = sel?.kind === 'node' ? store.circuit.nodes.find((n) => n.id === sel.id) : undefined;
+        if (node?.kind === 'gate') {
+          e.preventDefault();
+          const [dx, dy] = ARROWS[e.key]!;
+          const step = e.shiftKey ? GRID * 4 : GRID;
+          store.moveGate(
+            node.id,
+            gatePositionAt({
+              x: node.pos.x + dx * step + GATE_W / 2,
+              y: node.pos.y + dy * step + GATE_H / 2,
+            }),
+          );
         }
       } else if ((e.key === 'Delete' || e.key === 'Backspace') && !locked) {
         e.preventDefault();
@@ -134,6 +162,15 @@ export function usePaletteDrag(workspaceRef: RefObject<WorkspaceHandle | null>, 
     window.addEventListener('pointercancel', end);
   };
 
+  /** Keyboard activation of a palette button (Enter/Space): add the gate in a free spot. */
+  const onPaletteActivate = (type: GateType) => {
+    if (disabled) return;
+    const store = useCircuitStore.getState();
+    const id = store.addGate(type, freeGatePosition(store.circuit));
+    const node = id && useCircuitStore.getState().circuit.nodes.find((n) => n.id === id);
+    if (node) announce(`Added ${nodeName(node)}. Tab to the board to wire it.`);
+  };
+
   /** Gates dropped on the palette are deleted. */
   const isOverPalette = useCallback((x: number, y: number) => {
     const r = paletteRef.current?.getBoundingClientRect();
@@ -156,5 +193,5 @@ export function usePaletteDrag(workspaceRef: RefObject<WorkspaceHandle | null>, 
     </svg>
   );
 
-  return { paletteRef, onPalettePointerDown, isOverPalette, ghostElement };
+  return { paletteRef, onPalettePointerDown, onPaletteActivate, isOverPalette, ghostElement };
 }

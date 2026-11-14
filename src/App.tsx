@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { ScreenTransition } from './components/ScreenTransition';
+import { Announcer } from './components/ui/Announcer';
 import { LevelMap } from './screens/LevelMap';
 import { LevelScreen } from './screens/LevelScreen';
 import { SandboxScreen } from './screens/SandboxScreen';
@@ -33,6 +34,7 @@ export function App() {
           )}
         </ScreenTransition>
       </div>
+      <Announcer />
     </>
   );
 }

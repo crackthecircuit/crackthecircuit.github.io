@@ -19,10 +19,12 @@ interface PaletteProps {
   deleteHover: boolean;
   disabled?: boolean;
   onGatePointerDown: (type: GateType, event: ReactPointerEvent) => void;
+  /** Enter/Space on a gate button (pointer clicks go through onGatePointerDown). */
+  onGateActivate: (type: GateType) => void;
 }
 
 export const Palette = forwardRef<HTMLElement, PaletteProps>(function Palette(props, ref) {
-  const { gates, deleteHover, disabled, onGatePointerDown } = props;
+  const { gates, deleteHover, disabled, onGatePointerDown, onGateActivate } = props;
   return (
     <section
       ref={ref}
@@ -39,7 +41,8 @@ export const Palette = forwardRef<HTMLElement, PaletteProps>(function Palette(pr
               className={styles.item}
               disabled={disabled}
               onPointerDown={(e) => e.button === 0 && onGatePointerDown(type, e)}
-              aria-label={`${type} gate: drag onto the board, or click to add`}
+              onClick={(e) => e.detail === 0 && onGateActivate(type)} // keyboard only
+              aria-label={`${type} gate: ${DESCRIPTIONS[type]}. Drag onto the board, or press to add`}
             >
               <svg className={styles.icon} viewBox="0 0 80 60" aria-hidden>
                 <GateShape type={type} />

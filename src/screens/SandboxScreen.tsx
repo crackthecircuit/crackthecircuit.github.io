@@ -68,7 +68,7 @@ export function SandboxScreen() {
 
   useEditSounds();
   useEditorKeys({ locked: false, onEscape: () => setInspected(null) });
-  const { paletteRef, onPalettePointerDown, isOverPalette, ghostElement } = usePaletteDrag(
+  const { paletteRef, onPalettePointerDown, onPaletteActivate, isOverPalette, ghostElement } = usePaletteDrag(
     workspaceRef,
     !ready,
   );
@@ -131,6 +131,7 @@ export function SandboxScreen() {
           gates={level.palette}
           deleteHover={deleteHover}
           onGatePointerDown={onPalettePointerDown}
+          onGateActivate={onPaletteActivate}
         />
       </aside>
 

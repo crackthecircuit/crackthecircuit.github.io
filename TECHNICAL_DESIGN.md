@@ -35,6 +35,7 @@ src/
                editor.tsx (shortcuts + palette drag shared by both editing screens)
   lib/         board.ts (960×600 world, grid) · geometry.ts (ports, wire paths, hit-testing, placement) · view.ts (zoom/pan)
                sound.ts (Web Audio synth, `editSound()` picks an edit's sound)
+               describe.ts (screen-reader names for ports and gates) · announce.ts (live-region messages)
   styles/      tokens.css · global.css
 ```
 
@@ -56,6 +57,9 @@ src/
   output, every unlocked gate, `maxGateInputs` 4 and a placeholder `expected` that is never compared. It calls
   `simulate()` on every edit and shows the rows live. The input count is read from the circuit's input terminals, so
   `relayout()` (one undo step) changes it and undo/redo restores it; `setLevel()` then re-syncs the store's level.
+- **Keyboard:** Board makes ports and gates focusable and reports Enter/Delete/focus; Workspace maps a port's Enter onto
+  the existing click-click wiring mode, so keyboard and mouse share one code path. `components/ui/Announcer` is the
+  app's single live region, fed by `announce()`.
 
 ## Data model
 Everything is plain JSON, so undo snapshots, autosave and level files work the same way.

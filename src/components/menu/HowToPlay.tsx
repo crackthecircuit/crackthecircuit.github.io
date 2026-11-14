@@ -9,7 +9,11 @@ const SHORTCUTS: [string, string][] = [
   ['Ctrl + Z', 'Undo'],
   ['Ctrl + Shift + Z', 'Redo'],
   ['+ / −', 'More or fewer inputs on the selected gate'],
+  ['Arrows', 'Move the selected gate (Shift for bigger steps)'],
+  ['Tab, Enter', 'Keyboard wiring: Enter on one port, then on another'],
   ['Esc', 'Cancel the wire you are drawing'],
+  ['Scroll / pinch', 'Zoom the board; drag empty board to pan'],
+  ['M', 'Sound on or off'],
 ];
 
 /** Controls and rules, shown from the main menu and from inside a level. Uses a native modal dialog. */

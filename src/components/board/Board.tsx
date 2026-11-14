@@ -1,8 +1,9 @@
 import { useEffect, useId, useRef, useState } from 'react';
-import type { PointerEvent as ReactPointerEvent, Ref } from 'react';
+import type { KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent, Ref } from 'react';
 import { portsOf } from '../../engine';
 import type { Bit, Circuit, CircuitNode, GateNode, InputNode, OutputNode, Point, PortId } from '../../engine';
 import { BOARD_HEIGHT, BOARD_WIDTH, GRID } from '../../lib/board';
+import { describePort, nodeName } from '../../lib/describe';
 import { GATE_W, gateHeightFor, portKey, portPosition, wirePath } from '../../lib/geometry';
 import type { PortRef } from '../../lib/geometry';
 import type { Selection } from '../../store/circuitStore';
@@ -53,7 +54,18 @@ export interface BoardProps {
   onGatePointerDown?: PointerHandler<string>;
   onWirePointerDown?: PointerHandler<string>;
   onBackgroundPointerDown?: (event: ReactPointerEvent) => void;
+
+  // Keyboard: ports and gates are focusable when these are given.
+  /** Enter/Space on a port: start a wire there, or finish the wire being drawn. */
+  onPortActivate?: (target: PortRef) => void;
+  /** Delete/Backspace on an input port: remove its wire. */
+  onPortClear?: (target: PortRef) => void;
+  /** A gate got keyboard focus (or Enter/Space): select it. */
+  onGateFocus?: (id: string) => void;
 }
+
+/** Enter or Space, without letting Space also reach the global Run shortcut. */
+const isActivateKey = (e: ReactKeyboardEvent) => e.key === 'Enter' || e.key === ' ';
 
 const GHOST_MS = 200;
 
@@ -124,7 +136,10 @@ export function Board(props: BoardProps) {
       value={value}
       hint={portHints?.[portKey({ nodeId: node.id, port: p })]}
       shake={shakePortKey === portKey({ nodeId: node.id, port: p })}
+      label={props.onPortActivate ? describePort(circuit, { nodeId: node.id, port: p }) : undefined}
       onPointerDown={props.onPortPointerDown}
+      onActivate={props.onPortActivate}
+      onClear={props.onPortClear}
     />
   );
 
@@ -134,7 +149,7 @@ export function Board(props: BoardProps) {
       className={styles.board}
       viewBox={`${viewBox.x} ${viewBox.y} ${viewBox.width} ${viewBox.height}`}
       preserveAspectRatio="xMidYMid meet"
-      role="application"
+      role="group"
       aria-label="Circuit board"
       data-wiring={flag(!!draftWire)}
       data-celebrate={flag(celebrate)}
@@ -213,6 +228,7 @@ export function Board(props: BoardProps) {
                   deleting={deletingGateId === node.id}
                   dragging={draggingGateId === node.id}
                   onPointerDown={props.onGatePointerDown}
+                  onFocusGate={props.onGateFocus}
                   resize={props.gateResize?.nodeId === node.id ? props.gateResize : null}
                   onResize={props.onResizeGate}
                 >
@@ -249,17 +265,36 @@ function Port(props: {
   value?: Bit;
   hint?: 'origin' | 'valid' | 'invalid';
   shake: boolean;
+  /** Accessible name; the port is focusable when it has one. */
+  label?: string;
   onPointerDown?: PointerHandler<PortRef>;
+  onActivate?: (target: PortRef) => void;
+  onClear?: (target: PortRef) => void;
 }) {
-  const { node, port, value, hint, shake, onPointerDown } = props;
+  const { node, port, value, hint, shake, label, onPointerDown, onActivate, onClear } = props;
   const p = portPosition(node, port);
+  const ref = { nodeId: node.id, port };
   return (
     <g
       className={styles.portGroup}
       data-hint={hint}
       data-shake={flag(shake)}
       style={{ transformOrigin: `${p.x}px ${p.y}px` }}
-      onPointerDown={(e) => onPointerDown?.({ nodeId: node.id, port }, e)}
+      onPointerDown={(e) => onPointerDown?.(ref, e)}
+      tabIndex={label ? 0 : undefined}
+      role={label ? 'button' : undefined}
+      aria-label={label && (value === undefined ? label : `${label}, carrying ${value}`)}
+      onKeyDown={(e) => {
+        if (isActivateKey(e)) {
+          e.preventDefault();
+          e.stopPropagation();
+          onActivate?.(ref);
+        } else if ((e.key === 'Delete' || e.key === 'Backspace') && port !== 'out' && onClear) {
+          e.preventDefault();
+          e.stopPropagation();
+          onClear(ref);
+        }
+      }}
     >
       <circle className={styles.portHit} cx={p.x} cy={p.y} r={14} />
       <circle className={styles.port} cx={p.x} cy={p.y} r={5} data-signal={signalAttr(value)} />
@@ -275,12 +310,14 @@ function Gate(props: {
   deleting: boolean;
   dragging: boolean;
   onPointerDown?: PointerHandler<string>;
+  onFocusGate?: (id: string) => void;
   resize: { min: number; max: number } | null;
   onResize?: (nodeId: string, inputs: number) => void;
   children: React.ReactNode;
 }) {
-  const { node, selected, unused, error, deleting, dragging, onPointerDown, resize, onResize, children } =
+  const { node, selected, unused, error, deleting, dragging, onPointerDown, onFocusGate, resize, onResize } =
     props;
+  const { children } = props;
   const inputs = portsOf(node).inputs.length;
   const height = gateHeightFor(inputs);
   return (
@@ -296,6 +333,22 @@ function Gate(props: {
         className={styles.gateBody}
         transform={`translate(${node.pos.x} ${node.pos.y})`}
         onPointerDown={(e) => onPointerDown?.(node.id, e)}
+        tabIndex={onFocusGate ? 0 : undefined}
+        role={onFocusGate ? 'button' : undefined}
+        aria-pressed={onFocusGate ? selected : undefined}
+        aria-label={
+          onFocusGate
+            ? `${nodeName(node)}, ${inputs} input${inputs === 1 ? '' : 's'}${unused ? ', unused' : ''}${error ? ', has a problem' : ''}`
+            : undefined
+        }
+        onFocus={() => onFocusGate?.(node.id)}
+        onKeyDown={(e) => {
+          if (isActivateKey(e) && onFocusGate) {
+            e.preventDefault();
+            e.stopPropagation();
+            onFocusGate(node.id);
+          }
+        }}
       >
         <rect className={styles.gateHit} x={10} y={0} width={GATE_W - 20} height={height} />
         <GateShape type={node.gateType} inputs={inputs} />
@@ -354,7 +407,8 @@ function ResizeControl(props: {
     );
   };
   return (
-    <g className={styles.resize} onPointerDown={(e) => e.stopPropagation()}>
+    // Hidden from assistive tech: keyboard users press + / − on the focused gate instead.
+    <g className={styles.resize} aria-hidden onPointerDown={(e) => e.stopPropagation()}>
       <rect x={x - 58} y={y - 14} width={116} height={28} rx={14} />
       {button(-44, '−', inputs - 1, 'Fewer inputs')}
       <text className={styles.resizeLabel} x={x} y={y + 4}>

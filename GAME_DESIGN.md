@@ -128,6 +128,18 @@ the stars, gates used vs par, and **Next Level**.
 - **Devices:** desktop/laptop first (1280px+). Pointer Events give basic tablet touch, and phones see a "best on a larger screen" notice.
 - **Autosave:** each level's board is saved along with progress, and solved levels can be replayed for more stars.
 
+## Accessibility
+- **Keyboard play:** the whole game works without a pointer. Enter on a palette button adds that gate in a free spot.
+  On the board, Tab reaches every port and gate. Enter (or Space) on a port starts a wire, and Enter on a second port
+  finishes it (the same rules and rejections as the mouse), while Escape cancels. Delete on a connected input port
+  removes its wire. Focusing a gate selects it: Delete removes it, + / − resize it, and the arrow keys move it one grid
+  step (Shift for four).
+- **Screen readers:** ports and gates have names that say what they're wired to (e.g. "AND gate 1 input 2, from
+  switch B"). A polite live region announces wiring steps, gates added, rejected wires, and a failed run's first failing
+  row. Validation problems are an alert, and the result card is a dialog described by its stars and par note.
+- **Colour and motion:** colour is never the only signal (wire values also show as 0/1 on terminals and ports, and rows
+  show ✓/✗). All text meets 4.5:1 contrast. `prefers-reduced-motion` shortens every animation.
+
 ## Sound
 Short synthesised sound effects (Web Audio, no audio files). They're **on by default**. A speaker button on the main
 menu, level screen and sandbox (or the **M** key while editing) mutes them, and the choice is saved with progress

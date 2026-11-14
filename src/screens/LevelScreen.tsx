@@ -13,6 +13,7 @@ import { Expression, RichText } from '../components/ui/Expression';
 import { SoundToggle } from '../components/ui/SoundToggle';
 import { Stars } from '../components/ui/Stars';
 import { HowToPlay } from '../components/menu/HowToPlay';
+import { announce } from '../lib/announce';
 import { playSound } from '../lib/sound';
 import { getLevel, LEVELS } from '../levels/levels';
 import { isUsableBoard } from '../levels/startingCircuit';
@@ -93,7 +94,7 @@ export function LevelScreen({ levelId }: { levelId: string }) {
     const result = simulate(c, level);
     const gateCount = countGates(c);
     if (result.status === 'invalid') {
-      playSound('invalid');
+      playSound('invalid'); // the Problems box is an alert, so it is read out
       setRun({ circuit: c, result, revealed: 0, inspected: null, phase: 'review', stars: 0, gateCount });
       return;
     }
@@ -137,7 +138,7 @@ export function LevelScreen({ levelId }: { levelId: string }) {
     };
   }, [sweeping]);
 
-  // Sounds for the run: a tick per row as the sweep lands, then the outcome.
+  // Sounds for the run (a tick per row as the sweep lands, then the outcome), and the outcome read out.
   const lastPhase = useRef<Phase | null>(null);
   useEffect(() => {
     const prev = lastPhase.current;
@@ -155,7 +156,16 @@ export function LevelScreen({ levelId }: { levelId: string }) {
       for (let i = 0; i < current.stars; i++) playSound('star', i, delay + i * 0.14);
       if (level.unlocksGate) playSound('unlock', 0, delay + current.stars * 0.14 + 0.1);
     }
-    if (phase === 'review' && prev === 'sweep' && !result.allPassed) playSound('fail');
+    if (phase === 'review' && prev === 'sweep' && !result.allPassed) {
+      playSound('fail');
+      const fail = result.rows.find((r) => !r.pass)!;
+      const out = level.outputs[0]!;
+      const inputs = level.inputs.map((l) => `${l} ${fail.inputs[l]}`).join(', ');
+      announce(
+        `${result.passedCount} of ${result.rows.length} rows pass. First failing row: ${inputs}. ` +
+          `${out} should be ${fail.expected[out]} but is ${fail.outputs[out]}.`,
+      );
+    }
   }, [current, level]);
 
   useEditSounds();
@@ -164,7 +174,7 @@ export function LevelScreen({ levelId }: { levelId: string }) {
     onSpace: () => !locked && startRun(),
     onEscape: () => current?.phase === 'card' && setRun((r) => r && { ...r, phase: 'review' }),
   });
-  const { paletteRef, onPalettePointerDown, isOverPalette, ghostElement } = usePaletteDrag(
+  const { paletteRef, onPalettePointerDown, onPaletteActivate, isOverPalette, ghostElement } = usePaletteDrag(
     workspaceRef,
     locked || !ready,
   );
@@ -215,6 +225,7 @@ export function LevelScreen({ levelId }: { levelId: string }) {
           deleteHover={deleteHover}
           disabled={locked}
           onGatePointerDown={onPalettePointerDown}
+          onGateActivate={onPaletteActivate}
         />
         <Hints key={level.id} hints={level.hints} />
       </aside>

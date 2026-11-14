@@ -13,7 +13,9 @@ import {
   portPosition,
 } from '../../lib/geometry';
 import type { PortRef } from '../../lib/geometry';
+import { portName } from '../../lib/describe';
 import { playSound } from '../../lib/sound';
+import { announce } from '../../lib/announce';
 import { FIT_VIEW, MAX_ZOOM, MIN_ZOOM, panBy, viewBoxOf, ZOOM_STEP, zoomAround } from '../../lib/view';
 import type { View } from '../../lib/view';
 import { gateSizeRange } from '../../levels/rules';
@@ -199,6 +201,7 @@ export const Workspace = forwardRef<WorkspaceHandle, WorkspaceProps>(function Wo
 
   const rejectAt = (target: PortRef) => {
     playSound('reject');
+    announce(`Can't connect to ${portName(useCircuitStore.getState().circuit, target)}.`);
     setShake(portKey(target));
     window.setTimeout(() => setShake(null), 320);
   };
@@ -224,7 +227,8 @@ export const Workspace = forwardRef<WorkspaceHandle, WorkspaceProps>(function Wo
     const port = input.port;
     const ok =
       out.port === 'out' && isInputPort(port) && store.connect(out.nodeId, { nodeId: input.nodeId, port });
-    if (!ok) rejectAt(target);
+    if (!ok) return rejectAt(target);
+    announce(`Connected ${portName(store.circuit, out)} to ${portName(store.circuit, input)}.`);
   };
   const finishWireRef = useRef(finishWire);
   finishWireRef.current = finishWire;
@@ -284,7 +288,9 @@ export const Workspace = forwardRef<WorkspaceHandle, WorkspaceProps>(function Wo
     };
 
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setDrag(null);
+      if (e.key !== 'Escape') return;
+      if (dragRef.current?.kind === 'wire' && dragRef.current.sticky) announce('Wiring cancelled.');
+      setDrag(null);
     };
 
     window.addEventListener('pointermove', onMove);
@@ -343,6 +349,41 @@ export const Workspace = forwardRef<WorkspaceHandle, WorkspaceProps>(function Wo
       moved: false,
       overDelete: false,
     });
+  };
+
+  // Keyboard: Enter on a port starts a wire (the same click-click mode as the mouse); Enter on another finishes it.
+  const onPortActivate = (target: PortRef) => {
+    if (locked) return;
+    const current = dragRef.current;
+    if (current?.kind === 'wire' && current.sticky) {
+      if (portKey(target) !== portKey(current.origin)) return finishWire(current, target);
+      setDrag(null);
+      announce('Wiring cancelled.');
+      return;
+    }
+    const node = circuit.nodes.find((n) => n.id === target.nodeId);
+    if (!node) return;
+    setDrag({
+      kind: 'wire',
+      origin: target,
+      pointer: portPosition(node, target.port),
+      start: { x: 0, y: 0 },
+      moved: false,
+      sticky: true,
+    });
+    const want = isInputPort(target.port) ? 'an output' : 'an input';
+    announce(`Wiring from ${portName(circuit, target)}. Go to ${want} and press Enter. Escape cancels.`);
+  };
+
+  const onPortClear = (target: PortRef) => {
+    const wire = circuit.wires.find((w) => w.to.nodeId === target.nodeId && w.to.port === target.port);
+    if (locked || !wire) return;
+    useCircuitStore.getState().removeWire(wire.id);
+    announce(`Removed the wire into ${portName(circuit, target)}.`);
+  };
+
+  const onGateFocus = (id: string) => {
+    if (!locked) useCircuitStore.getState().select({ kind: 'node', id });
   };
 
   const onWirePointerDown = (id: string, e: ReactPointerEvent) => {
@@ -427,6 +468,9 @@ export const Workspace = forwardRef<WorkspaceHandle, WorkspaceProps>(function Wo
         onGatePointerDown={onGatePointerDown}
         onWirePointerDown={onWirePointerDown}
         onBackgroundPointerDown={onBackgroundPointerDown}
+        onPortActivate={onPortActivate}
+        onPortClear={onPortClear}
+        onGateFocus={onGateFocus}
         gateResize={gateResize}
         onResizeGate={(id, n) => useCircuitStore.getState().setGateInputs(id, n)}
       />

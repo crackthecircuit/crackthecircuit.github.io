@@ -29,7 +29,7 @@ Every colour is a CSS variable in `src/styles/tokens.css`. Components don't hard
 | `--border` | `#262C35` | Panel and card borders |
 | `--text-1` | `#E6E8EB` | Primary text |
 | `--text-2` | `#8B93A0` | Secondary text |
-| `--text-3` | `#5A626E` | Muted text, disabled |
+| `--text-3` | `#808895` | Muted text, disabled (kept at 4.5:1 or more on every surface) |
 | `--signal-on` | `#FFB547` | Wire/port carrying 1 (with glow) |
 | `--signal-off` | `#3A4250` | Wire/port carrying 0 |
 | `--wire` | `#4A5363` | Idle wire (before any run) |

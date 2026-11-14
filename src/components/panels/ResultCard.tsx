@@ -28,14 +28,24 @@ export function ResultCard(props: ResultCardProps) {
       : `${gateCount} gates. Par is ${par}. Can you trim ${gateCount - par}?`;
 
   return (
-    <div className={styles.card} role="dialog" aria-modal="false" aria-labelledby="result-title">
-      <Stars count={stars} size={28} />
+    <div
+      className={styles.card}
+      role="dialog"
+      aria-modal="false"
+      aria-labelledby="result-title"
+      aria-describedby="result-stars result-note result-unlock"
+    >
+      <span id="result-stars">
+        <Stars count={stars} size={28} />
+      </span>
       <h2 id="result-title" className={styles.title}>
         {isLastLevel ? 'Every circuit cracked!' : HEADLINES[stars]}
       </h2>
-      <p className={styles.note}>{parNote}</p>
+      <p id="result-note" className={styles.note}>
+        {parNote}
+      </p>
       {unlockedGate && (
-        <p className={styles.unlock}>
+        <p id="result-unlock" className={styles.unlock}>
           New gate unlocked: <strong>{unlockedGate}</strong>
         </p>
       )}

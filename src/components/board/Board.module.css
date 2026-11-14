@@ -411,3 +411,30 @@
 .resizeButton[data-disabled] text {
   fill: var(--text-3);
 }
+
+/* Keyboard focus on board parts: a cyan ring drawn in the SVG (browser outlines on SVG boxes are unreliable). */
+.portGroup:focus,
+.gateBody:focus {
+  outline: none;
+}
+
+.portGroup:focus-visible .portHit {
+  stroke: var(--focus);
+  stroke-width: 2;
+  stroke-dasharray: 4 3;
+}
+
+.portGroup:focus-visible .port {
+  stroke: var(--focus);
+  r: 7;
+}
+
+.gateBody:focus-visible [data-part] {
+  stroke: var(--focus);
+}
+
+.gateBody:focus-visible .gateHit {
+  stroke: var(--focus);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 3;
+}
