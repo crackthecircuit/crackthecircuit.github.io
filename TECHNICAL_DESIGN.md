@@ -138,7 +138,7 @@ The UI is checked by a manual playtest checklist and by browser checks through P
   prefix `¬` for NOT, and chains of equal forms joined by `=`.
 - `circuitExpression()` reads the player's circuit backwards from the output into an `Expr`. Unconnected inputs become
   `unknown` and feedback loops become `loop`, never 0.
-- `evaluateExpr()` evaluates an `Expr`. Lecture-example levels define their truth table with `fromExpression("…")`,
+- `evaluateExpr()` evaluates an `Expr`. Levels 16–18 define their truth table with `fromExpression("…")`,
   so the brief and the table can't disagree.
 
 Level text (briefs and hints) embeds expressions between dollar signs (`"Q = $A'B + AB'$"`), and `RichText` renders them.

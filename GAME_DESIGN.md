@@ -13,8 +13,8 @@ of Boolean algebra, and using a Karnaugh map to simplify a Boolean expression.
 | NAND, NOR, XOR; multi-input gates (XOR = odd number of 1s) | Levels 4–9, wide gates from level 12 |
 | Identities, De Morgan's theorem | Levels 5–6 and 16 (hints show the De Morgan step) |
 | Combinational circuit = truth table + graphical symbols + Boolean equation | Truth table, board, and the live **Your circuit** equation |
-| Sum of products / product of sums | Levels 10, 13 (SOP), 16 (canonical SOP), 17 (POS) |
-| Algebraic simplification, K-maps (2–4 variables) | Stars reward fewer gates, so simplifying earns 3★; levels 16 and 18 use the slides' own examples (K-maps are drawn on paper) |
+| Sum of products / product of sums | Levels 10, 13 and 17 are SOP-shaped puzzles; hint 2 of levels 16 and 17 shows each answer's SOP and POS forms |
+| Algebraic simplification, K-maps (2–4 variables) | Stars reward fewer gates, so simplifying earns 3★. Levels 16–18 use the slides' example functions; level 18's hint mentions K-map grouping |
 
 BCIS 1302, Topic 10 (Digital Logic): Boolean algebra, truth tables, Boolean expressions and combinational
 circuits built from AND, OR, NOT, NAND, NOR and XOR gates.
@@ -41,6 +41,9 @@ wide a gate may be made. Levels 1–11 stay 2-input, so building wider functions
 puzzle there. Wide gates arrive at level 12. A wide gate counts as **one** gate for par.
 
 ## Level progression
+Every level is a truth-table puzzle. Objectives describe a behaviour or scenario and never give the formula; Boolean
+expressions only appear in hint 2.
+
 Levels 1–3 are tutorials that offer exactly the gate being taught. Later levels **restrict the palette**,
 and that restriction is where the puzzle comes from.
 
@@ -61,9 +64,9 @@ and that restriction is where the puzzle comes from.
 | 13 | Two Pairs: A·B + C·D | AND, OR (≤4) | 3 | Sum of products; widening doesn't help |
 | 14 | Even Count (even number of switches on) | XOR (≤4), NOT | 2 | ¬(A⊕B⊕C⊕D); wide XOR as parity |
 | 15 | Security System: armed · (door + window) · ¬maintenance | AND, OR, NOT (≤3) | 3 | Word problem; A·(B+C)·¬D with a 3-input AND |
-| 16 | Simplify It: A'BC' + A'BC + ABC' (lecture SOP example) | AND, OR, NOT (≤3) | 3 | Simplification: built as written it takes 7 gates; B(AC)' takes 3 |
-| 17 | Product of Sums: (A + B)(B' + C) (lecture POS example) | AND, OR, NOT | 4 | Reading POS form |
-| 18 | K-Map Challenge: A'BC'D + ABC'D + ABCD + AB'CD (lecture K-map example) | AND, OR, NOT (≤3) | 4 | K-map grouping → BC'D + ACD |
+| 16 | Smart Lamp: on with B, off when curtains open (A) and daytime (C) | AND, OR, NOT (≤3) | 3 | B(AC)'; the slides' SOP example A'BC' + A'BC + ABC', simplified |
+| 17 | Selector Switch: B picks whether Q copies A or C | AND, OR, NOT | 4 | AB' + BC, the slides' POS example (A + B)(B' + C) |
+| 18 | Vending Machine: powered, and coin in coin mode or card in card mode | AND, OR, NOT (≤3) | 4 | BC'D + ACD, the slides' 4-variable K-map example |
 
 Par values will be tuned in playtesting. Each level ships with a reference solution that meets par (verified by tests).
 

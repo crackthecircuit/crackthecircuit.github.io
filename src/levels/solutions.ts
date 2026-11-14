@@ -201,7 +201,7 @@ export const SOLUTIONS: Record<string, Recipe> = {
     ],
   },
   'level-16': {
-    // B·(AC)' — the lecture's simplified form, B(A' + C'), via De Morgan
+    // Smart Lamp: B·(AC)'
     gates: { ac: 'AND', nac: 'NOT', out: 'AND' },
     wires: [
       ['A', 'ac.in0'],
@@ -213,7 +213,7 @@ export const SOLUTIONS: Record<string, Recipe> = {
     ],
   },
   'level-17': {
-    // (A + B)(B' + C), built as written
+    // Selector Switch: (A + B)(B' + C), the POS form of AB' + BC
     gates: { ab: 'OR', nb: 'NOT', bc: 'OR', out: 'AND' },
     wires: [
       ['A', 'ab.in0'],
@@ -227,7 +227,7 @@ export const SOLUTIONS: Record<string, Recipe> = {
     ],
   },
   'level-18': {
-    // BC'D + ACD, from grouping the K-map
+    // Vending Machine: BC'D + ACD
     gates: { nc: 'NOT', g1: ['AND', 3], g2: ['AND', 3], out: 'OR' },
     wires: [
       ['C', 'nc.in0'],
