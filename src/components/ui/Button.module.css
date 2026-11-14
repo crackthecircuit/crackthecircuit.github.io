@@ -1,0 +1,82 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-2);
+  height: 36px;
+  padding: 0 var(--s-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+  color: var(--text-1);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background var(--t-fast) var(--ease-out),
+    border-color var(--t-fast) var(--ease-out),
+    transform var(--t-fast) var(--ease-out),
+    color var(--t-fast) var(--ease-out);
+}
+
+.button:hover:not(:disabled) {
+  border-color: var(--text-3);
+  background: #20262e;
+}
+
+.button:active:not(:disabled) {
+  transform: translateY(1px) scale(0.98);
+}
+
+.button:disabled {
+  color: var(--text-3);
+  cursor: not-allowed;
+}
+
+.button[data-size='lg'] {
+  height: 44px;
+  padding: 0 var(--s-6);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* Primary is light-on-dark neutral: amber is reserved for signals. */
+.button[data-variant='primary'] {
+  border-color: var(--text-1);
+  background: var(--text-1);
+  color: var(--bg-board);
+}
+
+.button[data-variant='primary']:hover:not(:disabled) {
+  background: #fff;
+  border-color: #fff;
+}
+
+.button[data-variant='primary']:disabled {
+  background: var(--bg-raised);
+  border-color: var(--border);
+  color: var(--text-3);
+}
+
+.button[data-variant='ghost'] {
+  border-color: transparent;
+  background: transparent;
+  color: var(--text-2);
+}
+
+.button[data-variant='ghost']:hover:not(:disabled) {
+  background: var(--bg-raised);
+  border-color: transparent;
+  color: var(--text-1);
+}
+
+.kbd {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  border: 1px solid currentColor;
+  opacity: 0.55;
+}

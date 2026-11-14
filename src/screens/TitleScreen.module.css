@@ -1,0 +1,174 @@
+.screen {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 100%;
+  padding: var(--s-8) var(--s-4);
+  background:
+    radial-gradient(ellipse at 50% 40%, rgb(255 181 71 / 0.06), transparent 60%),
+    radial-gradient(circle, var(--grid-dot) 1.2px, transparent 1.4px) 0 0 / 20px 20px,
+    var(--bg-board);
+}
+
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 560px;
+}
+
+.mark {
+  width: 220px;
+  height: 110px;
+  margin-bottom: var(--s-6);
+}
+
+.mark path,
+.mark circle {
+  fill: none;
+  stroke: var(--signal-off);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.mark .gate {
+  fill: var(--gate-fill);
+  stroke: var(--gate-stroke);
+  stroke-width: 3;
+}
+
+.mark .pinA,
+.mark .pinB {
+  fill: var(--bg-board);
+}
+
+.mark .lamp {
+  fill: var(--bg-raised);
+}
+
+/* A 4s loop: A lights, then B, then the output and lamp. */
+.traceA,
+.pinA {
+  animation: litA 4s infinite;
+}
+
+.traceB,
+.pinB {
+  animation: litB 4s infinite;
+}
+
+.traceOut,
+.lamp {
+  animation: litOut 4s infinite;
+}
+
+@keyframes litA {
+  10%,
+  85% {
+    stroke: var(--signal-on);
+    filter: drop-shadow(0 0 5px var(--signal-on-glow));
+  }
+  0%,
+  9%,
+  86%,
+  100% {
+    stroke: var(--signal-off);
+  }
+}
+
+@keyframes litB {
+  30%,
+  85% {
+    stroke: var(--signal-on);
+    filter: drop-shadow(0 0 5px var(--signal-on-glow));
+  }
+  0%,
+  29%,
+  86%,
+  100% {
+    stroke: var(--signal-off);
+  }
+}
+
+@keyframes litOut {
+  45%,
+  85% {
+    stroke: var(--signal-on);
+    filter: drop-shadow(0 0 8px var(--signal-on-glow));
+  }
+  0%,
+  44%,
+  86%,
+  100% {
+    stroke: var(--signal-off);
+  }
+}
+
+.lamp {
+  animation-name: litLamp;
+}
+
+@keyframes litLamp {
+  45%,
+  85% {
+    stroke: var(--signal-on);
+    fill: var(--signal-on);
+    filter: drop-shadow(0 0 14px var(--signal-on-glow));
+  }
+  0%,
+  44%,
+  86%,
+  100% {
+    stroke: var(--signal-off);
+    fill: var(--bg-raised);
+  }
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(40px, 7vw, 68px);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.035em;
+}
+
+.lit {
+  color: var(--signal-on);
+  text-shadow: 0 0 28px var(--signal-on-glow);
+}
+
+.tagline {
+  margin: var(--s-4) 0 0;
+  font-family: var(--font-mono);
+  font-size: 15px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+
+.pitch {
+  margin: var(--s-6) 0 0;
+  max-width: 440px;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--text-2);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--s-3);
+  margin-top: var(--s-8);
+}
+
+.footer {
+  position: absolute;
+  bottom: var(--s-6);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--text-3);
+}

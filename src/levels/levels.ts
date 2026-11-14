@@ -163,4 +163,3 @@ export const LEVELS: Level[] = [
 ];
 
 export const getLevel = (id: string) => LEVELS.find((l) => l.id === id);
-

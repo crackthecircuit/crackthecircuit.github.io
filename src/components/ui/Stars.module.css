@@ -1,0 +1,16 @@
+.stars {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.stars svg path {
+  fill: transparent;
+  stroke: var(--text-3);
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+}
+
+.stars svg[data-on] path {
+  fill: var(--text-1);
+  stroke: var(--text-1);
+}

@@ -11,7 +11,8 @@
 | Persistence | localStorage | Per-player progress; no accounts |
 | Hosting | GitHub Pages at `https://crackthecircuit.github.io` (repo `crackthecircuit/crackthecircuit.github.io`) | Free; root-level site, so Vite `base` stays `/` |
 
-There's no router dependency: the current screen is a field in the store.
+There's no router dependency: the current screen is a field in `appStore`, mirrored in the URL hash
+(`#/`, `#/map`, `#/level/3`) so refresh and the back button work. A locked level opened by URL redirects to the map.
 
 ## Layering rule
 `src/engine/` is **pure TypeScript with no React or DOM imports**. It owns the circuit types, validation, simulation and
@@ -22,15 +23,30 @@ the engine and the UI be built in parallel.
 ```
 src/
   engine/      types.ts · gates.ts · validate.ts · simulate.ts · score.ts · __tests__/
-  levels/      levels.ts (level data) · solutions.ts (reference circuits, used by tests only)
-  store/       circuitStore.ts (board + selection + undo) · progressStore.ts (persisted progress)
+  levels/      levels.ts (level data) · solutions.ts (reference circuits, tests only) · startingCircuit.ts
+  store/       appStore.ts (screen + URL hash) · circuitStore.ts (board, selection, undo)
+               progressStore.ts + persistence.ts (stars, unlocks, autosaved boards)
   components/
-    board/     Board · GateNode · Port · Wire · DragPreview
-    panels/    Palette · TruthTable · Hints · ResultCard
-  screens/     TitleScreen · LevelMap · LevelScreen
-  lib/         geometry.ts (grid snap, bezier paths, port positions)
+    board/     Board (pure SVG renderer) · Workspace (pointer interactions) · GateShape (IEEE symbols)
+    panels/    Palette · TruthTable · Hints · Problems · ResultCard
+    ui/        Button · Stars
+  screens/     TitleScreen · LevelMap · LevelScreen (run flow, sweep, shortcuts, palette drag)
+  lib/         board.ts (960×600 world, grid) · geometry.ts (ports, wire paths, hit-testing, placement)
   styles/      tokens.css · global.css
 ```
+
+## UI structure
+- **Board** only draws. It takes the circuit plus display state (signals, errors, selection, draft wire, port hints)
+  and reports pointer presses on ports, gates, wires and the background.
+- **Workspace** owns editing gestures and calls store actions. A gate drag moves the gate on screen and commits
+  `moveGate` once on release (dropping on the palette calls `removeGate`). A wire is drawn by dragging port → port,
+  or by clicking one port then another. Pressing a connected input port picks up that wire's end:
+  drop it on another input to reroute it (`moveWireEnd`), or on empty board to detach it. Drop targets are found with
+  `nearestPort` (22-unit radius), not by DOM hit-testing.
+- **LevelScreen** owns the run. `simulate()` runs on Run/Space. The result belongs to the exact `Circuit` object that
+  was run, so any edit makes it stale automatically. Rows reveal every 80ms while the board shows each row's signals.
+  A pass then plays a ~650ms flowing-wire celebration and the result card. Any click or key skips the sweep.
+  Progress is recorded as soon as the run passes.
 
 ## Data model
 Everything is plain JSON, so undo snapshots, autosave and level files work the same way.
@@ -91,8 +107,8 @@ only ever compares against the arrays. `src/levels/solutions.ts` holds a referen
 `buildCircuit()`), and `levels.test.ts` checks that each one passes every row at exactly par using only palette gates.
 
 ## State
-- **`circuitStore`:** the current circuit, the selection, and actions `addGate`, `moveGate`, `connect`, `disconnect`,
-  `remove`, `reset`, `undo`, `redo`. Every action replaces the circuit immutably. History is a past/future stack of `Circuit` snapshots;
+- **`circuitStore`:** the current circuit, the selection, and actions `addGate`, `moveGate`, `connect`, `moveWireEnd`, `removeWire`,
+  `removeGate`, `removeSelection`, `reset`, `select`, `undo`, `redo`. Every action replaces the circuit immutably. History is a past/future stack of `Circuit` snapshots;
   a drag is committed **once, on release**, not on every pointer move.
 - **`progressStore`:** stars, unlocked gates and autosaved boards.
 
@@ -113,3 +129,7 @@ Vitest unit tests cover:
 - progress load, version mismatch and corrupt-data fallback.
 
 The UI is checked by a manual playtest checklist and by browser checks through Playwright MCP (see CLAUDE.md).
+
+## Deployment
+`.github/workflows/deploy.yml` runs typecheck, lint, tests and build on every push and pull request. Pushes to `main`
+deploy `dist/` to GitHub Pages (Pages source: GitHub Actions) at https://crackthecircuit.github.io.

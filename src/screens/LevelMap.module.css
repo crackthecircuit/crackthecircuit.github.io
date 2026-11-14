@@ -1,0 +1,159 @@
+.screen {
+  display: grid;
+  grid-template-rows: 60px minmax(0, 1fr) auto;
+  height: 100%;
+  background:
+    radial-gradient(circle, var(--grid-dot) 1.2px, transparent 1.4px) 0 0 / 20px 20px,
+    var(--bg-board);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  padding: 0 var(--s-4);
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-panel);
+}
+
+.title {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 600;
+}
+
+.total {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: var(--text-2);
+}
+
+.boardWrap {
+  display: grid;
+  place-items: center;
+  padding: var(--s-6);
+  min-height: 0;
+}
+
+.board {
+  width: 100%;
+  max-width: 1100px;
+  max-height: 100%;
+}
+
+/* Traces */
+.trace {
+  fill: none;
+  stroke: var(--signal-off);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: stroke var(--t-panel) var(--ease-out);
+}
+
+.trace[data-lit] {
+  stroke: var(--signal-on);
+  filter: drop-shadow(0 0 4px var(--signal-on-glow));
+}
+
+.vault {
+  fill: var(--bg-raised);
+  stroke: var(--signal-off);
+  stroke-width: 3;
+}
+
+.vault[data-lit] {
+  fill: var(--signal-on);
+  stroke: var(--signal-on);
+  filter: drop-shadow(0 0 12px var(--signal-on-glow));
+}
+
+/* Chips */
+.chip {
+  cursor: pointer;
+  outline: none;
+}
+
+.chip[data-state='locked'] {
+  cursor: not-allowed;
+}
+
+.chipBody {
+  fill: var(--bg-panel);
+  stroke: var(--border);
+  stroke-width: 2;
+  transition:
+    stroke var(--t-fast) var(--ease-out),
+    fill var(--t-fast) var(--ease-out);
+}
+
+.pins line {
+  stroke: var(--border);
+  stroke-width: 3;
+}
+
+.chip:not([data-state='locked']):hover .chipBody,
+.chip:focus-visible .chipBody {
+  stroke: var(--focus);
+  fill: var(--bg-raised);
+}
+
+.chip[data-state='done'] .chipBody {
+  stroke: var(--text-3);
+}
+
+.chip[data-state='done'] .pins line {
+  stroke: var(--signal-on);
+}
+
+.chip[data-next] .chipBody {
+  stroke: var(--focus);
+  animation: nextPulse 1.8s ease-in-out infinite;
+}
+
+.chip[data-state='locked'] {
+  opacity: 0.45;
+}
+
+.chipNumber {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  fill: var(--text-3);
+}
+
+.chipTitle {
+  font-size: 15px;
+  font-weight: 600;
+  fill: var(--text-1);
+  text-anchor: middle;
+}
+
+.chipStatus {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  fill: var(--text-3);
+  text-anchor: middle;
+}
+
+.chipStars {
+  display: flex;
+  justify-content: center;
+}
+
+.footer {
+  display: flex;
+  justify-content: center;
+  padding: var(--s-3);
+}
+
+@keyframes nextPulse {
+  50% {
+    stroke-opacity: 0.4;
+  }
+}

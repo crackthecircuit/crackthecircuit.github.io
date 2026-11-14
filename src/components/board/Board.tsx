@@ -1,14 +1,21 @@
 import { useId } from 'react';
+import type { PointerEvent as ReactPointerEvent, Ref } from 'react';
 import { portsOf } from '../../engine';
-import type { Bit, Circuit, CircuitNode, GateNode, InputNode, InputPortId, OutputNode } from '../../engine';
+import type { Bit, Circuit, CircuitNode, GateNode, InputNode, OutputNode, Point, PortId } from '../../engine';
 import { BOARD_HEIGHT, BOARD_WIDTH, GRID } from '../../lib/board';
-import { GATE_H, GATE_W, portPosition, wirePath } from '../../lib/geometry';
+import { GATE_H, GATE_W, portKey, portPosition, wirePath } from '../../lib/geometry';
+import type { PortRef } from '../../lib/geometry';
 import type { Selection } from '../../store/circuitStore';
 import { GateShape } from './GateShape';
 import styles from './Board.module.css';
 
+type PointerHandler<T> = (target: T, event: ReactPointerEvent) => void;
+
 export interface BoardProps {
   circuit: Circuit;
+  svgRef?: Ref<SVGSVGElement>;
+
+  // Simulation display
   /** Signal on each wire for the inspected truth-table row. Omit before a run. */
   wireValues?: Record<string, Bit>;
   /** Value of each input terminal for the inspected row, by label. */
@@ -16,75 +23,129 @@ export interface BoardProps {
   unusedGateIds?: string[];
   errorNodeIds?: string[];
   errorWireIds?: string[];
+  /** Flowing-signal animation on every wire (success sweep). */
+  celebrate?: boolean;
+
+  // Editing display
   selection?: Selection;
+  /** Wire currently being drawn, from its output end to its input end. */
+  draftWire?: { from: Point; to: Point } | null;
+  /** A wire being rerouted is hidden while its draft is shown. */
+  hiddenWireId?: string;
+  /** Port states while a wire is being drawn: valid targets glow, invalid ones dim. */
+  portHints?: Record<string, 'origin' | 'valid' | 'invalid'>;
+  /** Port that just rejected a connection (plays a shake). */
+  shakePortKey?: string | null;
+  /** Gate being dragged over the palette, about to be deleted. */
+  deletingGateId?: string | null;
+  draggingGateId?: string | null;
+
+  // Interaction
+  onPortPointerDown?: PointerHandler<PortRef>;
+  onGatePointerDown?: PointerHandler<string>;
+  onWirePointerDown?: PointerHandler<string>;
+  onBackgroundPointerDown?: (event: ReactPointerEvent) => void;
 }
 
 const signalAttr = (v: Bit | undefined) => (v === undefined ? undefined : String(v));
+const flag = (v: boolean | undefined) => (v ? 'true' : undefined);
 
-/** Draws a circuit. Interaction (dragging, wiring) is layered on in Week 2. */
-export function Board({
-  circuit,
-  wireValues,
-  inputValues,
-  unusedGateIds = [],
-  errorNodeIds = [],
-  errorWireIds = [],
-  selection = null,
-}: BoardProps) {
+/** Draws a circuit and reports pointer presses. Editing logic lives in Workspace. */
+export function Board(props: BoardProps) {
+  const {
+    circuit,
+    svgRef,
+    wireValues,
+    inputValues,
+    unusedGateIds = [],
+    errorNodeIds = [],
+    errorWireIds = [],
+    celebrate,
+    selection = null,
+    draftWire,
+    hiddenWireId,
+    portHints,
+    shakePortKey,
+    deletingGateId,
+    draggingGateId,
+    onBackgroundPointerDown,
+    onWirePointerDown,
+  } = props;
   const gridId = useId();
   const nodes = new Map(circuit.nodes.map((n) => [n.id, n]));
 
-  // Signal leaving each node's output, derived from the wires it drives.
-  const nodeSignal = new Map<string, Bit>();
-  for (const w of circuit.wires) {
-    const v = wireValues?.[w.id];
-    if (v !== undefined) nodeSignal.set(w.from.nodeId, v);
-  }
-  // Signal arriving at each input port, keyed "nodeId:port".
+  // Signal leaving each node's output, and arriving at each input port ("nodeId:port").
+  const outgoing = new Map<string, Bit>();
   const incoming = new Map<string, Bit>();
   for (const w of circuit.wires) {
     const v = wireValues?.[w.id];
-    if (v !== undefined) incoming.set(`${w.to.nodeId}:${w.to.port}`, v);
+    if (v === undefined) continue;
+    outgoing.set(w.from.nodeId, v);
+    incoming.set(`${w.to.nodeId}:${w.to.port}`, v);
   }
 
   const isSelected = (kind: 'node' | 'wire', id: string) => selection?.kind === kind && selection.id === id;
 
+  const port = (node: CircuitNode, p: PortId, value?: Bit) => (
+    <Port
+      key={p}
+      node={node}
+      port={p}
+      value={value}
+      hint={portHints?.[portKey({ nodeId: node.id, port: p })]}
+      shake={shakePortKey === portKey({ nodeId: node.id, port: p })}
+      onPointerDown={props.onPortPointerDown}
+    />
+  );
+
   return (
     <svg
+      ref={svgRef}
       className={styles.board}
       viewBox={`0 0 ${BOARD_WIDTH} ${BOARD_HEIGHT}`}
       preserveAspectRatio="xMidYMid meet"
-      role="img"
+      role="application"
       aria-label="Circuit board"
+      data-wiring={flag(!!draftWire)}
+      data-celebrate={flag(celebrate)}
     >
       <defs>
         <pattern id={gridId} width={GRID} height={GRID} patternUnits="userSpaceOnUse">
           <circle className={styles.gridDot} cx={GRID / 2} cy={GRID / 2} r={1.2} />
         </pattern>
       </defs>
-      <rect width={BOARD_WIDTH} height={BOARD_HEIGHT} fill={`url(#${gridId})`} />
+      <rect
+        width={BOARD_WIDTH}
+        height={BOARD_HEIGHT}
+        fill={`url(#${gridId})`}
+        onPointerDown={onBackgroundPointerDown}
+      />
 
       <g>
         {circuit.wires.map((w) => {
           const from = nodes.get(w.from.nodeId);
           const to = nodes.get(w.to.nodeId);
-          if (!from || !to) return null;
+          if (!from || !to || w.id === hiddenWireId) return null;
+          const d = wirePath(portPosition(from, 'out'), portPosition(to, w.to.port));
           return (
-            <path
-              key={w.id}
-              className={styles.wire}
-              d={wirePath(portPosition(from, 'out'), portPosition(to, w.to.port))}
-              data-signal={signalAttr(wireValues?.[w.id])}
-              data-selected={isSelected('wire', w.id) || undefined}
-              data-error={errorWireIds.includes(w.id) || undefined}
-            />
+            <g key={w.id} className={styles.wireGroup} onPointerDown={(e) => onWirePointerDown?.(w.id, e)}>
+              <path className={styles.wireHit} d={d} />
+              <path
+                className={styles.wire}
+                d={d}
+                data-signal={signalAttr(wireValues?.[w.id])}
+                data-selected={flag(isSelected('wire', w.id))}
+                data-error={flag(errorWireIds.includes(w.id))}
+              />
+            </g>
           );
         })}
+        {draftWire && <path className={styles.draftWire} d={wirePath(draftWire.from, draftWire.to)} />}
       </g>
 
       <g>
         {circuit.nodes.map((node) => {
-          const error = errorNodeIds.includes(node.id) || undefined;
+          const error = errorNodeIds.includes(node.id);
           switch (node.kind) {
             case 'gate':
               return (
@@ -94,28 +155,30 @@ export function Board({
                   selected={isSelected('node', node.id)}
                   unused={unusedGateIds.includes(node.id)}
                   error={error}
-                  output={nodeSignal.get(node.id)}
-                  inputs={{ in0: incoming.get(`${node.id}:in0`), in1: incoming.get(`${node.id}:in1`) }}
-                />
+                  deleting={deletingGateId === node.id}
+                  dragging={draggingGateId === node.id}
+                  onPointerDown={props.onGatePointerDown}
+                >
+                  {portsOf(node).inputs.map((p) => port(node, p, incoming.get(`${node.id}:${p}`)))}
+                  {port(node, 'out', outgoing.get(node.id))}
+                </Gate>
               );
-            case 'input':
+            case 'input': {
+              const value = inputValues?.[node.label] ?? outgoing.get(node.id);
               return (
-                <InputTerminal
-                  key={node.id}
-                  node={node}
-                  value={inputValues?.[node.label] ?? nodeSignal.get(node.id)}
-                  error={error}
-                />
+                <InputTerminal key={node.id} node={node} value={value} error={error}>
+                  {port(node, 'out', value)}
+                </InputTerminal>
               );
-            case 'output':
+            }
+            case 'output': {
+              const value = incoming.get(`${node.id}:in0`);
               return (
-                <OutputTerminal
-                  key={node.id}
-                  node={node}
-                  value={incoming.get(`${node.id}:in0`)}
-                  error={error}
-                />
+                <OutputTerminal key={node.id} node={node} value={value} error={error}>
+                  {port(node, 'in0', value)}
+                </OutputTerminal>
               );
+            }
           }
         })}
       </g>
@@ -123,28 +186,56 @@ export function Board({
   );
 }
 
-function Port({ node, port, value }: { node: CircuitNode; port: 'in0' | 'in1' | 'out'; value?: Bit }) {
+function Port(props: {
+  node: CircuitNode;
+  port: PortId;
+  value?: Bit;
+  hint?: 'origin' | 'valid' | 'invalid';
+  shake: boolean;
+  onPointerDown?: PointerHandler<PortRef>;
+}) {
+  const { node, port, value, hint, shake, onPointerDown } = props;
   const p = portPosition(node, port);
-  return <circle className={styles.port} cx={p.x} cy={p.y} r={5} data-signal={signalAttr(value)} />;
+  return (
+    <g
+      className={styles.portGroup}
+      data-hint={hint}
+      data-shake={flag(shake)}
+      style={{ transformOrigin: `${p.x}px ${p.y}px` }}
+      onPointerDown={(e) => onPointerDown?.({ nodeId: node.id, port }, e)}
+    >
+      <circle className={styles.portHit} cx={p.x} cy={p.y} r={14} />
+      <circle className={styles.port} cx={p.x} cy={p.y} r={5} data-signal={signalAttr(value)} />
+    </g>
+  );
 }
 
 function Gate(props: {
   node: GateNode;
   selected: boolean;
   unused: boolean;
-  error?: true;
-  output?: Bit;
-  inputs: Partial<Record<InputPortId, Bit>>;
+  error: boolean;
+  deleting: boolean;
+  dragging: boolean;
+  onPointerDown?: PointerHandler<string>;
+  children: React.ReactNode;
 }) {
-  const { node, selected, unused, error, output, inputs } = props;
+  const { node, selected, unused, error, deleting, dragging, onPointerDown, children } = props;
   return (
     <g
       className={styles.gate}
-      data-selected={selected || undefined}
-      data-unused={unused || undefined}
-      data-error={error}
+      data-selected={flag(selected)}
+      data-unused={flag(unused)}
+      data-error={flag(error)}
+      data-deleting={flag(deleting)}
+      data-dragging={flag(dragging)}
     >
-      <g transform={`translate(${node.pos.x} ${node.pos.y})`}>
+      <g
+        className={styles.gateBody}
+        transform={`translate(${node.pos.x} ${node.pos.y})`}
+        onPointerDown={(e) => onPointerDown?.(node.id, e)}
+      >
+        <rect className={styles.gateHit} x={10} y={0} width={GATE_W - 20} height={GATE_H} />
         <GateShape type={node.gateType} />
         <text className={styles.gateLabel} x={GATE_W / 2} y={GATE_H + 12}>
           {node.gateType}
@@ -155,18 +246,16 @@ function Gate(props: {
           </text>
         )}
       </g>
-      {portsOf(node).inputs.map((port) => (
-        <Port key={port} node={node} port={port} value={inputs[port]} />
-      ))}
-      <Port node={node} port="out" value={output} />
+      {children}
     </g>
   );
 }
 
-function InputTerminal({ node, value, error }: { node: InputNode; value?: Bit; error?: true }) {
+function InputTerminal(props: { node: InputNode; value?: Bit; error: boolean; children: React.ReactNode }) {
+  const { node, value, error, children } = props;
   const { x, y } = node.pos;
   return (
-    <g className={styles.terminal} data-signal={signalAttr(value)} data-error={error}>
+    <g className={styles.terminal} data-signal={signalAttr(value)} data-error={flag(error)}>
       <rect className={styles.terminalBody} x={x - 28} y={y - 22} width={56} height={44} rx={10} />
       <text className={styles.terminalLabel} x={x - 8} y={y + 5}>
         {node.label}
@@ -174,15 +263,16 @@ function InputTerminal({ node, value, error }: { node: InputNode; value?: Bit; e
       <text className={styles.terminalValue} x={x + 12} y={y + 5}>
         {value ?? '·'}
       </text>
-      <Port node={node} port="out" value={value} />
+      {children}
     </g>
   );
 }
 
-function OutputTerminal({ node, value, error }: { node: OutputNode; value?: Bit; error?: true }) {
+function OutputTerminal(props: { node: OutputNode; value?: Bit; error: boolean; children: React.ReactNode }) {
+  const { node, value, error, children } = props;
   const { x, y } = node.pos;
   return (
-    <g className={styles.terminal} data-signal={signalAttr(value)} data-error={error}>
+    <g className={styles.terminal} data-signal={signalAttr(value)} data-error={flag(error)}>
       <circle className={styles.lamp} cx={x} cy={y} r={22} />
       <text className={styles.terminalValue} x={x} y={y + 5}>
         {value ?? '·'}
@@ -190,7 +280,7 @@ function OutputTerminal({ node, value, error }: { node: OutputNode; value?: Bit;
       <text className={styles.terminalLabel} x={x} y={y + 44}>
         {node.label}
       </text>
-      <Port node={node} port="in0" value={value} />
+      {children}
     </g>
   );
 }

@@ -1,0 +1,49 @@
+.box {
+  position: absolute;
+  top: var(--s-4);
+  left: 50%;
+  z-index: 4;
+  width: min(520px, calc(100% - var(--s-8)));
+  padding: var(--s-3) var(--s-4);
+  border: 1px solid var(--err);
+  border-radius: var(--radius);
+  background: rgb(26 18 20 / 0.95);
+  transform: translateX(-50%);
+  animation: boxIn var(--t-panel) var(--ease-out);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--err);
+}
+
+.close {
+  border: 0;
+  background: none;
+  font-size: 20px;
+  line-height: 1;
+  color: var(--text-2);
+  cursor: pointer;
+}
+
+.close:hover {
+  color: var(--text-1);
+}
+
+.list {
+  margin: var(--s-2) 0 0;
+  padding-left: var(--s-4);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-1);
+}
+
+@keyframes boxIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -8px);
+  }
+}

@@ -53,6 +53,26 @@ describe('circuit store', () => {
     ]);
   });
 
+  it('moves a wire end to another input in one undo step, or removes it', () => {
+    const and = store().addGate('AND', { x: 300, y: 200 })!;
+    store().connect('in-A', { nodeId: and, port: 'in0' });
+    store().connect('in-B', { nodeId: and, port: 'in1' });
+    const [wa] = store().circuit.wires;
+    const steps = store().past.length;
+
+    // Rerouting A onto in1 replaces B's wire there.
+    expect(store().moveWireEnd(wa!.id, { nodeId: and, port: 'in1' })).toBe(true);
+    expect(store().circuit.wires.map((w) => [w.from.nodeId, w.to.port])).toEqual([['in-A', 'in1']]);
+    expect(store().past.length).toBe(steps + 1);
+
+    expect(store().moveWireEnd(wa!.id, { nodeId: 'in-B', port: 'in0' })).toBe(false);
+    expect(store().moveWireEnd(wa!.id, null)).toBe(true);
+    expect(store().circuit.wires).toEqual([]);
+    store().undo();
+    store().undo();
+    expect(store().circuit.wires).toHaveLength(2);
+  });
+
   it('deletes a gate together with its wires, but never a terminal', () => {
     const and = store().addGate('AND', { x: 300, y: 200 })!;
     store().connect('in-A', { nodeId: and, port: 'in0' });

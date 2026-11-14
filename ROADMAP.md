@@ -1,7 +1,7 @@
 # Crack the Circuit — Roadmap
 
-> **Status: approved. Week 1 done; Week 2 next.** Done: scaffold, tokens, engine + tests, level data + reference
-> solutions, circuit store with undo/redo, progress persistence, static board rendering (temporary preview in `src/dev/`).
+> **Status: Weeks 1–2 done: the MVP is playable at https://crackthecircuit.github.io.** Next: Week 3 extras
+> (success-sweep polish, sandbox, zoom/pan, playtesting and par tuning).
 
 Timeline: MVP in about 2 weeks, then 1 week of extra features, with a buffer up to 6 weeks in total.
 

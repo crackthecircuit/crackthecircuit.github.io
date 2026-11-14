@@ -26,6 +26,11 @@ export interface CircuitState {
    */
   connect: (fromNodeId: string, to: { nodeId: string; port: InputPortId }) => boolean;
   removeWire: (wireId: string) => void;
+  /**
+   * Move a wire's input end to another input port (replacing any wire there), or remove the wire
+   * when `to` is null. One undo step. Returns false if the new port can't take the wire.
+   */
+  moveWireEnd: (wireId: string, to: { nodeId: string; port: InputPortId } | null) => boolean;
   /** Delete a gate and its wires. Terminals can't be deleted. */
   removeGate: (nodeId: string) => void;
   removeSelection: () => void;
@@ -116,6 +121,23 @@ export const useCircuitStore = create<CircuitState>()((set, get) => {
         { ...circuit, wires: circuit.wires.filter((w) => w.id !== wireId) },
         selection?.id === wireId ? null : selection,
       );
+    },
+
+    moveWireEnd: (wireId, to) => {
+      const { circuit, removeWire } = get();
+      const wire = circuit.wires.find((w) => w.id === wireId);
+      if (!wire) return false;
+      if (to === null) {
+        removeWire(wireId);
+        return true;
+      }
+      if (wire.to.nodeId === to.nodeId && wire.to.port === to.port) return true;
+      if (!canConnect(circuit, wire.from.nodeId, to)) return false;
+      const wires = circuit.wires
+        .filter((w) => !(w.to.nodeId === to.nodeId && w.to.port === to.port)) // replace whatever was there
+        .map((w) => (w.id === wireId ? { ...w, to } : w));
+      commit({ ...circuit, wires }, null);
+      return true;
     },
 
     removeGate: (nodeId) => {

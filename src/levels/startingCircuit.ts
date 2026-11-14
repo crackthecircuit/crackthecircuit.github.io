@@ -11,6 +11,20 @@ function terminalYs(count: number): number[] {
   return Array.from({ length: count }, (_, i) => snapToGrid(top + i * spacing));
 }
 
+/**
+ * Whether an autosaved board still fits the level: every terminal is present and every gate is one the
+ * palette offers. Boards saved before a level-data change are discarded instead of loading broken.
+ */
+export function isUsableBoard(saved: Circuit | undefined, level: Level): saved is Circuit {
+  if (!saved) return false;
+  const ids = new Set(saved.nodes.map((n) => n.id));
+  return (
+    level.inputs.every((l) => ids.has(inputTerminalId(l))) &&
+    level.outputs.every((l) => ids.has(outputTerminalId(l))) &&
+    saved.nodes.every((n) => n.kind !== 'gate' || level.palette.includes(n.gateType))
+  );
+}
+
 /** The board a level starts with: its input terminals on the left, output terminals on the right, nothing else. */
 export function createStartingCircuit(level: Level): Circuit {
   const inYs = terminalYs(level.inputs.length);

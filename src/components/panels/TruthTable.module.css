@@ -1,0 +1,141 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+
+.headingRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.heading {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.score {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-2);
+}
+
+.score[data-all='pass'] {
+  color: var(--ok);
+}
+
+.table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 2px;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.table th {
+  padding: 0 var(--s-2) var(--s-2);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-3);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.table td {
+  padding: 7px var(--s-2);
+  text-align: center;
+  color: var(--text-2);
+  background: var(--bg-raised);
+  transition: background var(--t-fast) var(--ease-out);
+}
+
+.table td:first-child {
+  border-radius: 6px 0 0 6px;
+}
+
+.table td:last-child {
+  border-radius: 0 6px 6px 0;
+}
+
+.table td[data-bit='1'] {
+  color: var(--text-1);
+  font-weight: 700;
+}
+
+.divider {
+  border-left: 1px solid var(--border);
+}
+
+.row[data-clickable] {
+  cursor: pointer;
+}
+
+.row[data-clickable]:hover td {
+  background: #20262e;
+}
+
+.row[data-status] td {
+  animation: rowIn 220ms var(--ease-out);
+}
+
+.row[data-status='fail'] td {
+  background: rgb(255 93 93 / 0.08);
+}
+
+.row[data-inspected] td {
+  background: rgb(92 200 255 / 0.12);
+  box-shadow:
+    inset 0 1px 0 var(--focus),
+    inset 0 -1px 0 var(--focus);
+}
+
+.row[data-inspected] td:first-child {
+  box-shadow:
+    inset 1px 1px 0 var(--focus),
+    inset 0 -1px 0 var(--focus);
+}
+
+.row[data-inspected] td:last-child {
+  box-shadow:
+    inset -1px 1px 0 var(--focus),
+    inset 0 -1px 0 var(--focus);
+}
+
+.mark {
+  width: 28px;
+  font-weight: 700;
+}
+
+.row[data-status='pass'] .mark {
+  color: var(--ok);
+}
+
+.row[data-status='fail'] .mark {
+  color: var(--err);
+}
+
+.tip {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-3);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+@keyframes rowIn {
+  from {
+    opacity: 0.3;
+  }
+}

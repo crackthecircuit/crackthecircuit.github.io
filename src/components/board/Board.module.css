@@ -156,3 +156,127 @@
     opacity: 0.45;
   }
 }
+
+/* ---------- Interaction ---------- */
+.board[data-wiring='true'] {
+  cursor: crosshair;
+}
+
+.wireGroup {
+  cursor: pointer;
+}
+
+/* Wide invisible stroke so thin wires are easy to click. */
+.wireHit {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 16;
+}
+
+.wireGroup:hover .wire:not([data-selected='true']):not([data-error='true']) {
+  stroke: var(--text-2);
+}
+
+.board[data-wiring='true'] .wireGroup {
+  pointer-events: none;
+}
+
+.draftWire {
+  fill: none;
+  stroke: var(--focus);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dasharray: 8 6;
+  pointer-events: none;
+  animation: dashFlow 600ms linear infinite;
+}
+
+.gateBody {
+  cursor: grab;
+}
+
+.gate[data-dragging='true'] .gateBody {
+  cursor: grabbing;
+}
+
+.gate[data-dragging='true'] [data-part='body'] {
+  filter: drop-shadow(0 6px 10px rgb(0 0 0 / 0.5));
+}
+
+.gateHit {
+  fill: transparent;
+}
+
+.gateBody:hover [data-part] {
+  stroke: var(--text-1);
+}
+
+.gate[data-deleting='true'] [data-part] {
+  stroke: var(--err);
+  opacity: 0.6;
+}
+
+.portGroup {
+  cursor: crosshair;
+  transition: opacity var(--t-fast) var(--ease-out);
+}
+
+.portHit {
+  fill: transparent;
+}
+
+.port {
+  transition:
+    r var(--t-fast) var(--ease-out),
+    stroke var(--t-fast) var(--ease-out),
+    fill var(--t-fast) var(--ease-out);
+}
+
+.portGroup:hover .port {
+  stroke: var(--focus);
+  r: 6.5;
+}
+
+.portGroup[data-hint='valid'] .port {
+  stroke: var(--focus);
+  r: 7;
+  filter: drop-shadow(0 0 5px var(--focus));
+}
+
+.portGroup[data-hint='origin'] .port {
+  stroke: var(--focus);
+  fill: var(--focus);
+}
+
+.portGroup[data-hint='invalid'] {
+  opacity: 0.25;
+}
+
+.portGroup[data-shake='true'] {
+  animation: shake 300ms ease-in-out;
+}
+
+/* Success sweep: signal flows along every wire. */
+.board[data-celebrate='true'] .wire {
+  stroke: var(--signal-on);
+  filter: drop-shadow(0 0 4px var(--signal-on-glow));
+  stroke-dasharray: 10 8;
+  animation: dashFlow 500ms linear infinite;
+}
+
+@keyframes dashFlow {
+  to {
+    stroke-dashoffset: -28;
+  }
+}
+
+@keyframes shake {
+  20%,
+  60% {
+    transform: translateX(-4px);
+  }
+  40%,
+  80% {
+    transform: translateX(4px);
+  }
+}

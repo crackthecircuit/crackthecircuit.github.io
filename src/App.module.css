@@ -1,0 +1,25 @@
+.screen {
+  height: 100%;
+}
+
+.smallScreen {
+  display: none;
+  margin: 0;
+  padding: var(--s-2) var(--s-4);
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-raised);
+  font-size: 13px;
+  color: var(--text-2);
+  text-align: center;
+}
+
+@media (max-width: 899px) {
+  .smallScreen {
+    display: block;
+  }
+
+  .screen {
+    height: auto;
+    overflow-x: auto;
+  }
+}

@@ -1,0 +1,120 @@
+.palette {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+
+.heading {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  width: 100%;
+  padding: var(--s-2) var(--s-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+  text-align: left;
+  cursor: grab;
+  touch-action: none;
+  transition:
+    border-color var(--t-fast) var(--ease-out),
+    transform var(--t-fast) var(--ease-out);
+}
+
+.item:hover:not(:disabled) {
+  border-color: var(--focus);
+}
+
+.item:hover:not(:disabled) .icon [data-part] {
+  stroke: var(--text-1);
+}
+
+.item:active:not(:disabled) {
+  cursor: grabbing;
+  transform: scale(0.98);
+}
+
+.item:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.icon {
+  flex: none;
+  width: 52px;
+  height: 39px;
+}
+
+.icon [data-part] {
+  fill: none;
+  stroke: var(--gate-stroke);
+  stroke-width: 2.4;
+  stroke-linejoin: round;
+  transition: stroke var(--t-fast) var(--ease-out);
+}
+
+.icon [data-part='body'] {
+  fill: var(--gate-fill);
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.name {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.desc {
+  font-size: 12px;
+  color: var(--text-2);
+}
+
+.tip {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-3);
+}
+
+.deleteZone {
+  position: absolute;
+  inset: calc(-1 * var(--s-2));
+  display: grid;
+  place-items: center;
+  border: 2px dashed var(--err);
+  border-radius: var(--radius);
+  background: rgb(255 93 93 / 0.1);
+  color: var(--err);
+  font-weight: 600;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--t-fast) var(--ease-out);
+}
+
+.palette[data-delete] .deleteZone {
+  opacity: 1;
+}

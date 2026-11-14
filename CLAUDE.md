@@ -24,7 +24,11 @@ The approved specs are the source of truth. Read the relevant one before changin
 - `src/engine/`: types, gates, `analyze`/`validate`, `simulate`, `score`. Import from `src/engine` (index.ts).
 - `src/levels/`: `levels.ts` (level data; truth tables written as rules), `solutions.ts` (`buildCircuit` + one
   reference solution per level), `startingCircuit.ts` (terminal layout, ids `in-<label>` / `out-<label>`).
-- `src/lib/board.ts`: board world size, grid and snapping.
+- `src/lib/board.ts` (960×600 world, grid) and `src/lib/geometry.ts` (port positions, wire paths, `nearestPort`, gate placement).
+- `src/components/board/`: `Board` only draws; `Workspace` owns drag/wire gestures. `src/screens/LevelScreen.tsx` owns the
+  run flow (sweep, inspection, result card), keyboard shortcuts and palette drag-and-drop.
+- `src/store/appStore.ts`: current screen, mirrored in the URL hash (`#/level/3`).
+- Pushing to `main` runs `.github/workflows/deploy.yml` (typecheck, lint, test, build) and deploys to GitHub Pages.
 - ESLint blocks React/store/component imports inside `src/engine/`.
 
 ## Architecture rules

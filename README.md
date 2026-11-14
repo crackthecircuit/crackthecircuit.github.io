@@ -8,7 +8,7 @@ gates and wires that produces it, and a real simulator tests your circuit agains
 Made for **BCIS 1302 — Introduction to Computer Organization and Architecture** (Topic 10: Digital Logic).
 
 ## Status
-Week 1 is done: the engine, level data, stores and board renderer are built and tested. Week 2 makes it playable. See [ROADMAP.md](ROADMAP.md).
+The MVP is playable: all 10 levels, the circuit editor, the run/inspect flow, progress saving and deployment. See [ROADMAP.md](ROADMAP.md).
 
 ## Documentation
 | File | Contents |
@@ -18,7 +18,7 @@ Week 1 is done: the engine, level data, stores and board renderer are built and 
 | [TECHNICAL_DESIGN.md](TECHNICAL_DESIGN.md) | Stack, architecture, data model, simulation engine, testing |
 | [ROADMAP.md](ROADMAP.md) | Milestones, team split, definition of done |
 
-**Play:** https://crackthecircuit.github.io (once deployed)
+**Play:** https://crackthecircuit.github.io
 
 ## Setup
 Requires Node.js 20+ and npm.
