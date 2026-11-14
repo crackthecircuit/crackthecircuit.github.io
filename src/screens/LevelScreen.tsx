@@ -204,8 +204,15 @@ export function LevelScreen({ levelId }: { levelId: string }) {
           </span>
         )}
         <div className={styles.headerRight}>
-          <span className={styles.par}>Par {level.par}</span>
-          <Stars count={bestStars} label={`Best: ${bestStars} of 3 stars`} />
+          <span className={styles.par} title="Every gate on the board counts, used or not">
+            {level.par} gate{level.par === 1 ? '' : 's'} for ★★★
+          </span>
+          <span className={styles.best}>
+            <span className={styles.par} aria-hidden>
+              Best
+            </span>
+            <Stars count={bestStars} label={`Best: ${bestStars} of 3 stars`} />
+          </span>
           <SoundToggle />
           <Button
             variant="ghost"
@@ -289,7 +296,7 @@ export function LevelScreen({ levelId }: { levelId: string }) {
             </Button>
           </div>
           <span key={gateCount} className={styles.gateCount} data-over={gateCount > level.par || undefined}>
-            {gateCount} gate{gateCount === 1 ? '' : 's'} · par {level.par}
+            {gateCount} gate{gateCount === 1 ? '' : 's'} · {level.par} for ★★★
           </span>
           <Button variant="primary" size="lg" shortcut="Space" disabled={locked || !ready} onClick={startRun}>
             ▶ Run

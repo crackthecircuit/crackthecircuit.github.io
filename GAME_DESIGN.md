@@ -75,6 +75,9 @@ Par values will be tuned in playtesting. Each level ships with a reference solut
 - Stars go up to **3★** by meeting the level's par gate count: **3★** at or under par, **2★** within 2 gates of par, otherwise **1★**.
 - The gate count includes **every gate on the board**, including unused ones.
 - Hints never reduce stars.
+- **Wording:** "par" is the internal term. Players never see it: the header says "3 gates for ★★★" next to
+  "Best ★★☆", the gate counter says "2 gates · 3 for ★★★", and the result card says "2 gates used. ★★★ needs 3 or
+  fewer." (adding "Can you remove N?" when over).
 
 ## Hints
 Up to 3 per level, each revealed on demand:

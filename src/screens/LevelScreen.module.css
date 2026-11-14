@@ -57,6 +57,14 @@
   gap: var(--s-4);
 }
 
+.best {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding-left: var(--s-4);
+  border-left: 1px solid var(--border);
+}
+
 .par {
   font-family: var(--font-mono);
   font-size: 12px;

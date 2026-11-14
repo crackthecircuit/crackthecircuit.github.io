@@ -102,8 +102,8 @@ export function HowToPlay({ open, onClose }: { open: boolean; onClose: () => voi
             <div>
               <h3>Crack it in style</h3>
               <p>
-                Passing every row earns ★. Using no more gates than par earns ★★★; within two of par earns ★★.
-                Stuck? Each level has three hints.
+                Passing every row earns ★. Each level shows how many gates earn ★★★: use that many or fewer.
+                Up to two gates more earns ★★. Stuck? Each level has three hints.
               </p>
             </div>
           </li>

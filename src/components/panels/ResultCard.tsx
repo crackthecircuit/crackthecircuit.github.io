@@ -22,10 +22,9 @@ export function ResultCard(props: ResultCardProps) {
   const primary = useRef<HTMLButtonElement>(null);
   useEffect(() => primary.current?.focus(), []);
 
-  const parNote =
-    gateCount <= par
-      ? `${gateCount} gate${gateCount === 1 ? '' : 's'}: at par.`
-      : `${gateCount} gates. Par is ${par}. Can you trim ${gateCount - par}?`;
+  const used = `${gateCount} gate${gateCount === 1 ? '' : 's'} used. ★★★ needs ${par} or fewer.`;
+  const extra = gateCount - par;
+  const parNote = extra > 0 ? `${used} Can you remove ${extra}?` : used;
 
   return (
     <div
