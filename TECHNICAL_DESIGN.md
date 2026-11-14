@@ -32,7 +32,6 @@ src/
     ui/        Button · Stars
   screens/     TitleScreen · LevelMap · LevelScreen (run flow, sweep, shortcuts, palette drag)
   lib/         board.ts (960×600 world, grid) · geometry.ts (ports, wire paths, hit-testing, placement)
-               kmap.ts (Gray-code K-map layout)
   styles/      tokens.css · global.css
 ```
 

@@ -14,7 +14,7 @@ of Boolean algebra, and using a Karnaugh map to simplify a Boolean expression.
 | Identities, De Morgan's theorem | Levels 5–6 and 16 (hints show the De Morgan step) |
 | Combinational circuit = truth table + graphical symbols + Boolean equation | Truth table, board, and the live **Your circuit** equation |
 | Sum of products / product of sums | Levels 10, 13 (SOP), 16 (canonical SOP), 17 (POS) |
-| Algebraic simplification, K-maps (2–4 variables) | Stars reward fewer gates; the **K-map view**; levels 16 and 18 use the slides' own examples |
+| Algebraic simplification, K-maps (2–4 variables) | Stars reward fewer gates, so simplifying earns 3★; levels 16 and 18 use the slides' own examples (K-maps are drawn on paper) |
 
 BCIS 1302, Topic 10 (Digital Logic): Boolean algebra, truth tables, Boolean expressions and combinational
 circuits built from AND, OR, NOT, NAND, NOR and XOR gates.
@@ -82,9 +82,8 @@ Up to 3 per level, each revealed on demand:
 Hints never place gates for the player.
 
 ## Representations
-- **Truth table / K-map:** the target can be shown as a table or a Karnaugh map (2–4 inputs, Gray-code axes laid out
-  like the slides: AB across for 2 variables, A × BC for 3, AB × CD for 4). After a run, K-map cells are tinted
-  pass/fail and can be clicked to inspect, like table rows. The chosen view is remembered per browser.
+- **Truth table:** the target is always shown as a truth table. A K-map view was tried and removed to keep levels
+  focused on building. Simplifying with a K-map is left to the player, as in the exam.
 - **Your circuit:** the player's circuit is read back as a live Boolean equation in lecture notation (overbar for NOT,
   AB or A·B for AND, + for OR, ⊕ for XOR). Unconnected inputs show as a red ?, and feedback loops as ↻.
 - **Hints and briefs** write expressions in the same notation.

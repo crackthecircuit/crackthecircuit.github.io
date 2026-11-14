@@ -2,9 +2,9 @@
 
 > **Status: Weeks 1–2 done: the MVP is playable at https://crackthecircuit.github.io.** Added after the MVP for the
 > syllabus: levels 11–15 (4 inputs, 16 rows), gates widenable to 3–4 inputs, and (from the Topic 10 slides) a live
-> Boolean equation of the player's circuit, a K-map view, lecture notation, and levels 16–18 (SOP simplification, POS,
-> K-map). Next: Week 3 extras (success-sweep
-> polish, sandbox, zoom/pan, playtesting and par tuning).
+> Boolean equation of the player's circuit, lecture notation, and levels 16–18 (SOP simplification, POS, K-map).
+> **Decision:** stick to the core game. Remaining time goes to polish and playtesting the 18 levels. Sandbox/creative mode
+> and zoom/pan are optional ideas, not planned.
 
 Timeline: MVP in about 2 weeks, then 1 week of extra features, with a buffer up to 6 weeks in total.
 

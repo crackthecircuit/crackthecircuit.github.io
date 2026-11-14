@@ -241,7 +241,7 @@ export const LEVELS: Level[] = [
   level(16, {
     title: 'Simplify It',
     brief:
-      "From the lecture: $Q = A'BC' + A'BC + ABC'$. Built exactly as written it takes 7 gates. Simplify it first, with Boolean algebra or the K-map view, to crack it in 3.",
+      "From the lecture: $Q = A'BC' + A'BC + ABC'$. Built exactly as written it takes 7 gates. Simplify it first (Boolean algebra or a K-map on paper) to crack it in 3.",
     inputs: ABC,
     palette: ['AND', 'OR', 'NOT'],
     maxGateInputs: 3,
@@ -270,14 +270,14 @@ export const LEVELS: Level[] = [
   level(18, {
     title: 'K-Map Challenge',
     brief:
-      "Four minterms: $Q = A'BC'D + ABC'D + ABCD + AB'CD$. Switch the truth table to K-map view and group the 1s before you build.",
+      "Four minterms: $Q = A'BC'D + ABC'D + ABCD + AB'CD$. Sketch the K-map on paper and group the 1s before you build.",
     inputs: ABCD,
     palette: ['AND', 'OR', 'NOT'],
     maxGateInputs: 3,
     par: 4,
     rule: fromExpression("A'BC'D + ABC'D + ABCD + AB'CD"),
     hints: [
-      'In the K-map, every 1 has a neighbouring 1. Find two groups of two (groups may overlap).',
+      'On a 4-variable K-map (AB rows, CD columns), every 1 has a neighbouring 1. Find two groups of two (groups may overlap).',
       "Q = $BC'D + ACD$",
       'One NOT for C, two 3-input ANDs, one OR.',
     ],
