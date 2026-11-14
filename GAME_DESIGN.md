@@ -128,6 +128,16 @@ the stars, gates used vs par, and **Next Level**.
 - **Devices:** desktop/laptop first (1280px+). Pointer Events give basic tablet touch, and phones see a "best on a larger screen" notice.
 - **Autosave:** each level's board is saved along with progress, and solved levels can be replayed for more stars.
 
+## Sound
+Short synthesised sound effects (Web Audio, no audio files). They're **on by default**. A speaker button on the main
+menu, level screen and sandbox (or the **M** key while editing) mutes them, and the choice is saved with progress
+(a progress reset keeps it).
+- **Editing:** placing a gate, connecting or rerouting a wire, deleting, moving a gate, widening a gate and changing the
+  sandbox inputs each have a sound, and so do undo and redo. A rejected wire buzzes with its shake.
+- **Running:** each truth-table row ticks as the sweep reveals it (higher for ✓, lower for ✗). A pass plays a rising
+  chord, then a chime per star on the result card, and the unlock jingle when the level earns a gate. A failed run plays a
+  falling two-note phrase. A blocked (invalid) run buzzes.
+
 ## Sandbox
 Free building, opened from **Sandbox** on the main menu (`#/sandbox`). It's always available.
 - The player picks **1–4 inputs** (A–D) with an `Inputs 1 2 3 4` control. There's one output, Q.

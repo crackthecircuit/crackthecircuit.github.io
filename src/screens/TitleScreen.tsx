@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
 import { CircuitBackdrop } from '../components/menu/CircuitBackdrop';
 import { HowToPlay } from '../components/menu/HowToPlay';
+import { SoundToggle } from '../components/ui/SoundToggle';
 import { LEVELS } from '../levels/levels';
 import { useAppStore } from '../store/appStore';
 import { useProgressStore } from '../store/progressStore';
@@ -137,7 +138,10 @@ export function TitleScreen() {
             <kbd>↑</kbd> <kbd>↓</kbd> to choose · <kbd>Enter</kbd> to select
           </span>
         )}
-        <span className={styles.version}>v1.0</span>
+        <span className={styles.footerRight}>
+          <SoundToggle />
+          <span className={styles.version}>v1.0</span>
+        </span>
       </footer>
 
       <HowToPlay open={helpOpen} onClose={() => setHelpOpen(false)} />

@@ -17,6 +17,7 @@ describe('progress persistence', () => {
       stars: { 'level-1': 3 },
       boards: { 'level-1': { nodes: [], wires: [] } },
       unlockedGates: ['XOR' as const],
+      muted: true,
     };
     expect(saveProgress(progress, storage)).toBe(true);
     expect(loadProgress(storage)).toEqual(progress);
@@ -43,6 +44,7 @@ describe('progress persistence', () => {
       stars: { 'level-1': 2 },
       boards: { 'level-1': { nodes: [], wires: [] } },
       unlockedGates: ['XOR'],
+      muted: false,
     });
   });
 

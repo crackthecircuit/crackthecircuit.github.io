@@ -34,6 +34,7 @@ src/
   screens/     TitleScreen · LevelMap · LevelScreen (run flow, sweep) · SandboxScreen
                editor.tsx (shortcuts + palette drag shared by both editing screens)
   lib/         board.ts (960×600 world, grid) · geometry.ts (ports, wire paths, hit-testing, placement) · view.ts (zoom/pan)
+               sound.ts (Web Audio synth, `editSound()` picks an edit's sound)
   styles/      tokens.css · global.css
 ```
 
@@ -120,12 +121,12 @@ only ever compares against the arrays. `src/levels/solutions.ts` holds a referen
 - **`circuitStore`:** the current circuit, the selection, and actions `addGate`, `moveGate`, `connect`, `moveWireEnd`, `removeWire`,
   `removeGate`, `removeSelection`, `reset`, `select`, `undo`, `redo`, plus `relayout`/`setLevel` for the sandbox. Every action replaces the circuit immutably. History is a past/future stack of `Circuit` snapshots;
   a drag is committed **once, on release**, not on every pointer move.
-- **`progressStore`:** stars, unlocked gates and autosaved boards.
+- **`progressStore`:** stars, unlocked gates, autosaved boards and the `muted` setting (kept by `resetProgress`).
 
 ## Persistence
 A single localStorage key, `crackthecircuit:v1`:
 ```json
-{ "version": 1, "stars": { "level-1": 3 }, "boards": { "level-1": { "nodes": [], "wires": [] } }, "unlockedGates": ["XOR"] }
+{ "version": 1, "stars": { "level-1": 3 }, "boards": { "level-1": { "nodes": [], "wires": [] } }, "unlockedGates": ["XOR"], "muted": false }
 ```
 The sandbox board is saved under `boards.sandbox`. Every read and write is wrapped in try/catch. Missing, corrupt or unknown-version data falls back to a fresh state.
 

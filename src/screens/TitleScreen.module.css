@@ -304,6 +304,12 @@
   letter-spacing: 0.08em;
 }
 
+.footerRight {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+
 @keyframes rise {
   from {
     opacity: 0;

@@ -6,7 +6,9 @@ import type { GateType } from '../engine';
 import { GateShape } from '../components/board/GateShape';
 import type { WorkspaceHandle } from '../components/board/Workspace';
 import { freeGatePosition, GATE_H, GATE_W, gatePositionAt } from '../lib/geometry';
+import { editSound, playSound } from '../lib/sound';
 import { useCircuitStore } from '../store/circuitStore';
+import { useProgressStore } from '../store/progressStore';
 import styles from './editor.module.css';
 
 /**
@@ -29,7 +31,7 @@ interface EditorKeyOptions {
   onEscape?: () => void;
 }
 
-/** Undo/redo, Delete, + / − to resize the selected gate, and optional Space and Escape actions. */
+/** Undo/redo, Delete, + / − to resize the selected gate, M to mute, and optional Space and Escape actions. */
 export function useEditorKeys({ locked, onSpace, onEscape }: EditorKeyOptions) {
   const options = useRef({ locked, onSpace, onEscape });
   useLayoutEffect(() => {
@@ -65,6 +67,9 @@ export function useEditorKeys({ locked, onSpace, onEscape }: EditorKeyOptions) {
         store.removeSelection();
       } else if (e.key === 'Escape') {
         onEscape?.();
+      } else if ((e.key === 'm' || e.key === 'M') && !mod && !e.altKey) {
+        const progress = useProgressStore.getState();
+        progress.setMuted(!progress.muted);
       }
     };
     // Buttons activate on Space *release*, so cancel that too or a clicked button fires as well as the action.
@@ -80,6 +85,20 @@ export function useEditorKeys({ locked, onSpace, onEscape }: EditorKeyOptions) {
       window.removeEventListener('keyup', onKeyUp);
     };
   }, []);
+}
+
+/** Play a sound for every edit to the board, including undo and redo, but not for opening a level. */
+export function useEditSounds() {
+  useEffect(
+    () =>
+      useCircuitStore.subscribe((state, prev) => {
+        if (state.circuit === prev.circuit) return;
+        if (state.past.length === 0 && state.future.length === 0) return; // a level was (re)loaded
+        const sound = editSound(prev.circuit, state.circuit);
+        if (sound) playSound(sound);
+      }),
+    [],
+  );
 }
 
 type Ghost = { type: GateType; x: number; y: number; scale: number };

@@ -10,6 +10,8 @@ export interface SavedProgress {
   /** Autosaved board per level id. */
   boards: Record<string, Circuit>;
   unlockedGates: GateType[];
+  /** Sound effects off. A setting, so a progress reset keeps it. */
+  muted: boolean;
 }
 
 export const freshProgress = (): SavedProgress => ({
@@ -17,6 +19,7 @@ export const freshProgress = (): SavedProgress => ({
   stars: {},
   boards: {},
   unlockedGates: [],
+  muted: false,
 });
 
 type StorageLike = Pick<Storage, 'getItem' | 'setItem'>;
@@ -48,7 +51,8 @@ export function loadProgress(storage: StorageLike | undefined = safeLocalStorage
     const unlockedGates = Array.isArray(data.unlockedGates)
       ? data.unlockedGates.filter((g): g is GateType => typeof g === 'string')
       : [];
-    return { version: VERSION, stars, boards, unlockedGates };
+    const muted = data.muted === true;
+    return { version: VERSION, stars, boards, unlockedGates, muted };
   } catch {
     return freshProgress();
   }

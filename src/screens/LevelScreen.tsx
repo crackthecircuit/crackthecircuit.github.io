@@ -10,14 +10,16 @@ import { ResultCard } from '../components/panels/ResultCard';
 import { TruthTable } from '../components/panels/TruthTable';
 import { Button } from '../components/ui/Button';
 import { Expression, RichText } from '../components/ui/Expression';
+import { SoundToggle } from '../components/ui/SoundToggle';
 import { Stars } from '../components/ui/Stars';
 import { HowToPlay } from '../components/menu/HowToPlay';
+import { playSound } from '../lib/sound';
 import { getLevel, LEVELS } from '../levels/levels';
 import { isUsableBoard } from '../levels/startingCircuit';
 import { useAppStore } from '../store/appStore';
 import { useCircuitStore } from '../store/circuitStore';
 import { useProgressStore } from '../store/progressStore';
-import { useEditorKeys, usePaletteDrag } from './editor';
+import { useEditorKeys, useEditSounds, usePaletteDrag } from './editor';
 import styles from './LevelScreen.module.css';
 
 /** Time between truth-table rows during the run sweep. */
@@ -91,6 +93,7 @@ export function LevelScreen({ levelId }: { levelId: string }) {
     const result = simulate(c, level);
     const gateCount = countGates(c);
     if (result.status === 'invalid') {
+      playSound('invalid');
       setRun({ circuit: c, result, revealed: 0, inspected: null, phase: 'review', stars: 0, gateCount });
       return;
     }
@@ -134,6 +137,28 @@ export function LevelScreen({ levelId }: { levelId: string }) {
     };
   }, [sweeping]);
 
+  // Sounds for the run: a tick per row as the sweep lands, then the outcome.
+  const lastPhase = useRef<Phase | null>(null);
+  useEffect(() => {
+    const prev = lastPhase.current;
+    lastPhase.current = current?.phase ?? null;
+    if (!current || current.result.status !== 'ok') return;
+    const { phase, revealed, result } = current;
+    if (phase === 'sweep' && revealed > 0) {
+      playSound(result.rows[revealed - 1]!.pass ? 'rowPass' : 'rowFail', revealed - 1);
+    }
+    if (phase === prev) return;
+    if (phase === 'celebrate') playSound('success');
+    if (phase === 'card') {
+      if (prev === 'sweep') playSound('success'); // the sweep was skipped
+      const delay = prev === 'sweep' ? 0.35 : 0.05;
+      for (let i = 0; i < current.stars; i++) playSound('star', i, delay + i * 0.14);
+      if (level.unlocksGate) playSound('unlock', 0, delay + current.stars * 0.14 + 0.1);
+    }
+    if (phase === 'review' && prev === 'sweep' && !result.allPassed) playSound('fail');
+  }, [current, level]);
+
+  useEditSounds();
   useEditorKeys({
     locked,
     onSpace: () => !locked && startRun(),
@@ -171,6 +196,7 @@ export function LevelScreen({ levelId }: { levelId: string }) {
         <div className={styles.headerRight}>
           <span className={styles.par}>Par {level.par}</span>
           <Stars count={bestStars} label={`Best: ${bestStars} of 3 stars`} />
+          <SoundToggle />
           <Button
             variant="ghost"
             onClick={() => setHelpOpen(true)}

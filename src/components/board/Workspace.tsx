@@ -13,6 +13,7 @@ import {
   portPosition,
 } from '../../lib/geometry';
 import type { PortRef } from '../../lib/geometry';
+import { playSound } from '../../lib/sound';
 import { FIT_VIEW, MAX_ZOOM, MIN_ZOOM, panBy, viewBoxOf, ZOOM_STEP, zoomAround } from '../../lib/view';
 import type { View } from '../../lib/view';
 import { gateSizeRange } from '../../levels/rules';
@@ -197,6 +198,7 @@ export const Workspace = forwardRef<WorkspaceHandle, WorkspaceProps>(function Wo
   }));
 
   const rejectAt = (target: PortRef) => {
+    playSound('reject');
     setShake(portKey(target));
     window.setTimeout(() => setShake(null), 320);
   };

@@ -7,6 +7,7 @@ import { LiveTruthTable } from '../components/panels/LiveTruthTable';
 import { Palette } from '../components/panels/Palette';
 import { Button } from '../components/ui/Button';
 import { Expression } from '../components/ui/Expression';
+import { SoundToggle } from '../components/ui/SoundToggle';
 import {
   adaptCircuit,
   SANDBOX_ID,
@@ -19,7 +20,7 @@ import { isUsableBoard } from '../levels/startingCircuit';
 import { useAppStore } from '../store/appStore';
 import { useCircuitStore } from '../store/circuitStore';
 import { useProgressStore } from '../store/progressStore';
-import { useEditorKeys, usePaletteDrag } from './editor';
+import { useEditorKeys, useEditSounds, usePaletteDrag } from './editor';
 import layout from './LevelScreen.module.css';
 import styles from './SandboxScreen.module.css';
 
@@ -65,6 +66,7 @@ export function SandboxScreen() {
   const result = useMemo(() => simulate(circuit, level), [circuit, level]);
   const row = result.status === 'ok' && inspected !== null ? result.rows[inspected] : undefined;
 
+  useEditSounds();
   useEditorKeys({ locked: false, onEscape: () => setInspected(null) });
   const { paletteRef, onPalettePointerDown, isOverPalette, ghostElement } = usePaletteDrag(
     workspaceRef,
@@ -111,6 +113,7 @@ export function SandboxScreen() {
         </div>
         <span className={layout.chip}>gates up to 4 inputs</span>
         <div className={layout.headerRight}>
+          <SoundToggle />
           <Button
             variant="ghost"
             onClick={() => setHelpOpen(true)}

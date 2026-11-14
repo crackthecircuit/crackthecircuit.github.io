@@ -12,12 +12,13 @@ export interface ProgressState extends SavedProgress {
   /** Level 1 is always open; every other level opens once the level before it is passed. */
   isUnlocked: (levelId: string) => boolean;
   resetProgress: () => void;
+  setMuted: (muted: boolean) => void;
 }
 
 export const useProgressStore = create<ProgressState>()((set, get) => {
   const persist = () => {
-    const { version, stars, boards, unlockedGates } = get();
-    saveProgress({ version, stars, boards, unlockedGates });
+    const { version, stars, boards, unlockedGates, muted } = get();
+    saveProgress({ version, stars, boards, unlockedGates, muted });
   };
 
   return {
@@ -47,6 +48,11 @@ export const useProgressStore = create<ProgressState>()((set, get) => {
 
     resetProgress: () => {
       set({ stars: {}, boards: {}, unlockedGates: [] });
+      persist();
+    },
+
+    setMuted: (muted) => {
+      set({ muted });
       persist();
     },
   };
