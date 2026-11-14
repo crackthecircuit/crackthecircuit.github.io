@@ -1,0 +1,94 @@
+# Crack the Circuit — Game Design
+
+*Build. Connect. Compute.* This document records the approved gameplay mechanics and rules.
+It holds only decisions agreed in the design workshop. Discuss changes before you edit it.
+
+## Academic scope
+BCIS 1302, Topic 10 (Digital Logic): Boolean algebra, truth tables, Boolean expressions and combinational
+circuits built from AND, OR, NOT, NAND, NOR and XOR gates.
+**Out of scope:** sequential logic, flip-flops, memory and CPU architecture.
+
+## Core loop
+1. Read the level brief and the **full target truth table**.
+2. Drag gates from the level's palette onto the board.
+3. Draw wires between input terminals, gate ports and the output terminal.
+4. Press **Run** (button or Space).
+5. The truth-table rows fill in ✓/✗, one per input combination (all 2^n).
+6. Click a failing row to see every wire's 0/1 value for that input, then fix the circuit.
+7. When every row passes, a result card shows stars and the next level unlocks.
+
+## Gates
+| Gate | Inputs | Notes |
+|---|---|---|
+| AND, OR, NAND, NOR | 2 (fixed) | Gates never have 3 or more inputs. A 3-input function needs several gates |
+| NOT | 1 | |
+| XOR | 2 | **Earned:** added to the palette after beating level 8 |
+
+## Level progression
+Levels 1–3 are tutorials that offer exactly the gate being taught. Later levels **restrict the palette**,
+and that restriction is where the puzzle comes from.
+
+| # | Goal | Palette | Par | Teaches |
+|---|------|---------|-----|---------|
+| 1 | AND | AND | 1 | Place, wire, run |
+| 2 | OR | OR | 1 | Reading truth tables |
+| 3 | NOT | NOT | 1 | Single-input gates |
+| 4 | NAND | AND, NOT | 2 | Chaining gates |
+| 5 | NOR | OR, NOT | 2 | Chaining; De Morgan setup |
+| 6 | OR | NAND only | 3 | Universal gates |
+| 7 | (A·B)+C | AND, OR, NOT | 2 | 3 inputs, 8 rows |
+| 8 | Build XOR | AND, OR, NOT | 4 | (A+B)·¬(A·B); unlocks XOR |
+| 9 | Odd-parity lamp (3 switches) | XOR | 2 | Using an earned gate |
+| 10 | Vault: opens when ≥2 of 3 guards agree | AND, OR | 4 | Word problem → Boolean function; A(B+C)+BC |
+
+Par values will be tuned in playtesting. Each level ships with a reference solution that meets par (verified by tests).
+
+## Scoring
+- Passing all rows = **1★** and unlocks the next level.
+- Stars go up to **3★** by meeting the level's par gate count.
+- The gate count includes **every gate on the board**, including unused ones.
+- Hints never reduce stars.
+
+## Hints
+Up to 3 per level, each revealed on demand:
+1. A concept nudge.
+2. The Boolean expression.
+3. A structure / gate-count clue.
+
+Hints never place gates for the player.
+
+## Mistakes and feedback
+- **Failed run:** each row is marked ✓/✗. Clicking a row inspects that input and shows each wire as 0 or 1.
+- **Invalid circuit:** Run is **blocked**, the offending ports or wires pulse red, and a plain-language message explains
+  the problem (e.g. "Gate 2 input B isn't connected"). This doesn't count as a failed attempt. Invalid cases:
+  - a gate input with nothing connected (floating input),
+  - an output terminal with nothing connected,
+  - an input port driven by more than one wire,
+  - an output→output or input→input wire,
+  - a feedback loop (cycle).
+- Incomplete connections are **never** treated as 0.
+- **Unused gates** (gates that don't feed the output) are skipped by validation and simulation. They're dimmed with an
+  "unused" tag but still count toward the gate total.
+
+## Success
+A skippable sequence of about 1.5s: rows tick ✓ one by one and wires pulse from inputs to output. Then a result card shows
+the stars, gates used vs par, and **Next Level**.
+
+## Interaction
+- **Placement:** drag from the palette onto the board, where gates snap to the grid. Drag a placed gate to move it; its wires follow.
+  Dropping a gate back on the palette deletes it.
+- **Wiring:** press on a port, drag (a live wire follows the cursor), and release on a compatible port. Click one port, then
+  another, as a fallback. While dragging, valid targets glow and invalid ones dim.
+- **Connection rules:** an output may fan out to many inputs. Each input port takes exactly one wire, and dropping a new
+  wire on an occupied input replaces the old one. Output→output and input→input wires are rejected with a shake.
+- **Selecting and deleting:** click a gate or wire to select it, then press Delete/Backspace or the trash button. Deleting a gate
+  removes its wires. Dragging a wire's input end away detaches or reroutes it. There is no multi-select in the MVP.
+- **Undo/redo:** Ctrl+Z / Ctrl+Shift+Z for every edit.
+- **Reset:** clears the board straight away (terminals stay) and can be undone. There's no confirm dialog.
+- **Board:** fixed size and scaled to the window in the MVP. Zoom/pan is a week-3 extra.
+- **Devices:** desktop/laptop first (1280px+). Pointer Events give basic tablet touch, and phones see a "best on a larger screen" notice.
+- **Autosave:** each level's board is saved along with progress, and solved levels can be replayed for more stars.
+
+## Planned after the MVP
+- **Sandbox** (week 3): a level with no target, all unlocked gates, and a live truth table.
+- **Multi-output levels** (e.g. half adder). The data model already stores outputs as a list.

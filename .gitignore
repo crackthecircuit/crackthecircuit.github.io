@@ -1,0 +1,19 @@
+# Dependencies & build
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Test / tooling output
+coverage/
+test-results/
+playwright-report/
+.playwright-mcp/
+
+# Local-only Claude Code settings
+.claude/settings.local.json
+
+# Env & OS
+.env
+.env.*
+.DS_Store
+Thumbs.db
