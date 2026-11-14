@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { simulate } from '../engine';
 import { getLevel } from '../levels/levels';
+import { adaptCircuit, sandboxInputCount, sandboxLevel } from '../levels/sandbox';
 import { useCircuitStore } from './circuitStore';
 
 const level1 = getLevel('level-1')!; // palette: AND
@@ -173,5 +174,19 @@ describe('gate width', () => {
     expect(store().connect('in-A', { nodeId: and, port: 'in2' })).toBe(false);
     store().setGateInputs(and, 3);
     expect(store().connect('in-A', { nodeId: and, port: 'in2' })).toBe(true);
+  });
+
+  it('relayouts to new terminals as one undoable step', () => {
+    const three = sandboxLevel(3, []);
+    store().loadLevel(three);
+    const and = store().addGate('AND', { x: 300, y: 200 })!;
+    store().connect('in-C', { nodeId: and, port: 'in1' });
+    const one = sandboxLevel(1, []);
+    store().relayout(one, adaptCircuit(store().circuit, one));
+    expect(sandboxInputCount(store().circuit)).toBe(1);
+    expect(store().circuit.wires).toEqual([]);
+    store().undo();
+    expect(sandboxInputCount(store().circuit)).toBe(3);
+    expect(store().circuit.wires).toHaveLength(1);
   });
 });

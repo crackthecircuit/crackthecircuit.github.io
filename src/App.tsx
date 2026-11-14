@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { ScreenTransition } from './components/ScreenTransition';
 import { LevelMap } from './screens/LevelMap';
 import { LevelScreen } from './screens/LevelScreen';
+import { SandboxScreen } from './screens/SandboxScreen';
 import { TitleScreen } from './screens/TitleScreen';
 import { useAppStore } from './store/appStore';
 import { useProgressStore } from './store/progressStore';
@@ -26,6 +27,7 @@ export function App() {
         <ScreenTransition id={screen.name === 'level' ? `level-${screen.levelId}` : screen.name}>
           {screen.name === 'title' && <TitleScreen />}
           {screen.name === 'map' && <LevelMap />}
+          {screen.name === 'sandbox' && <SandboxScreen />}
           {screen.name === 'level' && !lockedLevel && (
             <LevelScreen key={screen.levelId} levelId={screen.levelId} />
           )}

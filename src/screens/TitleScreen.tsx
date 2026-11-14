@@ -58,6 +58,11 @@ export function TitleScreen() {
     detail: nextLevel ? undefined : `All ${LEVELS.length} cracked. Go for three stars`,
     action: () => go({ name: 'map' }),
   });
+  items.push({
+    label: 'Sandbox',
+    detail: 'Free build, no target',
+    action: () => go({ name: 'sandbox' }),
+  });
   items.push({ label: 'How to Play', action: () => setHelpOpen(true) });
 
   const focusItem = (i: number) => {

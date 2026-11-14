@@ -17,6 +17,13 @@ export interface CircuitState {
 
   /** Open a level, restoring an autosaved board if there is one. Clears undo history. */
   loadLevel: (level: Level, saved?: Circuit) => void;
+  /**
+   * Switch to a level with different terminals, keeping the edit history: the new circuit is one undoable step.
+   * Used by the sandbox, whose input count is read back from the circuit, so undo restores both together.
+   */
+  relayout: (level: Level, circuit: Circuit) => void;
+  /** Replace the level without touching the circuit or its history (e.g. after undo changed the terminals). */
+  setLevel: (level: Level) => void;
   /** Place a gate from the palette. Returns its id, or null if the level's palette doesn't allow it. */
   addGate: (gateType: GateType, pos: Point) => string | null;
   /**
@@ -81,6 +88,13 @@ export const useCircuitStore = create<CircuitState>()((set, get) => {
 
     loadLevel: (level, saved) =>
       set({ level, circuit: saved ?? createStartingCircuit(level), past: [], future: [], selection: null }),
+
+    relayout: (level, circuit) => {
+      commit(circuit, null);
+      set({ level });
+    },
+
+    setLevel: (level) => set({ level }),
 
     addGate: (gateType, pos) => {
       const { level, circuit } = get();

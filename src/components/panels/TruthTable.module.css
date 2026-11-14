@@ -141,6 +141,15 @@
   color: var(--text-3);
 }
 
+/* Why the sandbox can't compute its table yet. */
+.problems {
+  margin: 0;
+  padding-left: var(--s-4);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-2);
+}
+
 .srOnly {
   position: absolute;
   width: 1px;

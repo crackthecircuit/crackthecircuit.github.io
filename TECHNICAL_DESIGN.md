@@ -12,7 +12,7 @@
 | Hosting | GitHub Pages at `https://crackthecircuit.github.io` (repo `crackthecircuit/crackthecircuit.github.io`) | Free; root-level site, so Vite `base` stays `/` |
 
 There's no router dependency: the current screen is a field in `appStore`, mirrored in the URL hash
-(`#/`, `#/map`, `#/level/3`) so refresh and the back button work. A locked level opened by URL redirects to the map.
+(`#/`, `#/map`, `#/sandbox`, `#/level/3`) so refresh and the back button work. A locked level opened by URL redirects to the map.
 
 ## Layering rule
 `src/engine/` is **pure TypeScript with no React or DOM imports**. It owns the circuit types, validation, simulation and
@@ -24,14 +24,16 @@ the engine and the UI be built in parallel.
 src/
   engine/      types.ts · gates.ts · validate.ts · simulate.ts · score.ts · expression.ts · __tests__/
   levels/      levels.ts (level data) · solutions.ts (reference circuits, tests only) · startingCircuit.ts
+               rules.ts (gate widths) · sandbox.ts (the sandbox as a Level)
   store/       appStore.ts (screen + URL hash) · circuitStore.ts (board, selection, undo)
                progressStore.ts + persistence.ts (stars, unlocks, autosaved boards)
   components/
     board/     Board (pure SVG renderer) · Workspace (pointer interactions) · GateShape (IEEE symbols)
-    panels/    Palette · TruthTable · Hints · Problems · ResultCard
+    panels/    Palette · TruthTable · LiveTruthTable (sandbox) · Hints · Problems · ResultCard
     ui/        Button · Stars
-  screens/     TitleScreen · LevelMap · LevelScreen (run flow, sweep, shortcuts, palette drag)
-  lib/         board.ts (960×600 world, grid) · geometry.ts (ports, wire paths, hit-testing, placement)
+  screens/     TitleScreen · LevelMap · LevelScreen (run flow, sweep) · SandboxScreen
+               editor.tsx (shortcuts + palette drag shared by both editing screens)
+  lib/         board.ts (960×600 world, grid) · geometry.ts (ports, wire paths, hit-testing, placement) · view.ts (zoom/pan)
   styles/      tokens.css · global.css
 ```
 
@@ -49,6 +51,10 @@ src/
   was run, so any edit makes it stale automatically. Rows reveal every 80ms while the board shows each row's signals.
   A pass then plays a ~650ms flowing-wire celebration and the result card. Any click or key skips the sweep.
   Progress is recorded as soon as the run passes.
+- **SandboxScreen** uses the same Workspace with a generated level from `sandboxLevel(inputs, unlockedGates)`: one
+  output, every unlocked gate, `maxGateInputs` 4 and a placeholder `expected` that is never compared. It calls
+  `simulate()` on every edit and shows the rows live. The input count is read from the circuit's input terminals, so
+  `relayout()` (one undo step) changes it and undo/redo restores it; `setLevel()` then re-syncs the store's level.
 
 ## Data model
 Everything is plain JSON, so undo snapshots, autosave and level files work the same way.
@@ -112,7 +118,7 @@ only ever compares against the arrays. `src/levels/solutions.ts` holds a referen
 
 ## State
 - **`circuitStore`:** the current circuit, the selection, and actions `addGate`, `moveGate`, `connect`, `moveWireEnd`, `removeWire`,
-  `removeGate`, `removeSelection`, `reset`, `select`, `undo`, `redo`. Every action replaces the circuit immutably. History is a past/future stack of `Circuit` snapshots;
+  `removeGate`, `removeSelection`, `reset`, `select`, `undo`, `redo`, plus `relayout`/`setLevel` for the sandbox. Every action replaces the circuit immutably. History is a past/future stack of `Circuit` snapshots;
   a drag is committed **once, on release**, not on every pointer move.
 - **`progressStore`:** stars, unlocked gates and autosaved boards.
 
@@ -121,7 +127,7 @@ A single localStorage key, `crackthecircuit:v1`:
 ```json
 { "version": 1, "stars": { "level-1": 3 }, "boards": { "level-1": { "nodes": [], "wires": [] } }, "unlockedGates": ["XOR"] }
 ```
-Every read and write is wrapped in try/catch. Missing, corrupt or unknown-version data falls back to a fresh state.
+The sandbox board is saved under `boards.sandbox`. Every read and write is wrapped in try/catch. Missing, corrupt or unknown-version data falls back to a fresh state.
 
 ## Testing
 Vitest unit tests cover:

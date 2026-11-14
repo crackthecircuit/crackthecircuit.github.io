@@ -128,6 +128,17 @@ the stars, gates used vs par, and **Next Level**.
 - **Devices:** desktop/laptop first (1280px+). Pointer Events give basic tablet touch, and phones see a "best on a larger screen" notice.
 - **Autosave:** each level's board is saved along with progress, and solved levels can be replayed for more stars.
 
+## Sandbox
+Free building, opened from **Sandbox** on the main menu (`#/sandbox`). It's always available.
+- The player picks **1–4 inputs** (A–D) with an `Inputs 1 2 3 4` control. There's one output, Q.
+- The palette has every gate the player has: AND, OR, NOT, NAND, NOR, plus XOR once earned. Gates widen up to 4 inputs.
+- There's no target, no Run, no stars and no par. The truth table (inputs | Q) and the **Your circuit** equation
+  follow the circuit **live** on every edit. While the circuit is incomplete, Q shows `?` and the table lists up to three
+  of the validation messages in place of a red overlay.
+- Clicking a row shows that row's signals on the board; clicking it again (or Escape) clears them.
+- Changing the number of inputs keeps the gates, moves the terminals, and removes wires from inputs that disappear.
+  It's one undoable step: undo brings the inputs and their wires back.
+- The board is autosaved like a level's, and is cleared by a progress reset.
+
 ## Planned after the MVP
-- **Sandbox** (week 3): a level with no target, all unlocked gates, and a live truth table.
 - **Multi-output levels** (e.g. half adder). The data model already stores outputs as a list.

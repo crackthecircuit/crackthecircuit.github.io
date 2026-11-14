@@ -151,25 +151,6 @@
   }
 }
 
-.ghost {
-  position: fixed;
-  z-index: 50;
-  pointer-events: none;
-  opacity: 0.9;
-  filter: drop-shadow(0 8px 14px rgb(0 0 0 / 0.5));
-}
-
-.ghost [data-part] {
-  fill: none;
-  stroke: var(--focus);
-  stroke-width: 2;
-  stroke-linejoin: round;
-}
-
-.ghost [data-part='body'] {
-  fill: var(--gate-fill);
-}
-
 @media (max-width: 1180px) {
   .screen {
     grid-template-columns: 210px minmax(0, 1fr) 280px;

@@ -39,6 +39,7 @@ describe('screen hash', () => {
     for (const screen of [
       { name: 'title' as const },
       { name: 'map' as const },
+      { name: 'sandbox' as const },
       { name: 'level' as const, levelId: 'level-7' },
     ]) {
       expect(parseHash(screenHash(screen))).toEqual(screen);

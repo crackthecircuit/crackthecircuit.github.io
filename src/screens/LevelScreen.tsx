@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { PointerEvent as ReactPointerEvent } from 'react';
-import { circuitExpression, countGates, gateInputCount, score, simulate } from '../engine';
+import { circuitExpression, countGates, score, simulate } from '../engine';
 import type { Circuit, GateType, SimulationResult } from '../engine';
-import { GateShape } from '../components/board/GateShape';
 import { Workspace } from '../components/board/Workspace';
 import type { WorkspaceHandle } from '../components/board/Workspace';
 import { Hints } from '../components/panels/Hints';
@@ -14,12 +12,12 @@ import { Button } from '../components/ui/Button';
 import { Expression, RichText } from '../components/ui/Expression';
 import { Stars } from '../components/ui/Stars';
 import { HowToPlay } from '../components/menu/HowToPlay';
-import { freeGatePosition, GATE_H, GATE_W, gatePositionAt } from '../lib/geometry';
 import { getLevel, LEVELS } from '../levels/levels';
 import { isUsableBoard } from '../levels/startingCircuit';
 import { useAppStore } from '../store/appStore';
 import { useCircuitStore } from '../store/circuitStore';
 import { useProgressStore } from '../store/progressStore';
+import { useEditorKeys, usePaletteDrag } from './editor';
 import styles from './LevelScreen.module.css';
 
 /** Time between truth-table rows during the run sweep. */
@@ -53,18 +51,6 @@ function finished(run: Run): Run {
   };
 }
 
-/** A button or focusable row reached with the keyboard (not merely clicked). */
-/**
- * Whether the focused control was reached with Tab (not by clicking). Chrome treats the Space press itself as
- * keyboard use, so :focus-visible can't tell a clicked button from a tabbed-to one; we track it ourselves.
- */
-let focusedByTab = false;
-if (typeof window !== 'undefined') {
-  window.addEventListener('keydown', (e) => e.key === 'Tab' && (focusedByTab = true), true);
-  window.addEventListener('pointerdown', () => (focusedByTab = false), true);
-}
-const isKeyboardFocused = (el: HTMLElement) => focusedByTab && !!el.closest('button, [tabindex]');
-
 function paletteRule(palette: GateType[]): string {
   return palette.length === 1 ? `${palette[0]} only` : palette.join(' · ');
 }
@@ -81,9 +67,7 @@ export function LevelScreen({ levelId }: { levelId: string }) {
   const bestStars = useProgressStore((s) => s.stars[level.id] ?? 0);
 
   const workspaceRef = useRef<WorkspaceHandle>(null);
-  const paletteRef = useRef<HTMLElement>(null);
   const [deleteHover, setDeleteHover] = useState(false);
-  const [ghost, setGhost] = useState<{ type: GateType; x: number; y: number; scale: number } | null>(null);
   const [run, setRun] = useState<Run | null>(null);
   const [helpOpen, setHelpOpen] = useState(false);
 
@@ -150,88 +134,15 @@ export function LevelScreen({ levelId }: { levelId: string }) {
     };
   }, [sweeping]);
 
-  // Keyboard shortcuts.
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement;
-      if (target.closest('input, textarea, select, dialog[open]')) return;
-      const store = useCircuitStore.getState();
-      const mod = e.ctrlKey || e.metaKey;
-      if (mod && e.key.toLowerCase() === 'z') {
-        e.preventDefault();
-        if (!locked) (e.shiftKey ? store.redo : store.undo)();
-      } else if (mod && e.key.toLowerCase() === 'y') {
-        e.preventDefault();
-        if (!locked) store.redo();
-      } else if (e.key === ' ' && !isKeyboardFocused(target)) {
-        // Space always means Run, except on a control a keyboard user has tabbed to.
-        // (A palette button that was just clicked keeps focus, but must not swallow Space.)
-        e.preventDefault();
-        if (!locked && !e.repeat) startRun();
-      } else if ((e.key === '+' || e.key === '=' || e.key === '-' || e.key === '_') && !locked && !mod) {
-        // Widen or narrow the selected gate.
-        const sel = store.selection;
-        const node = sel?.kind === 'node' ? store.circuit.nodes.find((n) => n.id === sel.id) : undefined;
-        if (node?.kind === 'gate') {
-          e.preventDefault();
-          store.setGateInputs(node.id, gateInputCount(node) + (e.key === '+' || e.key === '=' ? 1 : -1));
-        }
-      } else if ((e.key === 'Delete' || e.key === 'Backspace') && !locked) {
-        e.preventDefault();
-        store.removeSelection();
-      } else if (e.key === 'Escape' && current?.phase === 'card') {
-        setRun((r) => r && { ...r, phase: 'review' });
-      }
-    };
-    // Buttons activate on Space *release*, so cancel that too or a clicked button fires as well as Run.
-    const onKeyUp = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement;
-      if (
-        e.key === ' ' &&
-        !target.closest('input, textarea, select, dialog[open]') &&
-        !isKeyboardFocused(target)
-      )
-        e.preventDefault();
-    };
-    window.addEventListener('keydown', onKey);
-    window.addEventListener('keyup', onKeyUp);
-    return () => {
-      window.removeEventListener('keydown', onKey);
-      window.removeEventListener('keyup', onKeyUp);
-    };
-  }, [locked, startRun, current?.phase]);
-
-  // Palette: drag a gate onto the board, or click to drop it in a free spot.
-  const onPalettePointerDown = (type: GateType, e: ReactPointerEvent) => {
-    if (locked || !ready) return;
-    e.preventDefault();
-    const start = { x: e.clientX, y: e.clientY };
-    const scale = workspaceRef.current?.scale() ?? 1;
-    let moved = false;
-    const move = (ev: PointerEvent) => {
-      moved ||= Math.hypot(ev.clientX - start.x, ev.clientY - start.y) > 4;
-      if (moved) setGhost({ type, x: ev.clientX, y: ev.clientY, scale });
-    };
-    const end = (ev: PointerEvent) => {
-      window.removeEventListener('pointermove', move);
-      window.removeEventListener('pointerup', end);
-      window.removeEventListener('pointercancel', end);
-      setGhost(null);
-      if (ev.type === 'pointercancel') return;
-      const store = useCircuitStore.getState();
-      if (!moved) return void store.addGate(type, freeGatePosition(store.circuit));
-      const world = workspaceRef.current?.clientToWorld(ev.clientX, ev.clientY);
-      if (world) store.addGate(type, gatePositionAt(world));
-    };
-    window.addEventListener('pointermove', move);
-    window.addEventListener('pointerup', end);
-    window.addEventListener('pointercancel', end);
-  };
-
-  const isOverPalette = useCallback((x: number, y: number) => {
-    const r = paletteRef.current?.getBoundingClientRect();
-    return !!r && x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
-  }, []);
+  useEditorKeys({
+    locked,
+    onSpace: () => !locked && startRun(),
+    onEscape: () => current?.phase === 'card' && setRun((r) => r && { ...r, phase: 'review' }),
+  });
+  const { paletteRef, onPalettePointerDown, isOverPalette, ghostElement } = usePaletteDrag(
+    workspaceRef,
+    locked || !ready,
+  );
 
   // What the board shows for the current run.
   const result = current?.result;
@@ -375,21 +286,7 @@ export function LevelScreen({ levelId }: { levelId: string }) {
         />
       </aside>
 
-      {ghost && (
-        <svg
-          className={styles.ghost}
-          viewBox={`0 0 ${GATE_W} ${GATE_H}`}
-          style={{
-            left: ghost.x - (GATE_W * ghost.scale) / 2,
-            top: ghost.y - (GATE_H * ghost.scale) / 2,
-            width: GATE_W * ghost.scale,
-            height: GATE_H * ghost.scale,
-          }}
-          aria-hidden
-        >
-          <GateShape type={ghost.type} />
-        </svg>
-      )}
+      {ghostElement}
 
       <HowToPlay open={helpOpen} onClose={() => setHelpOpen(false)} />
     </div>
