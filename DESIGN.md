@@ -68,7 +68,7 @@ A sum never breaks inside a term: lines wrap only between terms.
 | Success sweep | 80ms per truth-table row |
 | Rejected connection shake | 300ms |
 | Screen change | 180ms fade out, 280ms fade and slide in |
-| Gate placed | 200ms pop-in; new wires fade in over 200ms |
+| Gate placed / removed | 200ms pop-in; removed gates shrink and fade over 200ms; new wires fade in over 200ms |
 | Success celebration | Wires light left to right (up to 300ms stagger) |
 | Truth-table ✓/✗, gate-count change | 200ms pop |
 | Stars on the result card | 400ms pop, 120ms apart |

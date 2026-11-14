@@ -1,4 +1,4 @@
-import { useId } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import type { PointerEvent as ReactPointerEvent, Ref } from 'react';
 import { portsOf } from '../../engine';
 import type { Bit, Circuit, CircuitNode, GateNode, InputNode, OutputNode, Point, PortId } from '../../engine';
@@ -50,6 +50,8 @@ export interface BoardProps {
   onBackgroundPointerDown?: (event: ReactPointerEvent) => void;
 }
 
+const GHOST_MS = 200;
+
 const signalAttr = (v: Bit | undefined) => (v === undefined ? undefined : String(v));
 const flag = (v: boolean | undefined) => (v ? 'true' : undefined);
 
@@ -76,6 +78,23 @@ export function Board(props: BoardProps) {
   } = props;
   const gridId = useId();
   const nodes = new Map(circuit.nodes.map((n) => [n.id, n]));
+
+  // A removed gate lingers for a moment as a fading, non-interactive ghost.
+  const previousGates = useRef(new Map<string, GateNode>());
+  const [ghosts, setGhosts] = useState<GateNode[]>([]);
+  useEffect(() => {
+    const current = new Map<string, GateNode>();
+    for (const n of circuit.nodes) if (n.kind === 'gate') current.set(n.id, n);
+    const removed = [...previousGates.current.values()].filter((g) => !current.has(g.id));
+    previousGates.current = current;
+    if (removed.length === 0) return;
+    setGhosts((g) => [...g, ...removed]);
+    const t = window.setTimeout(
+      () => setGhosts((g) => g.filter((x) => !removed.some((r) => r.id === x.id))),
+      GHOST_MS,
+    );
+    return () => window.clearTimeout(t);
+  }, [circuit.nodes]);
 
   // Signal leaving each node's output, and arriving at each input port ("nodeId:port").
   const outgoing = new Map<string, Bit>();
@@ -148,6 +167,14 @@ export function Board(props: BoardProps) {
         })}
         {draftWire && <path className={styles.draftWire} d={wirePath(draftWire.from, draftWire.to)} />}
       </g>
+
+      {ghosts.map((g) => (
+        <g key={`ghost-${g.id}`} className={styles.ghost} aria-hidden>
+          <g transform={`translate(${g.pos.x} ${g.pos.y})`}>
+            <GateShape type={g.gateType} inputs={portsOf(g).inputs.length} />
+          </g>
+        </g>
+      ))}
 
       <g>
         {circuit.nodes.map((node) => {
