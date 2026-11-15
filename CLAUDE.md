@@ -25,10 +25,13 @@ The approved specs are the source of truth. Read the relevant one before changin
 - `src/engine/`: types, gates, `analyze`/`validate`, `simulate`, `score`. Import from `src/engine` (index.ts).
 - `src/levels/`: `levels.ts` (level data; truth tables written as rules), `solutions.ts` (`buildCircuit` + one
   reference solution per level), `startingCircuit.ts` (terminal layout, ids `in-<label>` / `out-<label>`).
-- `src/lib/board.ts` (960×600 world, grid) and `src/lib/geometry.ts` (port positions, wire paths, `nearestPort`, gate placement).
+- `src/lib/board.ts` (960×600 home area, open-canvas limits, grid), `src/lib/geometry.ts` (port positions, wire paths,
+  `nearestPort`, gate placement, `circuitBox`) and `src/lib/view.ts` (zoom/pan math, fit circuit, insets, edge pan).
 - `src/components/board/`: `Board` only draws; `Workspace` owns drag/wire gestures. `src/screens/LevelScreen.tsx` owns the
   run flow (sweep, inspection, result card); `SandboxScreen.tsx` is free building with a live truth table; both use
-  `screens/editor.tsx` for keyboard shortcuts, palette drag-and-drop and edit sounds.
+  `screens/editor.tsx` for keyboard shortcuts, palette drag-and-drop, edit sounds, the undo toast and the floating
+  layout (`useFloatingLayout`: canvas full-screen, pills/panel/toolbar over it, and the insets they cover), plus
+  `screens/EditTools.tsx` for the toolbar's icon buttons.
 - `src/store/`: zustand stores. `appStore.ts` holds the current screen, mirrored in the URL hash (`#/level/3`);
   `circuitStore.ts` holds the circuit being edited plus undo/redo; `progressStore.ts` holds scores and unlocks;
   `persistence.ts` is the localStorage layer.

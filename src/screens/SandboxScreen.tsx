@@ -1,11 +1,13 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { circuitExpression, countGates, simulate } from '../engine';
 import { Workspace } from '../components/board/Workspace';
 import type { WorkspaceHandle } from '../components/board/Workspace';
 import { HowToPlay } from '../components/menu/HowToPlay';
 import { LiveTruthTable } from '../components/panels/LiveTruthTable';
 import { Palette } from '../components/panels/Palette';
+import { RowStepper } from '../components/panels/RowStepper';
 import { Button } from '../components/ui/Button';
+import { CollapseIcon } from '../components/ui/icons';
 import { Expression } from '../components/ui/Expression';
 import { SoundToggle } from '../components/ui/SoundToggle';
 import {
@@ -20,7 +22,8 @@ import { isUsableBoard } from '../levels/startingCircuit';
 import { useAppStore } from '../store/appStore';
 import { useCircuitStore } from '../store/circuitStore';
 import { useProgressStore } from '../store/progressStore';
-import { useEditorKeys, useEditSounds, usePaletteDrag } from './editor';
+import { EditTools } from './EditTools';
+import { useEditorKeys, useEditSounds, useFloatingLayout, usePaletteDrag, useUndoToast } from './editor';
 import layout from './LevelScreen.module.css';
 import styles from './SandboxScreen.module.css';
 
@@ -38,14 +41,13 @@ export function SandboxScreen() {
   // The input count lives in the circuit (its input terminals), so undo/redo restores it with the board.
   const inputCount = sandboxInputCount(ready ? circuit : undefined);
   const level = useMemo(() => sandboxLevel(inputCount, unlockedGates), [inputCount, unlockedGates]);
-  const hasSelection = useCircuitStore((s) => s.selection !== null);
-  const canUndo = useCircuitStore((s) => s.past.length > 0);
-  const canRedo = useCircuitStore((s) => s.future.length > 0);
 
   const workspaceRef = useRef<WorkspaceHandle>(null);
   const [deleteHover, setDeleteHover] = useState(false);
   const [inspected, setInspected] = useState<number | null>(null);
   const [helpOpen, setHelpOpen] = useState(false);
+  // The canvas fills the screen; the toolbar, panel and pills float over it.
+  const { phone, panelOpen, setPanelOpen, trayOpen, setTrayOpen, insets, style } = useFloatingLayout();
 
   // Open the sandbox with its saved board.
   useEffect(() => {
@@ -67,10 +69,13 @@ export function SandboxScreen() {
   const row = result.status === 'ok' && inspected !== null ? result.rows[inspected] : undefined;
 
   useEditSounds();
+  const { toast: undoToast, reset } = useUndoToast();
   useEditorKeys({ locked: false, onEscape: () => setInspected(null) });
+  const closeTray = useCallback(() => setTrayOpen(false), [setTrayOpen]);
   const { paletteRef, onPalettePointerDown, onPaletteActivate, isOverPalette, ghostElement } = usePaletteDrag(
     workspaceRef,
     !ready,
+    { onAdded: closeTray, onDragMove: closeTray },
   );
 
   const changeInputs = (n: number) => {
@@ -81,12 +86,36 @@ export function SandboxScreen() {
   };
 
   const gateCount = countGates(circuit);
+  const gateCountText = `${gateCount} gate${gateCount === 1 ? '' : 's'}`;
 
   return (
-    <div className={layout.screen}>
-      <header className={layout.header}>
-        <Button variant="ghost" onClick={() => go({ name: 'title' })}>
-          ← Menu
+    <div
+      className={layout.screen}
+      style={style}
+      data-panel={panelOpen || undefined}
+      data-tray={(phone && trayOpen) || undefined}
+    >
+      <main className={layout.canvas}>
+        {ready && (
+          <Workspace
+            ref={workspaceRef}
+            isOverDeleteZone={isOverPalette}
+            onDeleteHover={setDeleteHover}
+            insets={insets}
+            wireValues={row?.wireValues}
+            inputValues={row?.inputs}
+            unusedGateIds={result.unusedGateIds}
+          />
+        )}
+        {undoToast}
+        {result.status === 'ok' && (
+          <RowStepper count={result.rows.length} index={inspected} onChange={setInspected} />
+        )}
+      </main>
+
+      <header className={layout.topLeft}>
+        <Button variant="ghost" className={layout.back} onClick={() => go({ name: 'title' })} title="Menu">
+          ← <span className={layout.backText}>Menu</span>
         </Button>
         <div className={layout.titleBlock}>
           <span className={layout.levelNumber}>Free build</span>
@@ -111,72 +140,42 @@ export function SandboxScreen() {
             </button>
           ))}
         </div>
-        <span className={layout.chip}>gates up to 4 inputs</span>
-        <div className={layout.headerRight}>
-          <SoundToggle />
-          <Button
-            variant="ghost"
-            onClick={() => setHelpOpen(true)}
-            aria-label="How to play"
-            title="How to play"
-          >
-            ?
-          </Button>
-        </div>
       </header>
 
-      <aside className={layout.left}>
-        <div className={layout.paletteSlot}>
-          <Palette
-            ref={paletteRef}
-            gates={level.palette}
-            deleteHover={deleteHover}
-            onGatePointerDown={onPalettePointerDown}
-            onGateActivate={onPaletteActivate}
-          />
-        </div>
-      </aside>
+      <div className={layout.topRight}>
+        <SoundToggle />
+        <Button variant="ghost" onClick={() => setHelpOpen(true)} aria-label="How to play" title="How to play">
+          ?
+        </Button>
+      </div>
 
-      <main className={layout.center}>
-        <div className={layout.boardArea}>
-          {ready && (
-            <Workspace
-              ref={workspaceRef}
-              isOverDeleteZone={isOverPalette}
-              onDeleteHover={setDeleteHover}
-              wireValues={row?.wireValues}
-              inputValues={row?.inputs}
-              unusedGateIds={result.unusedGateIds}
-            />
-          )}
-        </div>
+      {!panelOpen && (
+        <button
+          type="button"
+          className={layout.panelTab}
+          aria-expanded={false}
+          aria-controls="sandbox-panel"
+          onClick={() => setPanelOpen(true)}
+        >
+          Truth table
+        </button>
+      )}
 
-        <div className={layout.toolbar}>
-          <div className={layout.tools}>
-            <Button variant="ghost" disabled={!canUndo} onClick={() => useCircuitStore.getState().undo()}>
-              Undo
-            </Button>
-            <Button variant="ghost" disabled={!canRedo} onClick={() => useCircuitStore.getState().redo()}>
-              Redo
-            </Button>
-            <Button
-              variant="ghost"
-              disabled={!hasSelection}
-              onClick={() => useCircuitStore.getState().removeSelection()}
-            >
-              Delete
-            </Button>
-            <Button variant="ghost" onClick={() => useCircuitStore.getState().reset()}>
-              Reset
-            </Button>
-          </div>
-          <span key={gateCount} className={layout.gateCount}>
-            {gateCount} gate{gateCount === 1 ? '' : 's'}
-          </span>
+      <aside className={layout.panel} id="sandbox-panel" aria-label="Sandbox and truth table">
+        <div className={layout.panelHeader}>
+          <span className={layout.panelCount}>{gateCountText} · gates up to 4 inputs</span>
+          <Button
+            variant="ghost"
+            className={layout.iconButton}
+            aria-label="Hide the panel"
+            title="Hide the panel"
+            aria-expanded={panelOpen}
+            aria-controls="sandbox-panel"
+            onClick={() => setPanelOpen(false)}
+          >
+            <CollapseIcon />
+          </Button>
         </div>
-      </main>
-
-      <aside className={layout.right}>
         <section className={layout.brief}>
           <h2 className={layout.sectionHeading}>Sandbox</h2>
           <p>Build anything. The truth table follows your circuit as you edit it.</p>
@@ -191,6 +190,35 @@ export function SandboxScreen() {
         )}
         <LiveTruthTable level={level} result={result} inspected={inspected} onInspect={setInspected} />
       </aside>
+
+      <div className={layout.toolbar} role="group" aria-label="Gates and editing tools">
+        {phone && (
+          <button
+            type="button"
+            className={layout.gatesToggle}
+            aria-expanded={trayOpen}
+            aria-controls="gate-tray"
+            onClick={() => setTrayOpen((o) => !o)}
+          >
+            Gates {trayOpen ? '▾' : '▴'}
+          </button>
+        )}
+        <div className={layout.gates} id="gate-tray">
+          <Palette
+            ref={paletteRef}
+            gates={level.palette}
+            deleteHover={deleteHover}
+            onGatePointerDown={onPalettePointerDown}
+            onGateActivate={onPaletteActivate}
+          />
+        </div>
+        <span className={layout.divider} aria-hidden />
+        <EditTools onReset={reset} />
+        <span className={layout.divider} aria-hidden />
+        <span key={gateCount} className={layout.gateCount}>
+          {gateCountText}
+        </span>
+      </div>
 
       {ghostElement}
       <HowToPlay open={helpOpen} onClose={() => setHelpOpen(false)} />

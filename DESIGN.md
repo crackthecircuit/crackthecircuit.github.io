@@ -87,12 +87,22 @@ The success sequence lasts about 1.5s and can be skipped.
    **How to Play** is a modal dialog (also opened with the ? button in a level) covering the steps, scoring and shortcuts.
 2. **Level map:** drawn as a circuit board. Each level is a chip, and the traces between chips light amber as levels are completed.
    Stars show on each chip.
-3. **Level screen:**
+3. **Level screen:** the canvas fills the whole screen and everything else floats over it, like a design tool.
    ```
-   ┌ Level name · palette rule ──────────────── ★★☆ ┐
-   │ Palette │          Board (dominant)    │ Truth  │
-   │         │                              │ table  │
-   │ Hints   │          [ ▶ Run ]           │        │
-   └─────────────────────────────────────────────────┘
+   ┌───────────────────────────────────────────────────────────────┐
+   │ ╭ ← Levels  LEVEL 1  Both Switches  AND only ╮  ★★☆ 🔊 ?       │
+   │                                             ╭───────────────╮ │
+   │   [A]──╮                                    │ Objective     │ │
+   │        ╰──[AND]────────────(Q)              │ Your circuit  │ │
+   │   [B]──╯                                    │ Truth table   │ │
+   │                 canvas (dominant)           │ Hints         │ │
+   │                                             ╰───────────────╯ │
+   │ ‹ Row 3/4 ✗ ›                                       − 80% +    │
+   │        ╭ AND OR NOT │ ↶ ↷ 🗑 ⟲ │ 1 gate · 1 for ★★★ │ ▶ Run ╮      │
+   └───────────────────────────────────────────────────────────────┘
    ```
-   The palette is on the left, the board in the centre, and the truth table on the right. The header shows the level name and stars, and Run sits under the board.
+   Floating pieces are `--bg-panel` cards with a `--border` outline, 12px corners and a soft shadow, 12px from the
+   screen edge. Top left: back, level name and the palette rule. Top right: best stars, sound and help. Right: the
+   panel (objective, the player's equation, truth table, hints), which collapses to a small **Table** tab. Bottom
+   centre: the toolbar, with the gates as icon buttons, the edit tools as icons with tooltips, the gate count and Run.
+   The sandbox is the same with its inputs control in the top-left pill.

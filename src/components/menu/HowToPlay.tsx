@@ -1,7 +1,21 @@
 import { useEffect, useRef } from 'react';
 import { GateShape } from '../board/GateShape';
 import { Button } from '../ui/Button';
+import { COARSE_POINTER, useMediaQuery } from '../../lib/useMediaQuery';
 import styles from './HowToPlay.module.css';
+
+/** On a touch screen, the same help as gestures. */
+const GESTURES: [string, string][] = [
+  ['Tap a gate', 'In the palette (or the Gates tray): add it'],
+  ['Drag', 'Move a gate, or draw a wire from port to port'],
+  ['Tap, tap', 'Wire one port to another without dragging'],
+  ['Hold', 'On a gate or wire: Delete'],
+  ['Pinch', 'Zoom the board'],
+  ['Drag empty board', 'Pan around'],
+  ['Double tap', 'Zoom in there'],
+  ['Two-finger tap', 'Zoom out'],
+  ['← A  Q →', 'Edge markers: tap to find a switch or lamp'],
+];
 
 const SHORTCUTS: [string, string][] = [
   ['Space', 'Run the circuit'],
@@ -19,6 +33,8 @@ const SHORTCUTS: [string, string][] = [
 /** Controls and rules, shown from the main menu and from inside a level. Uses a native modal dialog. */
 export function HowToPlay({ open, onClose }: { open: boolean; onClose: () => void }) {
   const ref = useRef<HTMLDialogElement>(null);
+  const touch = useMediaQuery(COARSE_POINTER);
+  const help = touch ? GESTURES : SHORTCUTS;
 
   useEffect(() => {
     const dialog = ref.current;
@@ -76,7 +92,7 @@ export function HowToPlay({ open, onClose }: { open: boolean; onClose: () => voi
               <p>
                 Drag gates from the palette onto the board, or click (or tap) one to drop it in. Drag from one
                 port to another to wire them (or click one port, then the other). Drag a wire’s end away to
-                disconnect it. On a touch screen, pinch to zoom in on small ports.
+                disconnect it. On a touch screen, pinch to zoom and hold a gate or wire to delete it.
               </p>
               <svg className={styles.gates} viewBox="0 0 280 60" aria-hidden>
                 {(['AND', 'OR', 'NOT'] as const).map((type, i) => (
@@ -109,9 +125,9 @@ export function HowToPlay({ open, onClose }: { open: boolean; onClose: () => voi
           </li>
         </ol>
 
-        <h3 className={styles.shortcutsTitle}>Shortcuts</h3>
+        <h3 className={styles.shortcutsTitle}>{touch ? 'Gestures' : 'Shortcuts'}</h3>
         <dl className={styles.shortcuts}>
-          {SHORTCUTS.map(([keys, action]) => (
+          {help.map(([keys, action]) => (
             <div key={keys}>
               <dt>
                 <kbd>{keys}</kbd>

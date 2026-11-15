@@ -112,7 +112,8 @@ A skippable sequence of about 1.5s: rows tick ✓ one by one and wires pulse fro
 the stars, gates used vs par, and **Next Level**.
 
 ## Interaction
-- **Placement:** drag from the palette onto the board, where gates snap to the grid. Drag a placed gate to move it; its wires follow.
+- **Placement:** drag from the palette onto the board, where gates snap to the grid. Clicking or tapping a palette
+  gate adds it in a free spot near the middle of the view. Drag a placed gate to move it; its wires follow.
   Dropping a gate back on the palette deletes it.
 - **Wiring:** press on a port, drag (a live wire follows the cursor), and release on a compatible port. Click one port, then
   another, as a fallback. While dragging, valid targets glow and invalid ones dim.
@@ -124,22 +125,55 @@ the stars, gates used vs par, and **Next Level**.
   keys do the same. Narrowing removes wires on the ports that disappear. It's undoable like any edit.
 - **Undo/redo:** Ctrl+Z / Ctrl+Shift+Z for every edit.
 - **Reset:** clears the board straight away (terminals stay) and can be undone. There's no confirm dialog.
-- **Board:** fixed size (960×600 world units) and fitted to the window at 100%. The mouse wheel or a trackpad/touch pinch
-  zooms at the pointer (50–300%). Dragging empty board pans while zoomed in (a press that doesn't move still clears the
-  selection). The `− 100% +` control in the board's corner zooms in steps, and clicking the percentage fits the board
-  again. Zoomed out, the whole board always stays in view. The view resets when a level opens and isn't saved.
-- **Devices:** laptop/desktop (1280px+) and tablets, by mouse, keyboard or touch (Pointer Events). Phones aren't
-  supported yet: screens under 600px wide or 480px tall show a "built for a laptop, desktop or tablet" notice.
-  - Tablets held sideways (and small laptops) keep the three-column layout with narrower side panels.
-  - Upright tablets (up to 900px wide) get one scrolling column: header, a row of compact gate buttons, the board
-    (8:5) with its toolbar, then objective and truth table beside the hints. The result card sits at the bottom
-    of the screen there.
+- **Board (canvas):** an open canvas with a dot grid and no visible edge, like a design tool. Switches and lamps keep
+  their places in the original 960×600 area; gates can go anywhere within a hidden limit one board-size beyond it on
+  every side (x −960…1920, y −600…1200). 100% means one board unit per screen pixel.
+  - A level opens at **fit circuit**: zoomed to show every switch, lamp and gate, but never below 60%, so gates stay
+    finger-sized on a phone. When the circuit is wider than that, the view starts at the switches on the left and
+    the rest is reached by panning. The view isn't saved.
+  - The mouse wheel or a trackpad/touch pinch zooms at the pointer (25–300%). Dragging empty canvas pans at any zoom
+    (a press that doesn't move still clears the selection). The `− 100% +` control in the board's corner zooms in
+    steps, and clicking the percentage fits the circuit again.
+- **Off-screen markers:** a switch or lamp outside the view shows as a small arrow chip on the nearest edge of the
+  board (e.g. `← A`, `Q →`). Clicking or tapping it pans to that terminal.
+- **Edge pan:** dragging a gate, a wire end or a gate from the palette within 40px of the board's edge scrolls the
+  canvas that way, faster nearer the edge.
+- **Wiring bar:** while a click-click (or tap-tap) wire waits for its second port, a chip at the top of the board says
+  what to pick next ("Tap an input to connect") and has a Cancel button.
+- **Row stepper:** after a run (and in the sandbox once its table is complete), a `‹ Row 3/8 ✗ ›` control in the
+  board's bottom-left corner steps through the rows, lighting each row's signals like tapping a truth-table row.
+- **Long press (touch):** holding a finger on a gate or wire for half a second without moving selects it and opens a
+  small **Delete** bubble beside it (a selected gate also shows its `− N inputs +` control). Tapping elsewhere closes it.
+- **Magnifier (touch):** while a finger drags a wire, a round loupe above the finger shows the board under it at twice
+  the zoom, with the snapped port and the wire's loose end, so the finger doesn't hide where the wire will land.
+- **Touch zoom:** besides pinching, a double tap on empty canvas zooms in 2× there, and a two-finger tap zooms out 2×.
+- **Undo toast:** deleting a gate or wire (any way) or pressing Reset shows "Gate deleted · Undo" (or "Wire deleted",
+  "Board cleared") at the bottom of the board for 4 seconds. Its Undo button is the same as Undo; another edit or the
+  timeout hides it.
+- **Layout (all devices):** the canvas fills the screen and the rest floats over it (see DESIGN.md).
+  - **Toolbar** (bottom centre): the gates as icon buttons (drag one out, tap it to add, drop a gate back on them to
+    delete it; each has a tooltip with its name and what it does), then Undo, Redo, Delete and Reset as icons with
+    tooltips, the gate count, and Run.
+  - **Panel** (right): objective, the player's equation, truth table and hints. Its **–** button collapses it to a
+    **Table** tab on the right edge, and the tab opens it again. It starts open on laptops and tablets and closed on
+    phones. A failed run opens it.
+  - **Fit circuit**, the off-screen markers and edge pan all use the part of the canvas the floating pieces don't
+    cover, so a fitted circuit never sits under the panel.
+  - **Phones** (600px wide or less, or 480px tall or less): the same pieces, smaller. The toolbar's gate group becomes a
+    **Gates** button that pops the gates up above the bar. The panel becomes a sheet over the board: from the bottom
+    when upright, from the right when sideways. The page doesn't scroll, bounce or pull to refresh, and controls keep
+    clear of notches and the home bar.
+  - The level map shows three chips per row up to 640px wide.
   - Touch: a finger snaps to the nearest port within about 22 screen pixels (capped at 34 board units), the gate
     `− N inputs +` control grows to finger size, buttons are at least 40px tall, and keyboard-shortcut labels hide.
+- **How to Play** on a touch screen lists gestures (tap, drag, tap-tap wiring, hold to delete, pinch, double tap,
+  two-finger tap, edge markers) instead of keyboard shortcuts.
+- **Install:** a web app manifest lets players add the game to their home screen, where it opens full-screen without
+  the browser bar. There's no offline mode.
 - **Autosave:** each level's board is saved along with progress, and solved levels can be replayed for more stars.
 
 ## Accessibility
-- **Keyboard play:** the whole game works without a pointer. Enter on a palette button adds that gate in a free spot.
+- **Keyboard play:** the whole game works without a pointer. Enter on a palette button adds that gate in a free spot near the middle of the view.
   On the board, Tab reaches every port and gate. Enter (or Space) on a port starts a wire, and Enter on a second port
   finishes it (the same rules and rejections as the mouse), while Escape cancels. Delete on a connected input port
   removes its wire. Focusing a gate selects it: Delete removes it, + / − resize it, and the arrow keys move it one grid

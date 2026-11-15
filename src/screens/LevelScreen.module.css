@@ -1,32 +1,64 @@
+/*
+ * The editing screens (level and sandbox): the canvas fills the screen and everything else floats over it, like a
+ * design tool. useFloatingLayout() in editor.tsx sets the sizes as variables (--edge, --pill-h, --toolbar-h,
+ * --panel-w) and how much of the canvas the floating pieces cover (--inset-top/right/bottom), which the board's own
+ * overlays also read.
+ */
 .screen {
-  display: grid;
-  grid-template-columns: 248px minmax(0, 1fr) 320px;
-  grid-template-rows: 60px minmax(0, 1fr);
-  grid-template-areas:
-    'header header header'
-    'left center right';
-  height: 100%;
-  min-height: 600px;
+  position: relative;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  background: var(--bg-board);
 }
 
-/* ---------- Header ---------- */
-.header {
-  grid-area: header;
+.canvas {
+  position: absolute;
+  inset: 0;
+  touch-action: none;
+}
+
+/* ---------- Floating cards ---------- */
+.topLeft,
+.topRight,
+.panel,
+.panelTab,
+.toolbar {
+  position: absolute;
+  z-index: 10;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-panel);
+  box-shadow: 0 10px 30px rgb(0 0 0 / 0.45);
+}
+
+/* Top left: back, level name, palette rule. */
+.topLeft {
+  top: calc(var(--edge) + env(safe-area-inset-top));
+  left: calc(var(--edge) + env(safe-area-inset-left));
   display: flex;
   align-items: center;
-  gap: var(--s-4);
-  padding: 0 var(--s-4);
-  border-bottom: 1px solid var(--border);
-  background: var(--bg-panel);
+  gap: var(--s-3);
+  height: var(--pill-h);
+  max-width: calc(100% - var(--edge) * 3 - 200px);
+  padding: 0 var(--s-3) 0 var(--s-1);
+  animation: floatIn var(--t-panel) var(--ease-out);
+}
+
+.back {
+  flex: none;
+  padding: 0 var(--s-3);
 }
 
 .titleBlock {
   display: flex;
   align-items: baseline;
-  gap: var(--s-3);
+  gap: var(--s-2);
+  min-width: 0;
 }
 
 .levelNumber {
+  flex: none;
   font-family: var(--font-mono);
   font-size: 12px;
   letter-spacing: 0.08em;
@@ -36,64 +68,86 @@
 
 .title {
   margin: 0;
-  font-size: 19px;
+  font-size: 17px;
   font-weight: 600;
   letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .chip {
-  padding: 3px var(--s-3);
+  flex: none;
+  padding: 2px var(--s-3);
   border: 1px solid var(--border);
   border-radius: 999px;
   font-family: var(--font-mono);
   font-size: 12px;
   color: var(--text-2);
+  white-space: nowrap;
 }
 
-.headerRight {
-  margin-left: auto;
+/* Top right: best stars, sound, help. */
+.topRight {
+  top: calc(var(--edge) + env(safe-area-inset-top));
+  right: calc(var(--edge) + env(safe-area-inset-right));
   display: flex;
   align-items: center;
-  gap: var(--s-4);
+  gap: var(--s-1);
+  height: var(--pill-h);
+  padding: 0 var(--s-1) 0 var(--s-3);
+  animation: floatIn var(--t-panel) var(--ease-out);
 }
 
 .best {
   display: flex;
   align-items: center;
   gap: var(--s-2);
-  padding-left: var(--s-4);
-  border-left: 1px solid var(--border);
+  padding-right: var(--s-2);
+  border-right: 1px solid var(--border);
 }
 
-.par {
+.bestLabel {
   font-family: var(--font-mono);
   font-size: 12px;
   color: var(--text-3);
 }
 
-/* ---------- Side panels ---------- */
-.left,
-.right {
+/* ---------- The panel: objective, equation, truth table, hints ---------- */
+.panel {
+  top: var(--inset-top);
+  right: calc(var(--edge) + env(safe-area-inset-right));
+  bottom: var(--inset-bottom);
   display: flex;
   flex-direction: column;
-  gap: var(--s-8);
-  padding: var(--s-6) var(--s-4);
-  background: var(--bg-panel);
+  gap: var(--s-6);
+  width: var(--panel-w);
+  padding: var(--s-2) var(--s-4) var(--s-4);
   overflow-y: auto;
+  overscroll-behavior: contain;
+  animation: panelIn var(--t-panel) var(--ease-out);
 }
 
-.left {
-  grid-area: left;
-  border-right: 1px solid var(--border);
+.screen:not([data-panel]) .panel {
+  display: none;
 }
 
-.right {
-  grid-area: right;
-  border-left: 1px solid var(--border);
+.panelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-right: calc(-1 * var(--s-2));
+  margin-bottom: calc(-1 * var(--s-3));
+}
+
+.panelCount {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-2);
 }
 
 .brief p {
-  margin: var(--s-3) 0 0;
+  margin: var(--s-2) 0 0;
   font-size: 15px;
   line-height: 1.55;
   color: var(--text-1);
@@ -108,68 +162,9 @@
   color: var(--text-3);
 }
 
-/* ---------- Board ---------- */
-.center {
-  grid-area: center;
-  display: grid;
-  grid-template-rows: minmax(0, 1fr) auto;
-  /* An explicit column, or the board's aspect-ratio would size it from its height and overflow. */
-  grid-template-columns: minmax(0, 1fr);
-  min-width: 0;
-}
-
-.boardArea {
-  position: relative;
-  min-height: 0;
-  touch-action: none;
-}
-
-.toolbar {
-  display: flex;
-  align-items: center;
-  gap: var(--s-4);
-  padding: var(--s-3) var(--s-4);
-  border-top: 1px solid var(--border);
-  background: var(--bg-panel);
-}
-
-.tools {
-  display: flex;
-  gap: var(--s-1);
-}
-
-.gateCount {
-  margin-left: auto;
-  font-family: var(--font-mono);
-  font-size: 13px;
-  color: var(--text-2);
-}
-
-.gateCount[data-over] {
-  color: var(--text-3);
-}
-
-/* The element is re-keyed on every change of count, so this replays as gates are added or removed. */
-.gateCount {
-  display: inline-block;
-  animation: countBump var(--t-panel) var(--ease-pop);
-}
-
-@keyframes countBump {
-  from {
-    transform: scale(1.18);
-  }
-}
-
-@media (max-width: 1180px) {
-  .screen {
-    grid-template-columns: 210px minmax(0, 1fr) 280px;
-  }
-}
-
 /* The player's circuit, read back as a Boolean equation (updates live). */
 .equation p {
-  margin: var(--s-3) 0 0;
+  margin: var(--s-2) 0 0;
   padding: var(--s-2) var(--s-3);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -180,129 +175,251 @@
   overflow-wrap: anywhere;
 }
 
-.right {
-  gap: var(--s-6);
+/* The collapsed panel: a tab on the right edge that opens it again. */
+.panelTab {
+  top: var(--inset-top);
+  right: calc(var(--edge) + env(safe-area-inset-right));
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  height: 40px;
+  padding: 0 var(--s-4);
+  color: var(--text-1);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color var(--t-fast) var(--ease-out);
 }
 
-/* Wrappers for the left panel's parts, so smaller layouts can place them apart. */
-.paletteSlot,
-.hintsSlot {
-  min-width: 0;
+.panelTab:hover {
+  border-color: var(--focus);
 }
 
-.left {
-  gap: var(--s-8);
+.tabScore {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--err);
 }
 
-/* ---------- Tablets in landscape, small laptops ---------- */
-@media (max-width: 1180px) {
-  /* The toolbar already shows the gate target. */
-  .headerRight > .par {
+.tabScore[data-all] {
+  color: var(--ok);
+}
+
+/* ---------- The toolbar: gates, edit tools, gate count, Run ---------- */
+.toolbar {
+  bottom: calc(var(--edge) + env(safe-area-inset-bottom));
+  left: 50%;
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  height: var(--toolbar-h);
+  max-width: calc(100% - var(--edge) * 2);
+  padding: 0 var(--s-2) 0 var(--s-1);
+  transform: translateX(-50%);
+  animation: toolbarIn var(--t-panel) var(--ease-out);
+}
+
+.gates {
+  flex: none;
+}
+
+.divider {
+  flex: none;
+  width: 1px;
+  height: 28px;
+  background: var(--border);
+}
+
+.tools {
+  display: flex;
+  gap: 2px;
+}
+
+.iconButton {
+  width: 40px;
+  padding: 0;
+}
+
+.gateCount {
+  display: inline-block;
+  padding: 0 var(--s-1);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-2);
+  white-space: nowrap;
+  animation: countBump var(--t-panel) var(--ease-pop);
+}
+
+.gateCount[data-over] {
+  color: var(--text-3);
+}
+
+.run {
+  flex: none;
+  height: 44px;
+  padding: 0 var(--s-4);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* The Gates button only exists on phones. */
+.gatesToggle {
+  flex: none;
+  height: 40px;
+  padding: 0 var(--s-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+  color: var(--text-1);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.gatesToggle[aria-expanded='true'] {
+  border-color: var(--focus);
+  color: var(--focus);
+}
+
+.gatesToggle:disabled {
+  color: var(--text-3);
+}
+
+/* ---------- Smaller screens ---------- */
+
+/* Tablets and small laptops: rule chips go, and the gate count lives in the panel's header. */
+@media (max-width: 1000px) {
+  .chip,
+  .toolbar .gateCount,
+  .toolbar .gateCount + .divider,
+  .toolbar .divider:has(+ .gateCount) {
+    display: none;
+  }
+
+  /* The sandbox header also holds the inputs control, so its "Free build" label goes. */
+  .topLeft:has([role='radiogroup']) .levelNumber {
     display: none;
   }
 }
 
-/* ---------- Tablets held upright: one column that scrolls ---------- */
-@media (max-width: 900px) {
-  .screen {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto;
-    grid-template-areas:
-      'header'
-      'palette'
-      'center'
-      'right'
-      'hints';
-    height: auto;
-    min-height: 100%;
-  }
-
-  .header {
-    flex-wrap: wrap;
-    gap: var(--s-2) var(--s-3);
-    padding: var(--s-2) var(--s-3);
-  }
-
-  .titleBlock {
+/* Phones, either way up. */
+@media (max-width: 600px), (max-height: 480px) {
+  .topLeft {
     gap: var(--s-2);
+    max-width: calc(100% - var(--edge) * 3 - 100px);
+    padding-right: var(--s-2);
+  }
+
+  .back {
+    padding: 0 var(--s-2);
+  }
+
+  .backText,
+  .best {
+    display: none;
   }
 
   .title {
-    font-size: 17px;
+    font-size: 15px;
   }
 
-  .headerRight {
-    gap: var(--s-2);
-  }
-
-  .best {
-    padding-left: var(--s-2);
-  }
-
-  /* The palette and hints become their own rows. */
-  .left {
-    display: contents;
-  }
-
-  .paletteSlot {
-    grid-area: palette;
-    padding: var(--s-3);
-    border-bottom: 1px solid var(--border);
-    background: var(--bg-panel);
-  }
-
-  .hintsSlot {
-    grid-area: hints;
-    padding: var(--s-4) var(--s-3) var(--s-8);
-    border-top: 1px solid var(--border);
-    background: var(--bg-panel);
-  }
-
-  .right {
-    overflow: visible;
-    padding: var(--s-4) var(--s-3);
-    border-left: 0;
-    border-top: 1px solid var(--border);
-  }
-
-  .boardArea {
-    aspect-ratio: 8 / 5;
-    min-height: 220px;
-    max-height: calc(100svh - 120px);
+  .topRight {
+    padding-left: var(--s-1);
   }
 
   .toolbar {
-    flex-wrap: wrap;
-    gap: var(--s-2) var(--s-3);
-    padding: var(--s-2) var(--s-3);
+    gap: var(--s-1);
+    padding: 0 var(--s-1);
   }
 
-  .toolbar > button:last-child {
-    flex: 1 1 140px;
+  .toolbar .divider {
+    display: none;
   }
 
-  .tools {
-    flex-wrap: wrap;
+  /* The gates pop up above the toolbar from the Gates button. */
+  .gates {
+    position: absolute;
+    bottom: calc(100% + var(--s-2));
+    left: 0;
+    display: none;
+    padding: var(--s-2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--bg-panel);
+    box-shadow: 0 10px 30px rgb(0 0 0 / 0.5);
+    animation: trayUp var(--t-panel) var(--ease-out);
+  }
+
+  .screen[data-tray] .gates {
+    display: block;
+  }
+
+  /* The panel becomes a sheet over the board, above the toolbar. */
+  .panel {
+    left: calc(var(--edge) + env(safe-area-inset-left));
+    right: calc(var(--edge) + env(safe-area-inset-right));
+    top: auto;
+    width: auto;
+    max-height: 58dvh;
+    z-index: 15;
+    box-shadow: 0 -10px 40px rgb(0 0 0 / 0.55);
+    animation-name: sheetUp;
+  }
+
+  .brief p {
+    font-size: 14px;
   }
 }
 
-/* Tablets held upright: objective and truth table beside the hints. */
-@media (min-width: 600px) and (max-width: 900px) {
-  .screen {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    grid-template-areas:
-      'header header'
-      'palette palette'
-      'center center'
-      'right hints';
+/* Phones held sideways: the sheet docks on the right instead. */
+@media (max-height: 480px) and (orientation: landscape) {
+  .panel {
+    top: var(--inset-top);
+    left: auto;
+    width: min(340px, 55vw);
+    max-height: none;
+    animation-name: panelIn;
   }
+}
 
-  .hintsSlot {
-    border-left: 1px solid var(--border);
+@keyframes floatIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
   }
+}
 
-  /* The sandbox has no hints, so its panel takes the whole row. */
-  .screen:not(:has(.hintsSlot)) .right {
-    grid-column: 1 / -1;
+@keyframes toolbarIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 8px);
+  }
+}
+
+@keyframes panelIn {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+}
+
+@keyframes sheetUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+
+@keyframes trayUp {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+/* The element is re-keyed on every change of count, so this replays as gates are added or removed. */
+@keyframes countBump {
+  from {
+    transform: scale(1.18);
   }
 }

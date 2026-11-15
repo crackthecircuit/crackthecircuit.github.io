@@ -2,8 +2,16 @@ import { describe, expect, it } from 'vitest';
 import { getLevel } from '../levels/levels';
 import { createStartingCircuit } from '../levels/startingCircuit';
 import { parseHash, screenHash } from '../store/appStore';
-import { BOARD_HEIGHT, BOARD_WIDTH } from './board';
-import { freeGatePosition, GATE_H, GATE_W, gatePositionAt, nearestPort, portPosition } from './geometry';
+import { BOARD_HEIGHT, BOARD_WIDTH, CANVAS } from './board';
+import {
+  circuitBox,
+  freeGatePosition,
+  GATE_H,
+  GATE_W,
+  gatePositionAt,
+  nearestPort,
+  portPosition,
+} from './geometry';
 
 const level = getLevel('level-1')!;
 
@@ -25,21 +33,40 @@ describe('geometry', () => {
     expect(nearestPort(circuit, beside, 34)).toEqual({ nodeId: 'in-A', port: 'out' });
   });
 
-  it('snaps dropped gates to the grid and keeps them on the board', () => {
+  it('snaps dropped gates to the grid, anywhere on the open canvas but inside its limits', () => {
     expect(gatePositionAt({ x: 413, y: 247 })).toEqual({ x: 380, y: 220 });
-    const corner = gatePositionAt({ x: -50, y: 5000 });
-    expect(corner.x).toBeGreaterThanOrEqual(0);
-    expect(corner.y + GATE_H).toBeLessThanOrEqual(BOARD_HEIGHT);
-    const right = gatePositionAt({ x: 5000, y: 0 });
-    expect(right.x + GATE_W).toBeLessThanOrEqual(BOARD_WIDTH);
+    // Past the old 960×600 board is fine now.
+    expect(gatePositionAt({ x: -200, y: 900 })).toEqual({ x: -240, y: 880 });
+    const corner = gatePositionAt({ x: -1e6, y: 1e6 });
+    expect(corner.x).toBeGreaterThanOrEqual(CANVAS.minX);
+    expect(corner.y + GATE_H).toBeLessThanOrEqual(CANVAS.maxY);
+    const right = gatePositionAt({ x: 1e6, y: -1e6 });
+    expect(right.x + GATE_W).toBeLessThanOrEqual(CANVAS.maxX);
+    expect(right.y).toBeGreaterThanOrEqual(CANVAS.minY);
   });
 
-  it('places click-added gates where they do not overlap', () => {
+  it('places click-added gates near the middle of the view, clear of gates and terminals', () => {
     const circuit = createStartingCircuit(level);
     const first = freeGatePosition(circuit);
     circuit.nodes.push({ id: 'g1', kind: 'gate', gateType: 'AND', pos: first });
     const second = freeGatePosition(circuit);
     expect(second).not.toEqual(first);
+    // Asked for a spot right on switch A, it moves off the switch.
+    const a = circuit.nodes.find((n) => n.id === 'in-A')!;
+    const box = circuitBox({ ...circuit, nodes: [a] });
+    const p = freeGatePosition(circuit, a.pos);
+    const overlaps = p.x < box.maxX && p.x + GATE_W > box.minX && p.y < box.maxY && p.y + GATE_H > box.minY;
+    expect(overlaps).toBe(false);
+  });
+
+  it('measures the circuit for "fit circuit"', () => {
+    const circuit = createStartingCircuit(level);
+    const box = circuitBox(circuit);
+    for (const n of circuit.nodes) {
+      expect(n.pos.x).toBeGreaterThan(box.minX);
+      expect(n.pos.x).toBeLessThan(box.maxX);
+    }
+    expect(circuitBox({ nodes: [], wires: [] })).toEqual({ minX: 0, minY: 0, maxX: BOARD_WIDTH, maxY: BOARD_HEIGHT });
   });
 });
 

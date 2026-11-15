@@ -4,7 +4,10 @@
 > Boolean equation of the player's circuit, standard Boolean notation, and levels 16–18 (scenario puzzles that reward
 > SOP/POS and K-map simplification). Then the remaining extras: zoom/pan, a sandbox mode, sound effects with a mute
 > toggle, and an accessibility pass (full keyboard play, screen-reader labels and announcements, 4.5:1 text contrast).
-> **Next:** playtesting the 18 levels and tuning par and hints. Multi-output levels (half adder) are out of scope.
+> Then mobile: tablet layouts, an open (Figma-like) canvas with edge pan and off-screen markers, and a phone layout
+> (gate tray, table sheet, row stepper, long-press delete, installable to the home screen).
+> **Next:** playtesting the 18 levels (on phones too) and tuning par and hints. Multi-output levels (half adder) are
+> out of scope.
 
 Timeline: MVP in about 2 weeks, then 1 week of extra features, with a buffer up to 6 weeks in total.
 

@@ -1,7 +1,7 @@
 .card {
   position: absolute;
-  left: 50%;
-  bottom: var(--s-6);
+  left: calc((100% - var(--inset-right, 0px)) / 2);
+  bottom: calc(var(--inset-bottom, 0px) + var(--s-3));
   z-index: 5;
   display: flex;
   flex-direction: column;
@@ -48,11 +48,9 @@
   margin-top: var(--s-3);
 }
 
-/* Upright tablets: the page scrolls, so the card sits at the bottom of the screen where it's always seen. */
-@media (max-width: 900px) {
+/* Phones: a little tighter. */
+@media (max-width: 600px), (max-height: 480px) {
   .card {
-    position: fixed;
-    bottom: max(var(--s-4), env(safe-area-inset-bottom));
     gap: var(--s-1);
     padding: var(--s-4) var(--s-4) var(--s-3);
   }

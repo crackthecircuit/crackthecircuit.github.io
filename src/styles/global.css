@@ -13,6 +13,12 @@ body,
   margin: 0;
 }
 
+html,
+body {
+  /* No rubber-band bounce or pull-to-refresh while dragging gates and wires. */
+  overscroll-behavior: none;
+}
+
 html {
   /* Mobile browsers must not enlarge the text on their own when turned sideways. */
   -webkit-text-size-adjust: 100%;

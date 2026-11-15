@@ -3,41 +3,60 @@ import type { KeyboardEvent } from 'react';
 import { Button } from '../components/ui/Button';
 import { Stars } from '../components/ui/Stars';
 import { LEVELS } from '../levels/levels';
+import { useMediaQuery } from '../lib/useMediaQuery';
 import { useAppStore } from '../store/appStore';
 import { useProgressStore } from '../store/progressStore';
 import styles from './LevelMap.module.css';
 
-// The side margins keep the wrap traces and the finish lamp inside the drawing when it fills the screen edge to
-// edge (an upright tablet), where anything past the viewBox is cut off.
-const W = 1064;
-const H = 640;
 const CHIP_W = 140;
 const CHIP_H = 96;
-const PER_ROW = 6;
-const COLUMNS = [112, 280, 448, 616, 784, 952];
-const ROWS = [110, 320, 530];
 /** How far traces swing past the chips when wrapping to the next row. */
 const WRAP = 40;
 
-/** Levels snake across the board: row 1 left to right, row 2 right to left, row 3 left to right. */
-function chipCenter(index: number) {
-  const row = Math.floor(index / PER_ROW);
-  const col = row % 2 === 0 ? index % PER_ROW : PER_ROW - 1 - (index % PER_ROW);
-  return { x: COLUMNS[col]!, y: ROWS[row]! };
+/** How the chips are laid out: six to a row, or three on a phone. */
+interface MapLayout {
+  width: number;
+  height: number;
+  perRow: number;
+  columns: number[];
+  rows: number[];
+}
+
+/**
+ * The side margin keeps the wrap traces and the finish lamp inside the drawing when it fills the screen edge to
+ * edge (upright tablets, phones), where anything past the viewBox is cut off.
+ */
+function mapLayout(perRow: number, rowGap: number, margin: number): MapLayout {
+  const columns = Array.from({ length: perRow }, (_, i) => margin + i * 168);
+  const rowCount = Math.ceil(LEVELS.length / perRow);
+  const rows = Array.from({ length: rowCount }, (_, i) => 110 + i * rowGap);
+  return { width: columns[perRow - 1]! + margin, height: rows[rowCount - 1]! + 110, perRow, columns, rows };
+}
+
+const WIDE = mapLayout(6, 210, 112);
+const NARROW = mapLayout(3, 190, 120);
+/** Where six chips to a row would shrink their text past reading (keep in step with LevelMap.module.css). */
+const NARROW_MAP = '(max-width: 640px)';
+
+/** Levels snake across the board: the first row left to right, the next right to left, and so on. */
+function chipCenter(m: MapLayout, index: number) {
+  const row = Math.floor(index / m.perRow);
+  const col = row % 2 === 0 ? index % m.perRow : m.perRow - 1 - (index % m.perRow);
+  return { x: m.columns[col]!, y: m.rows[row]! };
 }
 
 /** 1 when a row runs left to right, -1 when it runs right to left. */
-const rowDirection = (index: number) => (Math.floor(index / PER_ROW) % 2 === 0 ? 1 : -1);
+const rowDirection = (m: MapLayout, index: number) => (Math.floor(index / m.perRow) % 2 === 0 ? 1 : -1);
 
 /** Circuit-board trace from one chip to the next, wrapping around the side between rows. */
-function tracePath(from: number, to: number) {
-  const a = chipCenter(from);
-  const b = chipCenter(to);
+function tracePath(m: MapLayout, from: number, to: number) {
+  const a = chipCenter(m, from);
+  const b = chipCenter(m, to);
   if (a.y === b.y) {
     const dir = Math.sign(b.x - a.x);
     return `M ${a.x + (dir * CHIP_W) / 2} ${a.y} H ${b.x - (dir * CHIP_W) / 2}`;
   }
-  const side = rowDirection(from);
+  const side = rowDirection(m, from);
   const edge = a.x + (side * CHIP_W) / 2;
   return `M ${edge} ${a.y} H ${edge + side * WRAP} V ${b.y} H ${b.x + (side * CHIP_W) / 2}`;
 }
@@ -62,6 +81,7 @@ export function LevelMap() {
   const resetProgress = useProgressStore((s) => s.resetProgress);
   const total = Object.values(stars).reduce((a, b) => a + b, 0);
   const nextId = LEVELS.find((l) => isUnlocked(l.id) && !stars[l.id])?.id;
+  const m = useMediaQuery(NARROW_MAP) ? NARROW : WIDE;
 
   const open = (levelId: string) => isUnlocked(levelId) && go({ name: 'level', levelId });
   const onKey = (e: KeyboardEvent, levelId: string) => {
@@ -84,15 +104,15 @@ export function LevelMap() {
       </header>
 
       <div className={styles.boardWrap}>
-        <svg className={styles.board} viewBox={`0 0 ${W} ${H}`} role="group" aria-label="Level map">
+        <svg className={styles.board} viewBox={`0 0 ${m.width} ${m.height}`} role="group" aria-label="Level map">
           {/* Power comes in from the left; the last trace runs out to the finish lamp. */}
-          <path className={styles.trace} data-lit d={`M 0 ${ROWS[0]} H ${COLUMNS[0]! - CHIP_W / 2}`} />
+          <path className={styles.trace} data-lit d={`M 0 ${m.rows[0]} H ${m.columns[0]! - CHIP_W / 2}`} />
           {(() => {
             const lastIndex = LEVELS.length - 1;
-            const last = chipCenter(lastIndex);
-            const dir = rowDirection(lastIndex);
+            const last = chipCenter(m, lastIndex);
+            const dir = rowDirection(m, lastIndex);
             const lit = stars[LEVELS[lastIndex]!.id] ? true : undefined;
-            const lampX = dir > 0 ? W - 22 : 22;
+            const lampX = dir > 0 ? m.width - 22 : 22;
             return (
               <>
                 <path
@@ -111,12 +131,12 @@ export function LevelMap() {
               className={styles.trace}
               data-lit={stars[l.id] ? true : undefined}
               data-fresh={fresh.has(l.id) || undefined}
-              d={tracePath(i, i + 1)}
+              d={tracePath(m, i, i + 1)}
             />
           ))}
 
           {LEVELS.map((level, i) => {
-            const c = chipCenter(i);
+            const c = chipCenter(m, i);
             const unlocked = isUnlocked(level.id);
             const done = !!stars[level.id];
             const state = done ? 'done' : unlocked ? 'open' : 'locked';

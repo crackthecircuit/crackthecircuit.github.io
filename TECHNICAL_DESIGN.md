@@ -33,7 +33,7 @@ src/
     ui/        Button · Stars
   screens/     TitleScreen · LevelMap · LevelScreen (run flow, sweep) · SandboxScreen
                editor.tsx (shortcuts + palette drag shared by both editing screens)
-  lib/         board.ts (960×600 world, grid) · geometry.ts (ports, wire paths, hit-testing, placement) · view.ts (zoom/pan)
+  lib/         board.ts (960×600 home area, canvas limits, grid) · geometry.ts (ports, wire paths, hit-testing, placement) · view.ts (zoom/pan)
                sound.ts (Web Audio synth, `editSound()` picks an edit's sound)
                describe.ts (screen-reader names for ports and gates) · announce.ts (live-region messages)
   styles/      tokens.css · global.css
@@ -46,9 +46,18 @@ src/
   `moveGate` once on release (dropping on the palette calls `removeGate`). A wire is drawn by dragging port → port,
   or by clicking one port then another. Pressing a connected input port picks up that wire's end:
   drop it on another input to reroute it (`moveWireEnd`), or on empty board to detach it. Drop targets are found with
-  `nearestPort` (22-unit radius), not by DOM hit-testing. Workspace also owns the **view** (zoom/pan): a `{ zoom, center }`
-  that only changes the SVG `viewBox` (pure math in `src/lib/view.ts`), so stored positions stay in world units and
-  screen→world conversion keeps using `getScreenCTM()`.
+  `nearestPort` (22-unit radius, wider for a finger), not by DOM hit-testing. Workspace also owns the **view**
+  (zoom/pan) of the open canvas: a `{ scale, center }` (screen pixels per board unit, and the world point in the middle)
+  that only changes the SVG `viewBox`, sized to the element so nothing is letterboxed. The math is pure and lives in
+  `src/lib/view.ts` (`fitCircuit`, `zoomAround`, `panBy`, `worldToScreen`/`screenToWorld`), so stored positions stay in
+  world units. Screen↔world conversion uses that math rather than `getScreenCTM()`, so edge-panning during a drag
+  sees the new view before React re-renders. Workspace also draws the off-screen terminal markers, the wiring bar,
+  the wiring magnifier (a `<use>` of the board's content group) and the long-press bubble as HTML over the board.
+- **Floating layout:** LevelScreen and SandboxScreen put the canvas full-screen and float the top pills, the panel
+  and the toolbar over it (`useFloatingLayout()` in `screens/editor.tsx`, styles in `LevelScreen.module.css`). The hook
+  works out how much of each edge they cover and passes those **insets** to Workspace (fit circuit, markers, edge pan
+  use the uncovered area) and to CSS as `--inset-*` variables (the zoom control, row stepper, toast, problems box and
+  result card sit inside it). `EditTools` is the toolbar's Undo/Redo/Delete/Reset icon group.
 - **LevelScreen** owns the run. `simulate()` runs on Run/Space. The result belongs to the exact `Circuit` object that
   was run, so any edit makes it stale automatically. Rows reveal every 80ms while the board shows each row's signals.
   A pass then plays a ~650ms flowing-wire celebration and the result card. Any click or key skips the sweep.

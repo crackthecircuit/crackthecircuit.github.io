@@ -1,6 +1,6 @@
 // Plain-language names for board parts, used for screen-reader labels and announcements.
-import { INPUT_PORTS, portsOf } from '../engine';
-import type { Circuit, CircuitNode } from '../engine';
+import { gateInputCount, INPUT_PORTS, portsOf } from '../engine';
+import type { Circuit, CircuitNode, GateNode } from '../engine';
 import type { PortRef } from './geometry';
 
 /** "switch A", "lamp Q", "AND gate 2" (gate ids are g1, g2, …). */
@@ -40,4 +40,18 @@ export function describePort(circuit: Circuit, ref: PortRef): string {
   const wire = circuit.wires.find((w) => w.to.nodeId === ref.nodeId && w.to.port === ref.port);
   const from = wire && byId(wire.from.nodeId);
   return from ? `${name}, from ${nodeName(from)}` : `${name}, not connected`;
+}
+
+/** What a new edit deleted, if anything: the undo toast's message. */
+export function deletionMessage(before: Circuit, after: Circuit): string | null {
+  const gates = (c: Circuit) => c.nodes.filter((n): n is GateNode => n.kind === 'gate');
+  const terminals = (c: Circuit) => c.nodes.length - gates(c).length;
+  const [g0, g1] = [gates(before), gates(after)];
+  if (terminals(before) !== terminals(after)) return null; // the sandbox's input count changed
+  if (g1.length < g0.length) return g0.length - g1.length > 1 ? 'Board cleared' : 'Gate deleted';
+  if (after.wires.length >= before.wires.length) return null;
+  // Narrowing a gate drops the wires on its removed ports: that's a resize, not a delete.
+  const widths = new Map(g0.map((g) => [g.id, gateInputCount(g)]));
+  if (g1.some((g) => widths.get(g.id) !== gateInputCount(g))) return null;
+  return before.wires.length - after.wires.length > 1 ? 'Wires deleted' : 'Wire deleted';
 }

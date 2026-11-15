@@ -1,0 +1,73 @@
+/* Row stepper in the bottom-left corner of the open canvas (the zoom control has the bottom-right). */
+.stepper {
+  position: absolute;
+  left: var(--s-3);
+  bottom: calc(var(--inset-bottom, 0px) + var(--s-1));
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-panel);
+  overflow: hidden;
+}
+
+.step {
+  width: 34px;
+  height: 30px;
+  border: 0;
+  background: none;
+  color: var(--text-1);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background var(--t-fast) var(--ease-out),
+    color var(--t-fast) var(--ease-out);
+}
+
+.step:hover {
+  background: var(--bg-raised);
+  color: var(--focus);
+}
+
+.step:focus-visible {
+  outline-offset: -2px;
+}
+
+.label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-width: 92px;
+  justify-content: center;
+  padding: 0 var(--s-2);
+  border-inline: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-2);
+  line-height: 30px;
+}
+
+.mark {
+  font-weight: 700;
+}
+
+.mark[data-pass='true'] {
+  color: var(--ok);
+}
+
+.mark[data-pass='false'] {
+  color: var(--err);
+}
+
+@media (pointer: coarse) {
+  .step {
+    width: 42px;
+    height: 40px;
+  }
+
+  .label {
+    line-height: 40px;
+  }
+}

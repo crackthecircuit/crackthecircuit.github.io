@@ -32,7 +32,6 @@ export const Palette = forwardRef<HTMLElement, PaletteProps>(function Palette(pr
       data-delete={deleteHover || undefined}
       aria-label="Gate palette"
     >
-      <h2 className={styles.heading}>Gates</h2>
       <ul className={styles.list}>
         {gates.map((type) => (
           <li key={type}>
@@ -42,20 +41,17 @@ export const Palette = forwardRef<HTMLElement, PaletteProps>(function Palette(pr
               disabled={disabled}
               onPointerDown={(e) => e.button === 0 && onGatePointerDown(type, e)}
               onClick={(e) => e.detail === 0 && onGateActivate(type)} // keyboard only
+              title={`${type}: ${DESCRIPTIONS[type].toLowerCase()}. Drag onto the board, or click to add.`}
               aria-label={`${type} gate: ${DESCRIPTIONS[type]}. Drag onto the board, or press to add`}
             >
               <svg className={styles.icon} viewBox="0 0 80 60" aria-hidden>
                 <GateShape type={type} />
               </svg>
-              <span className={styles.text}>
-                <span className={styles.name}>{type}</span>
-                <span className={styles.desc}>{DESCRIPTIONS[type]}</span>
-              </span>
+              <span className={styles.name}>{type}</span>
             </button>
           </li>
         ))}
       </ul>
-      <p className={styles.tip}>Drag onto the board, or click or tap to add.</p>
       <div className={styles.deleteZone} aria-hidden>
         Drop to delete
       </div>

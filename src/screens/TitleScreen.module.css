@@ -342,3 +342,31 @@
   }
 }
 
+/* Phones held sideways: tighter, so the menu and footer fit the short screen. */
+@media (max-height: 480px) and (orientation: landscape) {
+  .screen {
+    min-height: 100svh;
+  }
+
+  .content {
+    gap: var(--s-6);
+  }
+
+  .mark {
+    width: 112px;
+    height: 56px;
+    margin-bottom: var(--s-2);
+  }
+
+  .title {
+    font-size: 44px;
+  }
+
+  .label {
+    font-size: 22px;
+  }
+
+  .footer {
+    bottom: var(--s-3);
+  }
+}

@@ -13,14 +13,6 @@
   fill: var(--grid-dot);
 }
 
-/* Board edge, visible once zoomed out. */
-.frame {
-  fill: none;
-  stroke: var(--border);
-  stroke-width: 1;
-  vector-effect: non-scaling-stroke;
-  pointer-events: none;
-}
 
 .board[data-pannable='true'] .background {
   cursor: grab;

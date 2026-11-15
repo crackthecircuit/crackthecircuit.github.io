@@ -1,15 +1,17 @@
 // Editing pieces shared by the level screen and the sandbox: keyboard shortcuts and palette drag-and-drop.
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import type { PointerEvent as ReactPointerEvent, RefObject } from 'react';
+import type { CSSProperties, PointerEvent as ReactPointerEvent, RefObject } from 'react';
 import { gateInputCount } from '../engine';
 import type { GateType } from '../engine';
 import { GateShape } from '../components/board/GateShape';
 import type { WorkspaceHandle } from '../components/board/Workspace';
 import { announce } from '../lib/announce';
 import { GRID } from '../lib/board';
-import { nodeName } from '../lib/describe';
+import { deletionMessage, nodeName } from '../lib/describe';
 import { freeGatePosition, GATE_H, GATE_W, gatePositionAt } from '../lib/geometry';
 import { editSound, playSound } from '../lib/sound';
+import { PHONE, useMediaQuery } from '../lib/useMediaQuery';
+import type { Insets } from '../lib/view';
 import { useCircuitStore } from '../store/circuitStore';
 import { useProgressStore } from '../store/progressStore';
 import styles from './editor.module.css';
@@ -129,10 +131,106 @@ export function useEditSounds() {
   );
 }
 
+/** How long the undo toast stays up. */
+const TOAST_MS = 4000;
+
+/**
+ * After a delete or Reset, "Gate deleted · Undo" at the bottom of the board for a few seconds. Undo and redo don't
+ * show it; any other edit replaces or hides it. Returns the toast and `reset`, which Reset buttons call so the
+ * message says "Board cleared" (a board with one gate looks the same either way).
+ */
+export function useUndoToast() {
+  const [toast, setToast] = useState<{ text: string; id: number } | null>(null);
+  const resetting = useRef(false);
+  useEffect(
+    () =>
+      useCircuitStore.subscribe((state, prev) => {
+        if (state.circuit === prev.circuit) return;
+        const fresh = state.past.length > 0 && state.future.length === 0 && state.circuit !== prev.future[0]; // not a redo
+        let text = fresh ? deletionMessage(prev.circuit, state.circuit) : null;
+        if (text && resetting.current) text = 'Board cleared';
+        setToast(text ? { text, id: Date.now() } : null);
+      }),
+    [],
+  );
+  const reset = useCallback(() => {
+    resetting.current = true;
+    useCircuitStore.getState().reset();
+    resetting.current = false;
+  }, []);
+  useEffect(() => {
+    if (!toast) return;
+    const t = window.setTimeout(() => setToast(null), TOAST_MS);
+    return () => window.clearTimeout(t);
+  }, [toast]);
+
+  const element = toast && (
+    <div key={toast.id} className={styles.toast} role="status">
+      <span>{toast.text}</span>
+      <button
+        type="button"
+        className={styles.toastUndo}
+        onClick={() => {
+          useCircuitStore.getState().undo();
+          setToast(null);
+        }}
+      >
+        Undo
+      </button>
+    </div>
+  );
+  return { toast: element, reset };
+}
+
+/** Floating layout sizes (screen pixels); the CSS in LevelScreen.module.css reads them as variables. */
+const EDGE = 12;
+const GAP = 8;
+const PILL_H = { wide: 48, phone: 44 };
+const TOOLBAR_H = { wide: 62, phone: 52 };
+const PANEL_W = { wide: 340, narrow: 300 };
+
+/**
+ * The floating layout shared by the level screen and the sandbox: whether the panel (and on a phone the gate tray)
+ * is open, how much of the canvas the floating pieces cover, and those sizes as CSS variables for the screen.
+ * The panel starts open, except on phones.
+ */
+export function useFloatingLayout() {
+  const phone = useMediaQuery(PHONE);
+  const narrow = useMediaQuery('(max-width: 1000px)');
+  const [panelOpen, setPanelOpen] = useState(() => typeof window === 'undefined' || !window.matchMedia(PHONE).matches);
+  const [trayOpen, setTrayOpen] = useState(false);
+  const panelW = narrow ? PANEL_W.narrow : PANEL_W.wide;
+  const insets: Insets = {
+    top: EDGE + (phone ? PILL_H.phone : PILL_H.wide) + GAP,
+    // On a phone the panel is a sheet over the board, so it doesn't narrow the canvas.
+    right: panelOpen && !phone ? panelW + EDGE + GAP : 0,
+    bottom: EDGE + (phone ? TOOLBAR_H.phone : TOOLBAR_H.wide) + GAP,
+    left: 0,
+  };
+  const style = {
+    '--edge': `${EDGE}px`,
+    '--pill-h': `${phone ? PILL_H.phone : PILL_H.wide}px`,
+    '--toolbar-h': `${phone ? TOOLBAR_H.phone : TOOLBAR_H.wide}px`,
+    '--panel-w': `${panelW}px`,
+    '--inset-top': `${insets.top}px`,
+    '--inset-right': `${insets.right}px`,
+    '--inset-bottom': `${insets.bottom}px`,
+  } as CSSProperties;
+  return { phone, panelOpen, setPanelOpen, trayOpen, setTrayOpen, insets, style };
+}
+
 type Ghost = { type: GateType; x: number; y: number; scale: number };
 
-/** Drag a gate from the palette onto the board, or click it to drop it in a free spot. */
-export function usePaletteDrag(workspaceRef: RefObject<WorkspaceHandle | null>, disabled: boolean) {
+/**
+ * Drag a gate from the palette onto the board, or click it to drop it in a free spot near the middle of the view.
+ * `onAdded` runs after a click (or Enter) adds a gate and `onDragMove` once a drag gets going: the phone gate tray
+ * closes on either.
+ */
+export function usePaletteDrag(
+  workspaceRef: RefObject<WorkspaceHandle | null>,
+  disabled: boolean,
+  { onAdded, onDragMove }: { onAdded?: () => void; onDragMove?: () => void } = {},
+) {
   const paletteRef = useRef<HTMLElement>(null);
   const [ghost, setGhost] = useState<Ghost | null>(null);
 
@@ -144,16 +242,24 @@ export function usePaletteDrag(workspaceRef: RefObject<WorkspaceHandle | null>, 
     let moved = false;
     const move = (ev: PointerEvent) => {
       moved ||= Math.hypot(ev.clientX - start.x, ev.clientY - start.y) > 4;
-      if (moved) setGhost({ type, x: ev.clientX, y: ev.clientY, scale });
+      if (!moved) return;
+      setGhost({ type, x: ev.clientX, y: ev.clientY, scale });
+      onDragMove?.();
+      workspaceRef.current?.edgePan({ x: ev.clientX, y: ev.clientY });
     };
     const end = (ev: PointerEvent) => {
       window.removeEventListener('pointermove', move);
       window.removeEventListener('pointerup', end);
       window.removeEventListener('pointercancel', end);
+      workspaceRef.current?.edgePan(null);
       setGhost(null);
       if (ev.type === 'pointercancel') return;
       const store = useCircuitStore.getState();
-      if (!moved) return void store.addGate(type, freeGatePosition(store.circuit));
+      if (!moved) {
+        store.addGate(type, freeGatePosition(store.circuit, workspaceRef.current?.viewCenter()));
+        onAdded?.();
+        return;
+      }
       const world = workspaceRef.current?.clientToWorld(ev.clientX, ev.clientY);
       if (world) store.addGate(type, gatePositionAt(world));
     };
@@ -166,7 +272,8 @@ export function usePaletteDrag(workspaceRef: RefObject<WorkspaceHandle | null>, 
   const onPaletteActivate = (type: GateType) => {
     if (disabled) return;
     const store = useCircuitStore.getState();
-    const id = store.addGate(type, freeGatePosition(store.circuit));
+    const id = store.addGate(type, freeGatePosition(store.circuit, workspaceRef.current?.viewCenter()));
+    onAdded?.();
     const node = id && useCircuitStore.getState().circuit.nodes.find((n) => n.id === id);
     if (node) announce(`Added ${nodeName(node)}. Tab to the board to wire it.`);
   };

@@ -7,8 +7,10 @@ import { Hints } from '../components/panels/Hints';
 import { Palette } from '../components/panels/Palette';
 import { Problems } from '../components/panels/Problems';
 import { ResultCard } from '../components/panels/ResultCard';
+import { RowStepper } from '../components/panels/RowStepper';
 import { TruthTable } from '../components/panels/TruthTable';
 import { Button } from '../components/ui/Button';
+import { CollapseIcon } from '../components/ui/icons';
 import { Expression, RichText } from '../components/ui/Expression';
 import { SoundToggle } from '../components/ui/SoundToggle';
 import { Stars } from '../components/ui/Stars';
@@ -20,7 +22,8 @@ import { isUsableBoard } from '../levels/startingCircuit';
 import { useAppStore } from '../store/appStore';
 import { useCircuitStore } from '../store/circuitStore';
 import { useProgressStore } from '../store/progressStore';
-import { useEditorKeys, useEditSounds, usePaletteDrag } from './editor';
+import { EditTools } from './EditTools';
+import { useEditorKeys, useEditSounds, useFloatingLayout, usePaletteDrag, useUndoToast } from './editor';
 import styles from './LevelScreen.module.css';
 
 /** Time between truth-table rows during the run sweep. */
@@ -64,15 +67,14 @@ export function LevelScreen({ levelId }: { levelId: string }) {
   const go = useAppStore((s) => s.go);
   const circuit = useCircuitStore((s) => s.circuit);
   const ready = useCircuitStore((s) => s.level?.id === level.id);
-  const hasSelection = useCircuitStore((s) => s.selection !== null);
-  const canUndo = useCircuitStore((s) => s.past.length > 0);
-  const canRedo = useCircuitStore((s) => s.future.length > 0);
   const bestStars = useProgressStore((s) => s.stars[level.id] ?? 0);
 
   const workspaceRef = useRef<WorkspaceHandle>(null);
   const [deleteHover, setDeleteHover] = useState(false);
   const [run, setRun] = useState<Run | null>(null);
   const [helpOpen, setHelpOpen] = useState(false);
+  // The canvas fills the screen; the toolbar, panel and pills float over it.
+  const { phone, panelOpen, setPanelOpen, trayOpen, setTrayOpen, insets, style } = useFloatingLayout();
 
   // Open the level, restoring its autosaved board.
   useEffect(() => {
@@ -158,6 +160,7 @@ export function LevelScreen({ levelId }: { levelId: string }) {
     }
     if (phase === 'review' && prev === 'sweep' && !result.allPassed) {
       playSound('fail');
+      setPanelOpen(true); // show the table so the failing rows can be inspected
       const fail = result.rows.find((r) => !r.pass)!;
       const out = level.outputs[0]!;
       const inputs = level.inputs.map((l) => `${l} ${fail.inputs[l]}`).join(', ');
@@ -166,17 +169,20 @@ export function LevelScreen({ levelId }: { levelId: string }) {
           `${out} should be ${fail.expected[out]} but is ${fail.outputs[out]}.`,
       );
     }
-  }, [current, level]);
+  }, [current, level, setPanelOpen]);
 
   useEditSounds();
+  const { toast: undoToast, reset } = useUndoToast();
   useEditorKeys({
     locked,
     onSpace: () => !locked && startRun(),
     onEscape: () => current?.phase === 'card' && setRun((r) => r && { ...r, phase: 'review' }),
   });
+  const closeTray = useCallback(() => setTrayOpen(false), [setTrayOpen]);
   const { paletteRef, onPalettePointerDown, onPaletteActivate, isOverPalette, ghostElement } = usePaletteDrag(
     workspaceRef,
     locked || !ready,
+    { onAdded: closeTray, onDragMove: closeTray },
   );
 
   // What the board shows for the current run.
@@ -186,12 +192,59 @@ export function LevelScreen({ levelId }: { levelId: string }) {
   const errors = result?.status === 'invalid' ? result.errors : [];
   const gateCount = countGates(circuit);
   const next = LEVELS[levelIndex + 1];
+  const inspect = (i: number) => setRun((r) => r && { ...r, inspected: i });
+  const gateCountText = `${gateCount} gate${gateCount === 1 ? '' : 's'} · ${level.par} for ★★★`;
 
   return (
-    <div className={styles.screen}>
-      <header className={styles.header}>
-        <Button variant="ghost" onClick={() => go({ name: 'map' })}>
-          ← Levels
+    <div
+      className={styles.screen}
+      style={style}
+      data-panel={panelOpen || undefined}
+      data-tray={(phone && trayOpen) || undefined}
+    >
+      <main className={styles.canvas}>
+        {ready && (
+          <Workspace
+            ref={workspaceRef}
+            locked={locked}
+            isOverDeleteZone={isOverPalette}
+            onDeleteHover={setDeleteHover}
+            insets={insets}
+            wireValues={inspectedRow?.wireValues}
+            inputValues={inspectedRow?.inputs}
+            unusedGateIds={rows ? result?.unusedGateIds : undefined}
+            errorNodeIds={errors.flatMap((e) => e.nodeIds)}
+            errorWireIds={errors.flatMap((e) => e.wireIds)}
+            celebrate={current?.phase === 'celebrate'}
+          />
+        )}
+        {rows && current?.phase === 'review' && (
+          <RowStepper
+            count={rows.length}
+            index={current.inspected}
+            pass={current.inspected === null ? undefined : rows[current.inspected]!.pass}
+            onChange={inspect}
+          />
+        )}
+        {!locked && undoToast}
+        {errors.length > 0 && <Problems errors={errors} onDismiss={() => setRun(null)} />}
+        {current?.phase === 'card' && (
+          <ResultCard
+            stars={current.stars}
+            gateCount={current.gateCount}
+            par={level.par}
+            unlockedGate={level.unlocksGate}
+            isLastLevel={!next}
+            onNext={() => next && go({ name: 'level', levelId: next.id })}
+            onKeepBuilding={() => setRun((r) => r && { ...r, phase: 'review' })}
+            onMap={() => go({ name: 'map' })}
+          />
+        )}
+      </main>
+
+      <header className={styles.topLeft}>
+        <Button variant="ghost" className={styles.back} onClick={() => go({ name: 'map' })} title="Levels">
+          ← <span className={styles.backText}>Levels</span>
         </Button>
         <div className={styles.titleBlock}>
           <span className={styles.levelNumber}>Level {level.number}</span>
@@ -200,115 +253,56 @@ export function LevelScreen({ levelId }: { levelId: string }) {
         <span className={styles.chip}>{paletteRule(level.palette)}</span>
         {(level.maxGateInputs ?? 2) > 2 && (
           <span className={styles.chip} title="Select a gate and press + or − to change its inputs">
-            gates up to {level.maxGateInputs} inputs
+            up to {level.maxGateInputs} inputs
           </span>
         )}
-        <div className={styles.headerRight}>
-          <span className={styles.par} title="Every gate on the board counts, used or not">
-            {level.par} gate{level.par === 1 ? '' : 's'} for ★★★
-          </span>
-          <span className={styles.best}>
-            <span className={styles.par} aria-hidden>
-              Best
-            </span>
-            <Stars count={bestStars} label={`Best: ${bestStars} of 3 stars`} />
-          </span>
-          <SoundToggle />
-          <Button
-            variant="ghost"
-            onClick={() => setHelpOpen(true)}
-            aria-label="How to play"
-            title="How to play"
-          >
-            ?
-          </Button>
-        </div>
       </header>
 
-      <aside className={styles.left}>
-        <div className={styles.paletteSlot}>
-          <Palette
-            ref={paletteRef}
-            gates={level.palette}
-            deleteHover={deleteHover}
-            disabled={locked}
-            onGatePointerDown={onPalettePointerDown}
-            onGateActivate={onPaletteActivate}
-          />
-        </div>
-        <div className={styles.hintsSlot}>
-          <Hints key={level.id} hints={level.hints} />
-        </div>
-      </aside>
-
-      <main className={styles.center}>
-        <div className={styles.boardArea}>
-          {ready && (
-            <Workspace
-              ref={workspaceRef}
-              locked={locked}
-              isOverDeleteZone={isOverPalette}
-              onDeleteHover={setDeleteHover}
-              wireValues={inspectedRow?.wireValues}
-              inputValues={inspectedRow?.inputs}
-              unusedGateIds={rows ? result?.unusedGateIds : undefined}
-              errorNodeIds={errors.flatMap((e) => e.nodeIds)}
-              errorWireIds={errors.flatMap((e) => e.wireIds)}
-              celebrate={current?.phase === 'celebrate'}
-            />
-          )}
-          {errors.length > 0 && <Problems errors={errors} onDismiss={() => setRun(null)} />}
-          {current?.phase === 'card' && (
-            <ResultCard
-              stars={current.stars}
-              gateCount={current.gateCount}
-              par={level.par}
-              unlockedGate={level.unlocksGate}
-              isLastLevel={!next}
-              onNext={() => next && go({ name: 'level', levelId: next.id })}
-              onKeepBuilding={() => setRun((r) => r && { ...r, phase: 'review' })}
-              onMap={() => go({ name: 'map' })}
-            />
-          )}
-        </div>
-
-        <div className={styles.toolbar}>
-          <div className={styles.tools}>
-            <Button
-              variant="ghost"
-              disabled={locked || !canUndo}
-              onClick={() => useCircuitStore.getState().undo()}
-            >
-              Undo
-            </Button>
-            <Button
-              variant="ghost"
-              disabled={locked || !canRedo}
-              onClick={() => useCircuitStore.getState().redo()}
-            >
-              Redo
-            </Button>
-            <Button
-              variant="ghost"
-              disabled={locked || !hasSelection}
-              onClick={() => useCircuitStore.getState().removeSelection()}
-            >
-              Delete
-            </Button>
-            <Button variant="ghost" disabled={locked} onClick={() => useCircuitStore.getState().reset()}>
-              Reset
-            </Button>
-          </div>
-          <span key={gateCount} className={styles.gateCount} data-over={gateCount > level.par || undefined}>
-            {gateCount} gate{gateCount === 1 ? '' : 's'} · {level.par} for ★★★
+      <div className={styles.topRight}>
+        <span className={styles.best}>
+          <span className={styles.bestLabel} aria-hidden>
+            Best
           </span>
-          <Button variant="primary" size="lg" shortcut="Space" disabled={locked || !ready} onClick={startRun}>
-            ▶ Run
+          <Stars count={bestStars} label={`Best: ${bestStars} of 3 stars`} />
+        </span>
+        <SoundToggle />
+        <Button variant="ghost" onClick={() => setHelpOpen(true)} aria-label="How to play" title="How to play">
+          ?
+        </Button>
+      </div>
+
+      {!panelOpen && (
+        <button
+          type="button"
+          className={styles.panelTab}
+          aria-expanded={false}
+          aria-controls="level-panel"
+          onClick={() => setPanelOpen(true)}
+        >
+          Truth table
+          {rows && current?.phase === 'review' && result?.status === 'ok' && (
+            <span className={styles.tabScore} data-all={result.allPassed || undefined}>
+              {result.passedCount}/{rows.length}
+            </span>
+          )}
+        </button>
+      )}
+
+      <aside className={styles.panel} id="level-panel" aria-label="Objective and truth table">
+        <div className={styles.panelHeader}>
+          <span className={styles.panelCount}>{gateCountText}</span>
+          <Button
+            variant="ghost"
+            className={styles.iconButton}
+            aria-label="Hide the panel"
+            title="Hide the panel"
+            aria-expanded={panelOpen}
+            aria-controls="level-panel"
+            onClick={() => setPanelOpen(false)}
+          >
+            <CollapseIcon />
           </Button>
         </div>
-      </main>
-
-      <aside className={styles.right}>
         <section className={styles.brief}>
           <h2 className={styles.sectionHeading}>Objective</h2>
           <p>
@@ -328,11 +322,44 @@ export function LevelScreen({ levelId }: { levelId: string }) {
           rows={rows}
           revealed={current?.revealed ?? 0}
           inspected={current?.phase === 'review' || current?.phase === 'card' ? current.inspected : null}
-          onInspect={
-            current?.phase === 'review' ? (i) => setRun((r) => r && { ...r, inspected: i }) : undefined
-          }
+          onInspect={current?.phase === 'review' ? inspect : undefined}
         />
+        <Hints key={level.id} hints={level.hints} />
       </aside>
+
+      <div className={styles.toolbar} role="group" aria-label="Gates and editing tools">
+        {phone && (
+          <button
+            type="button"
+            className={styles.gatesToggle}
+            aria-expanded={trayOpen}
+            aria-controls="gate-tray"
+            disabled={locked}
+            onClick={() => setTrayOpen((o) => !o)}
+          >
+            Gates {trayOpen ? '▾' : '▴'}
+          </button>
+        )}
+        <div className={styles.gates} id="gate-tray">
+          <Palette
+            ref={paletteRef}
+            gates={level.palette}
+            deleteHover={deleteHover}
+            disabled={locked}
+            onGatePointerDown={onPalettePointerDown}
+            onGateActivate={onPaletteActivate}
+          />
+        </div>
+        <span className={styles.divider} aria-hidden />
+        <EditTools locked={locked} onReset={reset} />
+        <span className={styles.divider} aria-hidden />
+        <span key={gateCount} className={styles.gateCount} data-over={gateCount > level.par || undefined}>
+          {gateCountText}
+        </span>
+        <Button variant="primary" className={styles.run} shortcut="Space" disabled={locked || !ready} onClick={startRun}>
+          ▶ Run
+        </Button>
+      </div>
 
       {ghostElement}
 

@@ -2,7 +2,7 @@ import { useEffect, useId, useRef, useState } from 'react';
 import type { KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent, Ref } from 'react';
 import { portsOf } from '../../engine';
 import type { Bit, Circuit, CircuitNode, GateNode, InputNode, OutputNode, Point, PortId } from '../../engine';
-import { BOARD_HEIGHT, BOARD_WIDTH, GRID } from '../../lib/board';
+import { BOARD_HEIGHT, BOARD_WIDTH, CANVAS, GRID } from '../../lib/board';
 import { describePort, nodeName } from '../../lib/describe';
 import { GATE_W, gateHeightFor, portKey, portPosition, wirePath } from '../../lib/geometry';
 import type { PortRef } from '../../lib/geometry';
@@ -17,7 +17,9 @@ export interface BoardProps {
   svgRef?: Ref<SVGSVGElement>;
   /** Visible part of the world (zoom/pan). Defaults to the whole board. */
   viewBox?: { x: number; y: number; width: number; height: number };
-  /** The background can be dragged to pan (zoomed in), and is being dragged now. */
+  /** Id for the group holding everything drawn, so a magnifier can show it again with `<use>`. */
+  contentId?: string;
+  /** The background can be dragged to pan, and is being dragged now. */
   pannable?: boolean;
   panning?: boolean;
 
@@ -78,6 +80,7 @@ export function Board(props: BoardProps) {
     circuit,
     svgRef,
     viewBox = { x: 0, y: 0, width: BOARD_WIDTH, height: BOARD_HEIGHT },
+    contentId,
     pannable,
     panning,
     wireValues,
@@ -161,99 +164,93 @@ export function Board(props: BoardProps) {
           <circle className={styles.gridDot} cx={GRID / 2} cy={GRID / 2} r={1.2} />
         </pattern>
       </defs>
-      {/* Everything around the board (visible when zoomed out) behaves like empty board. */}
-      <rect
-        className={styles.background}
-        x={-BOARD_WIDTH * 4}
-        y={-BOARD_HEIGHT * 4}
-        width={BOARD_WIDTH * 9}
-        height={BOARD_HEIGHT * 9}
-        fill="transparent"
-        onPointerDown={onBackgroundPointerDown}
-      />
-      <rect
-        className={styles.background}
-        width={BOARD_WIDTH}
-        height={BOARD_HEIGHT}
-        fill={`url(#${gridId})`}
-        onPointerDown={onBackgroundPointerDown}
-      />
-      <rect className={styles.frame} width={BOARD_WIDTH} height={BOARD_HEIGHT} aria-hidden />
+      <g id={contentId}>
+        {/* The canvas: a dot grid with no visible edge, reaching well past the canvas limits. */}
+        <rect
+          className={styles.background}
+          x={CANVAS.minX - BOARD_WIDTH * 4}
+          y={CANVAS.minY - BOARD_HEIGHT * 4}
+          width={CANVAS.maxX - CANVAS.minX + BOARD_WIDTH * 8}
+          height={CANVAS.maxY - CANVAS.minY + BOARD_HEIGHT * 8}
+          fill={`url(#${gridId})`}
+          onPointerDown={onBackgroundPointerDown}
+        />
 
-      <g>
-        {circuit.wires.map((w) => {
-          const from = nodes.get(w.from.nodeId);
-          const to = nodes.get(w.to.nodeId);
-          if (!from || !to || w.id === hiddenWireId) return null;
-          const d = wirePath(portPosition(from, 'out'), portPosition(to, w.to.port));
-          return (
-            <g key={w.id} className={styles.wireGroup} onPointerDown={(e) => onWirePointerDown?.(w.id, e)}>
-              <path className={styles.wireHit} d={d} />
-              <path
-                className={styles.wire}
-                d={d}
-                style={
-                  { '--delay': `${Math.round((from.pos.x / BOARD_WIDTH) * 300)}ms` } as React.CSSProperties
-                }
-                data-signal={signalAttr(wireValues?.[w.id])}
-                data-selected={flag(isSelected('wire', w.id))}
-                data-error={flag(errorWireIds.includes(w.id))}
-              />
-            </g>
-          );
-        })}
-        {draftWire && <path className={styles.draftWire} d={wirePath(draftWire.from, draftWire.to)} />}
-      </g>
-
-      {ghosts.map((g) => (
-        <g key={`ghost-${g.id}`} className={styles.ghost} aria-hidden>
-          <g transform={`translate(${g.pos.x} ${g.pos.y})`}>
-            <GateShape type={g.gateType} inputs={portsOf(g).inputs.length} />
-          </g>
+        <g>
+          {circuit.wires.map((w) => {
+            const from = nodes.get(w.from.nodeId);
+            const to = nodes.get(w.to.nodeId);
+            if (!from || !to || w.id === hiddenWireId) return null;
+            const d = wirePath(portPosition(from, 'out'), portPosition(to, w.to.port));
+            return (
+              <g key={w.id} className={styles.wireGroup} onPointerDown={(e) => onWirePointerDown?.(w.id, e)}>
+                <path className={styles.wireHit} d={d} />
+                <path
+                  className={styles.wire}
+                  d={d}
+                  style={
+                    { '--delay': `${Math.round((from.pos.x / BOARD_WIDTH) * 300)}ms` } as React.CSSProperties
+                  }
+                  data-signal={signalAttr(wireValues?.[w.id])}
+                  data-selected={flag(isSelected('wire', w.id))}
+                  data-error={flag(errorWireIds.includes(w.id))}
+                />
+              </g>
+            );
+          })}
+          {draftWire && <path className={styles.draftWire} d={wirePath(draftWire.from, draftWire.to)} />}
         </g>
-      ))}
 
-      <g>
-        {circuit.nodes.map((node) => {
-          const error = errorNodeIds.includes(node.id);
-          switch (node.kind) {
-            case 'gate':
-              return (
-                <Gate
-                  key={node.id}
-                  node={node}
-                  selected={isSelected('node', node.id)}
-                  unused={unusedGateIds.includes(node.id)}
-                  error={error}
-                  deleting={deletingGateId === node.id}
-                  dragging={draggingGateId === node.id}
-                  onPointerDown={props.onGatePointerDown}
-                  onFocusGate={props.onGateFocus}
-                  resize={props.gateResize?.nodeId === node.id ? props.gateResize : null}
-                  onResize={props.onResizeGate}
-                >
-                  {portsOf(node).inputs.map((p) => port(node, p, incoming.get(`${node.id}:${p}`)))}
-                  {port(node, 'out', outgoing.get(node.id))}
-                </Gate>
-              );
-            case 'input': {
-              const value = inputValues?.[node.label] ?? outgoing.get(node.id);
-              return (
-                <InputTerminal key={node.id} node={node} value={value} error={error}>
-                  {port(node, 'out', value)}
-                </InputTerminal>
-              );
+        {ghosts.map((g) => (
+          <g key={`ghost-${g.id}`} className={styles.ghost} aria-hidden>
+            <g transform={`translate(${g.pos.x} ${g.pos.y})`}>
+              <GateShape type={g.gateType} inputs={portsOf(g).inputs.length} />
+            </g>
+          </g>
+        ))}
+
+        <g>
+          {circuit.nodes.map((node) => {
+            const error = errorNodeIds.includes(node.id);
+            switch (node.kind) {
+              case 'gate':
+                return (
+                  <Gate
+                    key={node.id}
+                    node={node}
+                    selected={isSelected('node', node.id)}
+                    unused={unusedGateIds.includes(node.id)}
+                    error={error}
+                    deleting={deletingGateId === node.id}
+                    dragging={draggingGateId === node.id}
+                    onPointerDown={props.onGatePointerDown}
+                    onFocusGate={props.onGateFocus}
+                    resize={props.gateResize?.nodeId === node.id ? props.gateResize : null}
+                    onResize={props.onResizeGate}
+                  >
+                    {portsOf(node).inputs.map((p) => port(node, p, incoming.get(`${node.id}:${p}`)))}
+                    {port(node, 'out', outgoing.get(node.id))}
+                  </Gate>
+                );
+              case 'input': {
+                const value = inputValues?.[node.label] ?? outgoing.get(node.id);
+                return (
+                  <InputTerminal key={node.id} node={node} value={value} error={error}>
+                    {port(node, 'out', value)}
+                  </InputTerminal>
+                );
+              }
+              case 'output': {
+                const value = incoming.get(`${node.id}:in0`);
+                return (
+                  <OutputTerminal key={node.id} node={node} value={value} error={error}>
+                    {port(node, 'in0', value)}
+                  </OutputTerminal>
+                );
+              }
             }
-            case 'output': {
-              const value = incoming.get(`${node.id}:in0`);
-              return (
-                <OutputTerminal key={node.id} node={node} value={value} error={error}>
-                  {port(node, 'in0', value)}
-                </OutputTerminal>
-              );
-            }
-          }
-        })}
+          })}
+        </g>
       </g>
     </svg>
   );

@@ -1,6 +1,7 @@
 import { INPUT_PORTS, portsOf } from '../engine';
 import type { Circuit, CircuitNode, InputPortId, PortId, Point } from '../engine';
-import { BOARD_HEIGHT, BOARD_WIDTH, GRID, snapToGrid } from './board';
+import { BOARD_HEIGHT, BOARD_WIDTH, CANVAS, GRID, snapToGrid } from './board';
+import type { Box } from './view';
 
 /** Gates are drawn in an 80×60 box (taller when widened); `pos` is its top-left corner. */
 export const GATE_W = 80;
@@ -74,21 +75,56 @@ export function nearestPort(circuit: Circuit, point: Point, radius = PORT_HIT_RA
   return best;
 }
 
-/** Top-left for a gate centred on `point`, snapped to the grid and kept fully on the board. */
+/** Top-left for a gate centred on `point`, snapped to the grid and kept inside the canvas limits. */
 export function gatePositionAt(point: Point): Point {
   return {
-    x: Math.min(Math.max(snapToGrid(point.x - GATE_W / 2), GRID), BOARD_WIDTH - GATE_W - GRID),
-    y: Math.min(Math.max(snapToGrid(point.y - GATE_H / 2), GRID), BOARD_HEIGHT - GATE_H - GRID * 2),
+    x: Math.min(Math.max(snapToGrid(point.x - GATE_W / 2), CANVAS.minX), CANVAS.maxX - GATE_W),
+    y: Math.min(Math.max(snapToGrid(point.y - GATE_H / 2), CANVAS.minY), CANVAS.maxY - GATE_H),
   };
 }
 
-/** A free spot near the centre of the board for a gate added by clicking the palette. */
-export function freeGatePosition(circuit: Circuit): Point {
+/** Half the size of a terminal's drawing around its centre, port included. */
+const TERMINAL_HALF_W = TERMINAL_PORT_OFFSET + 8;
+const TERMINAL_HALF_H = 30;
+
+/** The world box a node is drawn in. */
+function nodeBox(node: CircuitNode): Box {
+  if (node.kind === 'gate') {
+    const height = gateHeightFor(portsOf(node).inputs.length);
+    // The label sits under the gate.
+    return { minX: node.pos.x, minY: node.pos.y, maxX: node.pos.x + GATE_W, maxY: node.pos.y + height + 16 };
+  }
+  return {
+    minX: node.pos.x - TERMINAL_HALF_W,
+    minY: node.pos.y - TERMINAL_HALF_H,
+    maxX: node.pos.x + TERMINAL_HALF_W,
+    maxY: node.pos.y + TERMINAL_HALF_H + 16,
+  };
+}
+
+/** The smallest box holding every switch, lamp and gate (the home area for an empty circuit). */
+export function circuitBox(circuit: Circuit): Box {
+  if (circuit.nodes.length === 0) return { minX: 0, minY: 0, maxX: BOARD_WIDTH, maxY: BOARD_HEIGHT };
+  const boxes = circuit.nodes.map(nodeBox);
+  return {
+    minX: Math.min(...boxes.map((b) => b.minX)),
+    minY: Math.min(...boxes.map((b) => b.minY)),
+    maxX: Math.max(...boxes.map((b) => b.maxX)),
+    maxY: Math.max(...boxes.map((b) => b.maxY)),
+  };
+}
+
+/**
+ * A free spot near `near` (the middle of the view; by default the middle of the home area) for a gate added by
+ * clicking or tapping the palette, or with Enter. It doesn't overlap another gate or a terminal.
+ */
+export function freeGatePosition(circuit: Circuit, near: Point = { x: BOARD_WIDTH / 2, y: BOARD_HEIGHT / 2 }): Point {
+  const blockers = circuit.nodes.map(nodeBox);
   const taken = (p: Point) =>
-    circuit.nodes.some(
-      (n) => n.kind === 'gate' && Math.abs(n.pos.x - p.x) < GATE_W && Math.abs(n.pos.y - p.y) < GATE_H,
+    blockers.some(
+      (b) => p.x < b.maxX && p.x + GATE_W > b.minX && p.y < b.maxY && p.y + GATE_H > b.minY,
     );
-  const start = gatePositionAt({ x: BOARD_WIDTH / 2, y: BOARD_HEIGHT / 2 });
+  const start = gatePositionAt(near);
   for (let ring = 0; ring < 12; ring++) {
     for (const [dx, dy] of [
       [0, 0],

@@ -21,9 +21,6 @@ export function App() {
 
   return (
     <>
-      <p className={styles.smallScreen} role="note">
-        Crack the Circuit is built for a laptop, desktop or tablet. On a phone, some things won’t fit.
-      </p>
       <div className={styles.screen}>
         <ScreenTransition id={screen.name === 'level' ? `level-${screen.levelId}` : screen.name}>
           {screen.name === 'title' && <TitleScreen />}

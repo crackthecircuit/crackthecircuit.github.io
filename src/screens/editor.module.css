@@ -17,3 +17,49 @@
 .ghost [data-part='body'] {
   fill: var(--gate-fill);
 }
+
+/* "Gate deleted · Undo": bottom-centre of the board, above the row stepper and zoom control. */
+.toast {
+  position: absolute;
+  left: calc((100% - var(--inset-right, 0px)) / 2);
+  bottom: calc(var(--inset-bottom, 0px) + 52px);
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-1) var(--s-1) var(--s-1) var(--s-4);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-panel);
+  box-shadow: 0 10px 28px rgb(0 0 0 / 0.5);
+  font-size: 13px;
+  color: var(--text-1);
+  white-space: nowrap;
+  transform: translateX(-50%);
+  animation: toastIn var(--t-panel) var(--ease-out);
+}
+
+.toastUndo {
+  height: 32px;
+  padding: 0 var(--s-4);
+  border: 0;
+  border-radius: 999px;
+  background: var(--bg-raised);
+  color: var(--focus);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+@media (pointer: coarse) {
+  .toastUndo {
+    height: 38px;
+  }
+}
+
+@keyframes toastIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 8px);
+  }
+}

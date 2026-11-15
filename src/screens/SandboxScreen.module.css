@@ -49,3 +49,14 @@
   }
 }
 
+
+/* Phones: the header has one line, so the label goes; each choice still has its name for screen readers. */
+@media (max-width: 600px), (max-height: 480px) {
+  .inputsLabel {
+    display: none;
+  }
+
+  .inputChoice {
+    width: 30px;
+  }
+}

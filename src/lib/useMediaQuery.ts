@@ -17,3 +17,9 @@ export function useMediaQuery(query: string): boolean {
 /** A touch screen (no fine pointer such as a mouse). */
 export const COARSE_POINTER = '(pointer: coarse)';
 
+
+/**
+ * A phone, either way up: the editing screens switch to one full-screen board with a gate tray and a sheet.
+ * Keep in step with the same query in the CSS modules (LevelScreen, Palette, ResultCard, editor).
+ */
+export const PHONE = '(max-width: 600px), (max-height: 480px)';
