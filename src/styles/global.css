@@ -19,6 +19,40 @@ body {
   overscroll-behavior: none;
 }
 
+/*
+ * Scrollbars: the browser's own (so touch momentum, keyboard and screen readers keep working), restyled thin and
+ * quiet to match the panels. scrollbar-color/width cover Chrome, Edge and Firefox; the ::-webkit-scrollbar rules
+ * cover Safari.
+ */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+*:hover {
+  scrollbar-color: var(--text-3) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: var(--border) padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--text-3);
+}
+
 html {
   /* Mobile browsers must not enlarge the text on their own when turned sideways. */
   -webkit-text-size-adjust: 100%;

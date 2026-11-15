@@ -106,3 +106,6 @@ The success sequence lasts about 1.5s and can be skipped.
    panel (objective, the player's equation, truth table, hints), which collapses to a small **Table** tab. Bottom
    centre: the toolbar, with the gates as icon buttons, the edit tools as icons with tooltips, the gate count and Run.
    The sandbox is the same with its inputs control in the top-left pill.
+
+Scrollbars (the panel, dialogs, the level map) are the browser's own, restyled thin: a rounded `--border` thumb on a
+transparent track that brightens to `--text-3` on hover.
