@@ -8,21 +8,6 @@ import { useAppStore } from '../store/appStore';
 import { useProgressStore } from '../store/progressStore';
 import styles from './TitleScreen.module.css';
 
-/** Animated mark: two switches feed an AND gate, then the lamp lights. */
-function LogoMark() {
-  return (
-    <svg className={styles.mark} viewBox="0 0 220 110" aria-hidden>
-      <path className={styles.traceA} d="M14 36 H70" />
-      <path className={styles.traceB} d="M14 74 H70" />
-      <circle className={styles.pinA} cx="14" cy="36" r="6" />
-      <circle className={styles.pinB} cx="14" cy="74" r="6" />
-      <path className={styles.gate} d="M70 20 H100 A35 35 0 0 1 100 90 H70 Z" />
-      <path className={styles.traceOut} d="M135 55 H180" />
-      <circle className={styles.lamp} cx="196" cy="55" r="15" />
-    </svg>
-  );
-}
-
 interface MenuItem {
   label: string;
   detail?: string;
@@ -90,7 +75,6 @@ export function TitleScreen() {
 
       <div className={styles.content}>
         <div className={styles.brand}>
-          <LogoMark />
           <h1 className={styles.title}>
             Crack the <span className={styles.lit}>Circuit</span>
           </h1>

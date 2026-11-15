@@ -37,109 +37,6 @@
   animation: rise 700ms var(--ease-out) 150ms backwards;
 }
 
-.mark {
-  width: 160px;
-  height: 80px;
-  margin-bottom: var(--s-4);
-}
-
-.mark path,
-.mark circle {
-  fill: none;
-  stroke: var(--signal-off);
-  stroke-width: 4;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.mark .gate {
-  fill: var(--gate-fill);
-  stroke: var(--gate-stroke);
-  stroke-width: 3;
-}
-
-.mark .pinA,
-.mark .pinB {
-  fill: var(--bg-board);
-}
-
-.traceA,
-.pinA {
-  animation: litA 4s infinite;
-}
-
-.traceB,
-.pinB {
-  animation: litB 4s infinite;
-}
-
-.traceOut {
-  animation: litOut 4s infinite;
-}
-
-.mark .lamp {
-  fill: var(--bg-raised);
-  animation: litLamp 4s infinite;
-}
-
-@keyframes litA {
-  0%,
-  9%,
-  86%,
-  100% {
-    stroke: var(--signal-off);
-  }
-  10%,
-  85% {
-    stroke: var(--signal-on);
-    filter: drop-shadow(0 0 5px var(--signal-on-glow));
-  }
-}
-
-@keyframes litB {
-  0%,
-  29%,
-  86%,
-  100% {
-    stroke: var(--signal-off);
-  }
-  30%,
-  85% {
-    stroke: var(--signal-on);
-    filter: drop-shadow(0 0 5px var(--signal-on-glow));
-  }
-}
-
-@keyframes litOut {
-  0%,
-  44%,
-  86%,
-  100% {
-    stroke: var(--signal-off);
-  }
-  45%,
-  85% {
-    stroke: var(--signal-on);
-    filter: drop-shadow(0 0 8px var(--signal-on-glow));
-  }
-}
-
-@keyframes litLamp {
-  0%,
-  44%,
-  86%,
-  100% {
-    stroke: var(--signal-off);
-    fill: var(--bg-raised);
-  }
-  45%,
-  85% {
-    stroke: var(--signal-on);
-    fill: var(--signal-on);
-    filter: drop-shadow(0 0 14px var(--signal-on-glow));
-  }
-}
-
 .title {
   margin: 0;
   font-size: clamp(48px, 7.5vw, 96px);
@@ -344,18 +241,19 @@
 
 /* Phones held sideways: tighter, so the menu and footer fit the short screen. */
 @media (max-height: 480px) and (orientation: landscape) {
+  /* Start from the top and keep a clear strip at the bottom for the footer. */
   .screen {
+    align-items: flex-start;
     min-height: 100svh;
+    padding: var(--s-6) 0 var(--s-8);
   }
 
   .content {
-    gap: var(--s-6);
+    gap: var(--s-4);
   }
 
-  .mark {
-    width: 112px;
-    height: 56px;
-    margin-bottom: var(--s-2);
+  .item {
+    padding-block: 2px;
   }
 
   .title {
