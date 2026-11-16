@@ -91,8 +91,9 @@ export function HowToPlay({ open, onClose }: { open: boolean; onClose: () => voi
               <h3>Build</h3>
               <p>
                 Drag gates from the palette onto the board, or click (or tap) one to drop it in. Drag from one
-                port to another to wire them (or click one port, then the other). Drag a wire’s end away to
-                disconnect it. On a touch screen, pinch to zoom and hold a gate or wire to delete it.
+                port to another to wire them (or click one port, then the other). You can also start from a
+                switch or the lamp and drop the wire anywhere on a gate. Drag a wire’s end away to disconnect
+                it. On a touch screen, pinch to zoom and hold a gate or wire to delete it.
               </p>
               <svg className={styles.gates} viewBox="0 0 280 60" aria-hidden>
                 {(['AND', 'OR', 'NOT'] as const).map((type, i) => (

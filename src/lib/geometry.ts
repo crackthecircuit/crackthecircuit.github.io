@@ -61,11 +61,20 @@ export function allPorts(circuit: Circuit): (PortRef & { pos: Point })[] {
   });
 }
 
-/** The port nearest to `point` within `radius` board units (a finger gets a wider one), if any. */
-export function nearestPort(circuit: Circuit, point: Point, radius = PORT_HIT_RADIUS): PortRef | null {
+/**
+ * The port nearest to `point` within `radius` board units (a finger gets a wider one), if any. `accept` limits it to
+ * some ports.
+ */
+export function nearestPort(
+  circuit: Circuit,
+  point: Point,
+  radius = PORT_HIT_RADIUS,
+  accept: (p: PortRef) => boolean = () => true,
+): PortRef | null {
   let best: PortRef | null = null;
   let bestDist = radius;
   for (const p of allPorts(circuit)) {
+    if (!accept(p)) continue;
     const d = Math.hypot(p.pos.x - point.x, p.pos.y - point.y);
     if (d <= bestDist) {
       best = { nodeId: p.nodeId, port: p.port };
@@ -102,6 +111,55 @@ function nodeBox(node: CircuitNode): Box {
   };
 }
 
+/** The switch, gate or lamp drawn under `point` (the topmost one where they overlap), if any. */
+export function nodeAt(circuit: Circuit, point: Point): CircuitNode | null {
+  for (let i = circuit.nodes.length - 1; i >= 0; i--) {
+    const node = circuit.nodes[i]!;
+    const b = nodeBox(node);
+    if (point.x >= b.minX && point.x <= b.maxX && point.y >= b.minY && point.y <= b.maxY) return node;
+  }
+  return null;
+}
+
+/**
+ * Where a wire drawn from `origin` lands when released at `point`:
+ * 1. the nearest port of the kind it needs (an input for a wire from an output, and the other way round) within
+ *    `radius`;
+ * 2. otherwise any port within `radius`, so a wrong drop is rejected where the player can see it;
+ * 3. otherwise the switch, gate or lamp under the point. A wire that needs an input takes that node's free input
+ *    nearest the point (or the nearest input if all are taken, replacing its wire); one that needs an output takes
+ *    its output. The origin's own node is skipped here, so a wire can't loop back by accident.
+ * `movingWireId` is a wire being rerouted: the input it is leaving counts as free.
+ */
+export function wireDropTarget(
+  circuit: Circuit,
+  origin: PortRef,
+  point: Point,
+  radius = PORT_HIT_RADIUS,
+  movingWireId?: string,
+): PortRef | null {
+  const wantInput = !isInputPort(origin.port);
+  const port =
+    nearestPort(circuit, point, radius, (p) => isInputPort(p.port) === wantInput) ??
+    nearestPort(circuit, point, radius);
+  if (port) return port;
+
+  const node = nodeAt(circuit, point);
+  if (!node || node.id === origin.nodeId) return null;
+  const { inputs, hasOutput } = portsOf(node);
+  if (!wantInput) return hasOutput ? { nodeId: node.id, port: 'out' } : null;
+  if (inputs.length === 0) return null;
+
+  const taken = new Set(
+    circuit.wires.filter((w) => w.to.nodeId === node.id && w.id !== movingWireId).map((w) => w.to.port),
+  );
+  const free = inputs.filter((p) => !taken.has(p));
+  const distance = (p: InputPortId) => Math.abs(portPosition(node, p).y - point.y);
+  const nearest = (from: readonly InputPortId[]) =>
+    from.reduce((a, b) => (distance(b) < distance(a) ? b : a));
+  return { nodeId: node.id, port: nearest(free.length > 0 ? free : inputs) };
+}
+
 /** The smallest box holding every switch, lamp and gate (the home area for an empty circuit). */
 export function circuitBox(circuit: Circuit): Box {
   if (circuit.nodes.length === 0) return { minX: 0, minY: 0, maxX: BOARD_WIDTH, maxY: BOARD_HEIGHT };
@@ -118,12 +176,13 @@ export function circuitBox(circuit: Circuit): Box {
  * A free spot near `near` (the middle of the view; by default the middle of the home area) for a gate added by
  * clicking or tapping the palette, or with Enter. It doesn't overlap another gate or a terminal.
  */
-export function freeGatePosition(circuit: Circuit, near: Point = { x: BOARD_WIDTH / 2, y: BOARD_HEIGHT / 2 }): Point {
+export function freeGatePosition(
+  circuit: Circuit,
+  near: Point = { x: BOARD_WIDTH / 2, y: BOARD_HEIGHT / 2 },
+): Point {
   const blockers = circuit.nodes.map(nodeBox);
   const taken = (p: Point) =>
-    blockers.some(
-      (b) => p.x < b.maxX && p.x + GATE_W > b.minX && p.y < b.maxY && p.y + GATE_H > b.minY,
-    );
+    blockers.some((b) => p.x < b.maxX && p.x + GATE_W > b.minX && p.y < b.maxY && p.y + GATE_H > b.minY);
   const start = gatePositionAt(near);
   for (let ring = 0; ring < 12; ring++) {
     for (const [dx, dy] of [

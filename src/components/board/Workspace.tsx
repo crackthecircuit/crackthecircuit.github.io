@@ -13,6 +13,7 @@ import {
   PORT_HIT_RADIUS,
   portKey,
   portPosition,
+  wireDropTarget,
 } from '../../lib/geometry';
 import type { PortRef } from '../../lib/geometry';
 import { nodeName, portName } from '../../lib/describe';
@@ -47,6 +48,13 @@ const DRAG_THRESHOLD = 4;
 const FINGER_RADIUS = 22;
 /** Never snap a finger further than this (board units), or a press beside a gate would grab its ports. */
 const MAX_TOUCH_SNAP = 34;
+/** A mouse drops a wire onto a port this close (screen pixels), however far the board is zoomed out. */
+const MOUSE_SNAP_PX = 18;
+/** A mouse press starts a wire this close to a port (screen pixels), at any zoom. */
+const MOUSE_PRESS_PX = 14;
+/** Port press areas in board units: never smaller than drawn at 100%, and never so big they swallow a gate's body. */
+const MIN_PORT_PRESS = 14;
+const MAX_PORT_PRESS = 22;
 /** On a touch screen the − / + buttons above a selected gate grow to at least this radius (screen pixels). */
 const TOUCH_BUTTON_RADIUS = 16;
 /** Holding a finger still this long on a gate or wire opens its Delete bubble. */
@@ -375,11 +383,23 @@ export const Workspace = forwardRef<WorkspaceHandle, WorkspaceProps>(function Wo
     edgePan: (client) => edgePan(client),
   }));
 
-  /** Snap radius (board units) for a press: a finger is wider than the drawn port when the board is small. */
+  /**
+   * Snap radius (board units) for a wire's loose end. It is a fixed size on screen, so zooming out doesn't make
+   * ports harder to hit; a finger gets a wider one.
+   */
   const snapRadius = (e: { pointerType: string }) =>
-    e.pointerType === 'mouse'
-      ? PORT_HIT_RADIUS
-      : Math.min(Math.max(PORT_HIT_RADIUS, FINGER_RADIUS / view.scale), MAX_TOUCH_SNAP);
+    Math.min(
+      Math.max(PORT_HIT_RADIUS, (e.pointerType === 'mouse' ? MOUSE_SNAP_PX : FINGER_RADIUS) / view.scale),
+      MAX_TOUCH_SNAP,
+    );
+  /** How close (board units) a mouse press must be to a port to start a wire there. */
+  const portPressRadius = Math.min(Math.max(MIN_PORT_PRESS, MOUSE_PRESS_PX / view.scale), MAX_PORT_PRESS);
+  const pressRadius = (e: { pointerType: string }) =>
+    e.pointerType === 'mouse' ? portPressRadius : snapRadius(e);
+
+  /** Where the wire being drawn lands if released at `point`: a port, or the switch, gate or lamp under it. */
+  const dropTarget = (d: WireDrag, point: Point, c: Circuit = circuit) =>
+    wireDropTarget(c, d.origin, point, d.snap, d.reroute?.wireId);
 
   const rejectAt = (target: PortRef) => {
     playSound('reject');
@@ -414,6 +434,8 @@ export const Workspace = forwardRef<WorkspaceHandle, WorkspaceProps>(function Wo
   };
   const finishWireRef = useRef(finishWire);
   finishWireRef.current = finishWire;
+  const dropTargetRef = useRef(dropTarget);
+  dropTargetRef.current = dropTarget;
 
   const cancelWiring = () => {
     setDrag(null);
@@ -490,7 +512,7 @@ export const Workspace = forwardRef<WorkspaceHandle, WorkspaceProps>(function Wo
         return;
       }
       if (d.sticky) return; // waiting for the second click
-      if (d.moved) return finishWireRef.current(d, nearestPort(store.circuit, d.pointer, d.snap));
+      if (d.moved) return finishWireRef.current(d, dropTargetRef.current(d, d.pointer, store.circuit));
       if (d.reroute) {
         // A plain click on a connected input selects its wire.
         setDrag(null);
@@ -525,13 +547,16 @@ export const Workspace = forwardRef<WorkspaceHandle, WorkspaceProps>(function Wo
   const gateOverDelete = drag?.kind === 'gate' && drag.overDelete;
   useEffect(() => onDeleteHover?.(gateOverDelete), [gateOverDelete, onDeleteHover]);
 
-  const onPortPointerDown = (target: PortRef, e: ReactPointerEvent) => {
+  const onPortPointerDown = (pressed: PortRef, e: ReactPointerEvent) => {
     if (locked || e.button !== 0) return;
     e.stopPropagation();
-    const current = dragRef.current;
-    if (current?.kind === 'wire' && current.sticky) return finishWire(current, target);
     const world = clientToWorld(e.clientX, e.clientY, true);
     if (!world) return;
+    // Press areas overlap where ports sit close together (a wide gate's inputs): take the port nearest the press.
+    // A press on a switch or lamp body is further away than that and keeps its own port.
+    const target = nearestPort(circuit, world, pressRadius(e)) ?? pressed;
+    const current = dragRef.current;
+    if (current?.kind === 'wire' && current.sticky) return finishWire(current, target);
     const existing = isInputPort(target.port)
       ? circuit.wires.find((w) => w.to.nodeId === target.nodeId && w.to.port === target.port)
       : undefined;
@@ -551,9 +576,14 @@ export const Workspace = forwardRef<WorkspaceHandle, WorkspaceProps>(function Wo
   const onGatePointerDown = (id: string, e: ReactPointerEvent) => {
     if (locked || e.button !== 0) return;
     e.stopPropagation();
-    if (dragRef.current?.kind === 'wire') return setDrag(null);
     const node = circuit.nodes.find((n) => n.id === id);
     const world = clientToWorld(e.clientX, e.clientY, true);
+    const current = dragRef.current;
+    if (current?.kind === 'wire') {
+      // Click-click wiring: a click on a gate's body connects to it, like dropping a dragged wire there.
+      const target = current.sticky && world ? dropTarget(current, world) : null;
+      return target ? finishWire(current, target) : setDrag(null);
+    }
     if (!node || !world) return;
     useCircuitStore.getState().select({ kind: 'node', id });
     setDrag({
@@ -657,8 +687,8 @@ export const Workspace = forwardRef<WorkspaceHandle, WorkspaceProps>(function Wo
 
     const originNode = circuit.nodes.find((n) => n.id === drag.origin.nodeId);
     if (originNode) {
-      // Snap the loose end onto a valid port near the pointer.
-      const hover = nearestPort(circuit, drag.pointer, drag.snap);
+      // Snap the loose end onto where it would land: a valid port near the pointer, or one on the node under it.
+      const hover = dropTarget(drag, drag.pointer);
       const hoverNode =
         hover && hints[portKey(hover)] === 'valid' ? circuit.nodes.find((n) => n.id === hover.nodeId) : null;
       const loose = hover && hoverNode ? portPosition(hoverNode, hover.port) : drag.pointer;
@@ -737,6 +767,7 @@ export const Workspace = forwardRef<WorkspaceHandle, WorkspaceProps>(function Wo
         shakePortKey={shake}
         draggingGateId={drag?.kind === 'gate' && drag.moved ? drag.id : null}
         deletingGateId={drag?.kind === 'gate' && drag.overDelete ? drag.id : null}
+        portPressRadius={portPressRadius}
         onPortPointerDown={onPortPointerDown}
         onGatePointerDown={onGatePointerDown}
         onWirePointerDown={onWirePointerDown}

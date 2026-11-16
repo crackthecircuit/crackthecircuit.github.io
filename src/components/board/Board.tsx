@@ -52,6 +52,9 @@ export interface BoardProps {
   onResizeGate?: (nodeId: string, inputs: number) => void;
 
   // Interaction
+  /** How far (board units) from a port a press still starts a wire there. Defaults to the drawn hit area. */
+  portPressRadius?: number;
+  /** A press on a port, or on a switch or lamp body (which reports that terminal's port). */
   onPortPointerDown?: PointerHandler<PortRef>;
   onGatePointerDown?: PointerHandler<string>;
   onWirePointerDown?: PointerHandler<string>;
@@ -140,6 +143,7 @@ export function Board(props: BoardProps) {
       hint={portHints?.[portKey({ nodeId: node.id, port: p })]}
       shake={shakePortKey === portKey({ nodeId: node.id, port: p })}
       label={props.onPortActivate ? describePort(circuit, { nodeId: node.id, port: p }) : undefined}
+      hitRadius={props.portPressRadius}
       onPointerDown={props.onPortPointerDown}
       onActivate={props.onPortActivate}
       onClear={props.onPortClear}
@@ -235,7 +239,13 @@ export function Board(props: BoardProps) {
               case 'input': {
                 const value = inputValues?.[node.label] ?? outgoing.get(node.id);
                 return (
-                  <InputTerminal key={node.id} node={node} value={value} error={error}>
+                  <InputTerminal
+                    key={node.id}
+                    node={node}
+                    value={value}
+                    error={error}
+                    onPointerDown={props.onPortPointerDown}
+                  >
                     {port(node, 'out', value)}
                   </InputTerminal>
                 );
@@ -243,7 +253,13 @@ export function Board(props: BoardProps) {
               case 'output': {
                 const value = incoming.get(`${node.id}:in0`);
                 return (
-                  <OutputTerminal key={node.id} node={node} value={value} error={error}>
+                  <OutputTerminal
+                    key={node.id}
+                    node={node}
+                    value={value}
+                    error={error}
+                    onPointerDown={props.onPortPointerDown}
+                  >
                     {port(node, 'in0', value)}
                   </OutputTerminal>
                 );
@@ -264,11 +280,12 @@ function Port(props: {
   shake: boolean;
   /** Accessible name; the port is focusable when it has one. */
   label?: string;
+  hitRadius?: number;
   onPointerDown?: PointerHandler<PortRef>;
   onActivate?: (target: PortRef) => void;
   onClear?: (target: PortRef) => void;
 }) {
-  const { node, port, value, hint, shake, label, onPointerDown, onActivate, onClear } = props;
+  const { node, port, value, hint, shake, label, hitRadius = 14, onPointerDown, onActivate, onClear } = props;
   const p = portPosition(node, port);
   const ref = { nodeId: node.id, port };
   return (
@@ -293,7 +310,7 @@ function Port(props: {
         }
       }}
     >
-      <circle className={styles.portHit} cx={p.x} cy={p.y} r={14} />
+      <circle className={styles.portHit} cx={p.x} cy={p.y} r={hitRadius} />
       <circle className={styles.port} cx={p.x} cy={p.y} r={5} data-signal={signalAttr(value)} />
     </g>
   );
@@ -422,11 +439,26 @@ function ResizeControl(props: {
   );
 }
 
-function InputTerminal(props: { node: InputNode; value?: Bit; error: boolean; children: React.ReactNode }) {
-  const { node, value, error, children } = props;
+interface TerminalProps<N> {
+  node: N;
+  value?: Bit;
+  error: boolean;
+  /** Pressing the body starts a wire from the terminal's port, as if the port itself was pressed. */
+  onPointerDown?: PointerHandler<PortRef>;
+  children: React.ReactNode;
+}
+
+function InputTerminal(props: TerminalProps<InputNode>) {
+  const { node, value, error, onPointerDown, children } = props;
   const { x, y } = node.pos;
   return (
-    <g className={styles.terminal} data-signal={signalAttr(value)} data-error={flag(error)}>
+    <g
+      className={styles.terminal}
+      data-signal={signalAttr(value)}
+      data-error={flag(error)}
+      data-wireable={flag(!!onPointerDown)}
+      onPointerDown={(e) => onPointerDown?.({ nodeId: node.id, port: 'out' }, e)}
+    >
       <rect className={styles.terminalBody} x={x - 28} y={y - 22} width={56} height={44} rx={10} />
       <text className={styles.terminalLabel} x={x - 8} y={y + 5}>
         {node.label}
@@ -439,11 +471,17 @@ function InputTerminal(props: { node: InputNode; value?: Bit; error: boolean; ch
   );
 }
 
-function OutputTerminal(props: { node: OutputNode; value?: Bit; error: boolean; children: React.ReactNode }) {
-  const { node, value, error, children } = props;
+function OutputTerminal(props: TerminalProps<OutputNode>) {
+  const { node, value, error, onPointerDown, children } = props;
   const { x, y } = node.pos;
   return (
-    <g className={styles.terminal} data-signal={signalAttr(value)} data-error={flag(error)}>
+    <g
+      className={styles.terminal}
+      data-signal={signalAttr(value)}
+      data-error={flag(error)}
+      data-wireable={flag(!!onPointerDown)}
+      onPointerDown={(e) => onPointerDown?.({ nodeId: node.id, port: 'in0' }, e)}
+    >
       <circle className={styles.lamp} cx={x} cy={y} r={22} />
       <text className={styles.terminalValue} x={x} y={y + 5}>
         {value ?? '·'}

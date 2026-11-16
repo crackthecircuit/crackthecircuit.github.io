@@ -147,6 +147,16 @@ the stars, gates used vs par, and **Next Level**.
   Dropping a gate back on the palette deletes it.
 - **Wiring:** press on a port, drag (a live wire follows the cursor), and release on a compatible port. Click one port, then
   another, as a fallback. While dragging, valid targets glow and invalid ones dim.
+- **Big wiring targets:** ports are small, so the parts around them count too.
+  - Pressing anywhere on a switch or the lamp starts a wire from its port (switches and the lamp never move).
+  - Releasing a wire on a gate's body connects it to the gate's free input nearest the pointer, or to the nearest input
+    (replacing its wire) when all are taken. A wire drawn backwards from an input lands on the output of the gate or
+    switch it's dropped on, and a wire dropped on the lamp connects to it. A gate's own body is skipped, so a wire
+    can't loop back by accident. The click-click fallback accepts a click on a body in the same way.
+  - A port close to the pointer still wins over a body, and the live wire snaps to wherever it will land.
+  - Port targets keep a size on screen however far the board is zoomed out: a mouse press starts a wire within about
+    14 screen pixels of a port (14–22 board units, so it never covers most of a gate's body), and a dragged wire snaps
+    to ports within about 18 screen pixels.
 - **Connection rules:** an output may fan out to many inputs. Each input port takes exactly one wire, and dropping a new
   wire on an occupied input replaces the old one. Output→output and input→input wires are rejected with a shake.
 - **Selecting and deleting:** click a gate or wire to select it, then press Delete/Backspace or the trash button. Deleting a gate
