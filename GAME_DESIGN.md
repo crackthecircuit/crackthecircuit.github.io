@@ -74,7 +74,8 @@ Par values will be tuned in playtesting. Each level ships with a reference solut
 - Passing all rows = **1★** and unlocks the next level.
 - Stars go up to **3★** by meeting the level's par gate count: **3★** at or under par, **2★** within 2 gates of par, otherwise **1★**.
 - The gate count includes **every gate on the board**, including unused ones.
-- Hints never reduce stars.
+- Hints cap stars: the nudge is free, revealing the expression caps the level at **2★**, and the structure clue caps
+  it at **1★**. Passing still always earns 1★ and unlocks the next level, and a best score earned earlier is kept.
 - **Wording:** "par" is the internal term. Players never see it: the header says "3 gates for ★★★" next to
   "Best ★★☆", the gate counter says "2 gates · 3 for ★★★", and the result card says "2 gates used. ★★★ needs 3 or
   fewer." (adding "Can you remove N?" when over).
@@ -84,6 +85,10 @@ Up to 3 per level, each revealed on demand:
 1. A concept nudge.
 2. The Boolean expression.
 3. A structure / gate-count clue.
+
+Each reveal button shows its cost ("free", "max ★★", "max ★"). Revealed hints are saved per level, stay shown when
+the player comes back, and keep capping that level until progress is reset. While a cap applies, the gate counter says
+"2 gates · hints: max ★★" and the result card says "Hints capped this level at ★★."
 
 Hints never place gates for the player.
 

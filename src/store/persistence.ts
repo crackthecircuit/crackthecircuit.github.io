@@ -10,6 +10,8 @@ export interface SavedProgress {
   /** Autosaved board per level id. */
   boards: Record<string, Circuit>;
   unlockedGates: GateType[];
+  /** Hints revealed per level id (1–3). They stay revealed, and cap that level's stars. */
+  hints: Record<string, number>;
   /** Sound effects off. A setting, so a progress reset keeps it. */
   muted: boolean;
 }
@@ -19,6 +21,7 @@ export const freshProgress = (): SavedProgress => ({
   stars: {},
   boards: {},
   unlockedGates: [],
+  hints: {},
   muted: false,
 });
 
@@ -51,8 +54,14 @@ export function loadProgress(storage: StorageLike | undefined = safeLocalStorage
     const unlockedGates = Array.isArray(data.unlockedGates)
       ? data.unlockedGates.filter((g): g is GateType => typeof g === 'string')
       : [];
+    const hints: Record<string, number> = {};
+    if (isRecord(data.hints)) {
+      for (const [id, n] of Object.entries(data.hints)) {
+        if (typeof n === 'number' && n >= 1 && n <= 3) hints[id] = Math.floor(n);
+      }
+    }
     const muted = data.muted === true;
-    return { version: VERSION, stars, boards, unlockedGates, muted };
+    return { version: VERSION, stars, boards, unlockedGates, hints, muted };
   } catch {
     return freshProgress();
   }

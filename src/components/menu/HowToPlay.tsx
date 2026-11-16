@@ -119,7 +119,8 @@ export function HowToPlay({ open, onClose }: { open: boolean; onClose: () => voi
               <h3>Crack it in style</h3>
               <p>
                 Passing every row earns ★. Each level shows how many gates earn ★★★: use that many or fewer.
-                Up to two gates more earns ★★. Stuck? Each level has three hints.
+                Up to two gates more earns ★★. Stuck? Each level has three hints: the first is free, the
+                expression caps the level at ★★ and the structure clue at ★.
               </p>
             </div>
           </li>

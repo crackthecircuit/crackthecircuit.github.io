@@ -11,6 +11,6 @@ export {
 export { analyze, validate } from './validate';
 export type { Analysis } from './validate';
 export { simulate, rowInputs } from './simulate';
-export { countGates, score } from './score';
+export { countGates, hintStarCap, score } from './score';
 export { parseExpression, parseExpressions, evaluateExpr, circuitExpression, flatten } from './expression';
 export type { Expr } from './expression';

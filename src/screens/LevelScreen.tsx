@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { circuitExpression, countGates, score, simulate } from '../engine';
+import { circuitExpression, countGates, hintStarCap, score, simulate } from '../engine';
 import type { Circuit, GateType, SimulationResult } from '../engine';
 import { Workspace } from '../components/board/Workspace';
 import type { WorkspaceHandle } from '../components/board/Workspace';
@@ -68,6 +68,8 @@ export function LevelScreen({ levelId }: { levelId: string }) {
   const circuit = useCircuitStore((s) => s.circuit);
   const ready = useCircuitStore((s) => s.level?.id === level.id);
   const bestStars = useProgressStore((s) => s.stars[level.id] ?? 0);
+  const hintsShown = useProgressStore((s) => s.hints[level.id] ?? 0);
+  const starCap = hintStarCap(hintsShown);
 
   const workspaceRef = useRef<WorkspaceHandle>(null);
   const [deleteHover, setDeleteHover] = useState(false);
@@ -90,7 +92,7 @@ export function LevelScreen({ levelId }: { levelId: string }) {
   const current = run && run.circuit === circuit ? run : null;
   const locked = current?.phase === 'sweep' || current?.phase === 'celebrate' || current?.phase === 'card';
 
-  const startRun = useCallback(() => {
+  const startRun = () => {
     const { circuit: c } = useCircuitStore.getState();
     useCircuitStore.getState().select(null);
     const result = simulate(c, level);
@@ -100,10 +102,10 @@ export function LevelScreen({ levelId }: { levelId: string }) {
       setRun({ circuit: c, result, revealed: 0, inspected: null, phase: 'review', stars: 0, gateCount });
       return;
     }
-    const stars = score(result.allPassed, gateCount, level.par);
+    const stars = score(result.allPassed, gateCount, level.par, hintsShown);
     if (result.allPassed) useProgressStore.getState().recordPass(level, stars);
     setRun({ circuit: c, result, revealed: 0, inspected: null, phase: 'sweep', stars, gateCount });
-  }, [level]);
+  };
 
   // Sweep: reveal rows one by one, showing each row's signals on the board as it lands.
   useEffect(() => {
@@ -193,7 +195,9 @@ export function LevelScreen({ levelId }: { levelId: string }) {
   const gateCount = countGates(circuit);
   const next = LEVELS[levelIndex + 1];
   const inspect = (i: number) => setRun((r) => r && { ...r, inspected: i });
-  const gateCountText = `${gateCount} gate${gateCount === 1 ? '' : 's'} · ${level.par} for ★★★`;
+  const gateCountText = `${gateCount} gate${gateCount === 1 ? '' : 's'} · ${
+    starCap < 3 ? `hints: max ${'★'.repeat(starCap)}` : `${level.par} for ★★★`
+  }`;
 
   return (
     <div
@@ -233,6 +237,7 @@ export function LevelScreen({ levelId }: { levelId: string }) {
             stars={current.stars}
             gateCount={current.gateCount}
             par={level.par}
+            starCap={starCap}
             unlockedGate={level.unlocksGate}
             isLastLevel={!next}
             onNext={() => next && go({ name: 'level', levelId: next.id })}
@@ -266,7 +271,12 @@ export function LevelScreen({ levelId }: { levelId: string }) {
           <Stars count={bestStars} label={`Best: ${bestStars} of 3 stars`} />
         </span>
         <SoundToggle />
-        <Button variant="ghost" onClick={() => setHelpOpen(true)} aria-label="How to play" title="How to play">
+        <Button
+          variant="ghost"
+          onClick={() => setHelpOpen(true)}
+          aria-label="How to play"
+          title="How to play"
+        >
           ?
         </Button>
       </div>
@@ -324,7 +334,11 @@ export function LevelScreen({ levelId }: { levelId: string }) {
           inspected={current?.phase === 'review' || current?.phase === 'card' ? current.inspected : null}
           onInspect={current?.phase === 'review' ? inspect : undefined}
         />
-        <Hints key={level.id} hints={level.hints} />
+        <Hints
+          hints={level.hints}
+          shown={hintsShown}
+          onReveal={() => useProgressStore.getState().revealHint(level.id)}
+        />
       </aside>
 
       <div className={styles.toolbar} role="group" aria-label="Gates and editing tools">
@@ -356,7 +370,13 @@ export function LevelScreen({ levelId }: { levelId: string }) {
         <span key={gateCount} className={styles.gateCount} data-over={gateCount > level.par || undefined}>
           {gateCountText}
         </span>
-        <Button variant="primary" className={styles.run} shortcut="Space" disabled={locked || !ready} onClick={startRun}>
+        <Button
+          variant="primary"
+          className={styles.run}
+          shortcut="Space"
+          disabled={locked || !ready}
+          onClick={startRun}
+        >
           ▶ Run
         </Button>
       </div>

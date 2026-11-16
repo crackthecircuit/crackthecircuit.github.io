@@ -17,6 +17,7 @@ describe('progress persistence', () => {
       stars: { 'level-1': 3 },
       boards: { 'level-1': { nodes: [], wires: [] } },
       unlockedGates: ['XOR' as const],
+      hints: { 'level-1': 2 },
       muted: true,
     };
     expect(saveProgress(progress, storage)).toBe(true);
@@ -38,12 +39,14 @@ describe('progress persistence', () => {
       stars: { 'level-1': 2, 'level-2': 'lots', 'level-3': 9 },
       boards: { 'level-1': { nodes: [], wires: [] }, 'level-2': 'oops' },
       unlockedGates: ['XOR', 42],
+      hints: { 'level-1': 1, 'level-2': 7, 'level-3': 'all' },
     });
     expect(loadProgress(memoryStorage(raw))).toEqual({
       version: 1,
       stars: { 'level-1': 2 },
       boards: { 'level-1': { nodes: [], wires: [] } },
       unlockedGates: ['XOR'],
+      hints: { 'level-1': 1 },
       muted: false,
     });
   });

@@ -8,6 +8,8 @@ interface ResultCardProps {
   stars: number;
   gateCount: number;
   par: number;
+  /** The most stars the hints shown still allow (3 = no cost). */
+  starCap: number;
   unlockedGate?: GateType;
   isLastLevel: boolean;
   onNext: () => void;
@@ -18,13 +20,18 @@ interface ResultCardProps {
 const HEADLINES = ['', 'Circuit cracked', 'Nicely cracked', 'Perfectly cracked'];
 
 export function ResultCard(props: ResultCardProps) {
-  const { stars, gateCount, par, unlockedGate, isLastLevel, onNext, onKeepBuilding, onMap } = props;
+  const { stars, gateCount, par, starCap, unlockedGate, isLastLevel, onNext, onKeepBuilding, onMap } = props;
   const primary = useRef<HTMLButtonElement>(null);
   useEffect(() => primary.current?.focus(), []);
 
   const used = `${gateCount} gate${gateCount === 1 ? '' : 's'} used. ★★★ needs ${par} or fewer.`;
   const extra = gateCount - par;
-  const parNote = extra > 0 ? `${used} Can you remove ${extra}?` : used;
+  const parNote =
+    starCap < 3
+      ? `${gateCount} gate${gateCount === 1 ? '' : 's'} used. Hints capped this level at ${'★'.repeat(starCap)}.`
+      : extra > 0
+        ? `${used} Can you remove ${extra}?`
+        : used;
 
   return (
     <div

@@ -124,7 +124,7 @@ interface Level {
 3. **`simulate(circuit, level)`:** for each of the 2^n rows, evaluate the gates in sorted order and return
    `{ inputs, wireValues: Record<wireId, 0|1>, outputs, pass }`, plus totals. `wireValues` drives row inspection
    and the success sweep, so the UI never computes signals itself.
-4. **`score(allPassed, gateCount, par)`** → 0–3 stars (see GAME_DESIGN.md §Scoring). `countGates()` counts every gate on the board.
+4. **`score(allPassed, gateCount, par, hintsShown)`** → 0–3 stars, capped by `hintStarCap(hintsShown)` (see GAME_DESIGN.md §Scoring). `countGates()` counts every gate on the board.
 
 Level truth tables are written as rules in `src/levels/levels.ts` and expanded into arrays at load time. The engine
 only ever compares against the arrays. `src/levels/solutions.ts` holds a reference circuit per level (via
@@ -134,12 +134,12 @@ only ever compares against the arrays. `src/levels/solutions.ts` holds a referen
 - **`circuitStore`:** the current circuit, the selection, and actions `addGate`, `moveGate`, `connect`, `moveWireEnd`, `removeWire`,
   `removeGate`, `removeSelection`, `reset`, `select`, `undo`, `redo`, plus `relayout`/`setLevel` for the sandbox. Every action replaces the circuit immutably. History is a past/future stack of `Circuit` snapshots;
   a drag is committed **once, on release**, not on every pointer move.
-- **`progressStore`:** stars, unlocked gates, autosaved boards and the `muted` setting (kept by `resetProgress`).
+- **`progressStore`:** stars, unlocked gates, autosaved boards, hints revealed per level and the `muted` setting (kept by `resetProgress`).
 
 ## Persistence
 A single localStorage key, `crackthecircuit:v1`:
 ```json
-{ "version": 1, "stars": { "level-1": 3 }, "boards": { "level-1": { "nodes": [], "wires": [] } }, "unlockedGates": ["XOR"], "muted": false }
+{ "version": 1, "stars": { "level-1": 3 }, "boards": { "level-1": { "nodes": [], "wires": [] } }, "unlockedGates": ["XOR"], "hints": { "level-1": 1 }, "muted": false }
 ```
 The sandbox board is saved under `boards.sandbox`. Every read and write is wrapped in try/catch. Missing, corrupt or unknown-version data falls back to a fresh state.
 

@@ -9,6 +9,8 @@ export interface ProgressState extends SavedProgress {
   recordPass: (level: Level, stars: number) => void;
   /** Autosave a level's board. */
   saveBoard: (levelId: string, circuit: Circuit) => void;
+  /** Reveal a level's next hint (up to 3). Revealed hints stay revealed. */
+  revealHint: (levelId: string) => void;
   /** Level 1 is always open; every other level opens once the level before it is passed. */
   isUnlocked: (levelId: string) => boolean;
   resetProgress: () => void;
@@ -17,8 +19,8 @@ export interface ProgressState extends SavedProgress {
 
 export const useProgressStore = create<ProgressState>()((set, get) => {
   const persist = () => {
-    const { version, stars, boards, unlockedGates, muted } = get();
-    saveProgress({ version, stars, boards, unlockedGates, muted });
+    const { version, stars, boards, unlockedGates, hints, muted } = get();
+    saveProgress({ version, stars, boards, unlockedGates, hints, muted });
   };
 
   return {
@@ -40,6 +42,13 @@ export const useProgressStore = create<ProgressState>()((set, get) => {
       persist();
     },
 
+    revealHint: (levelId) => {
+      const shown = get().hints[levelId] ?? 0;
+      if (shown >= 3) return;
+      set({ hints: { ...get().hints, [levelId]: shown + 1 } });
+      persist();
+    },
+
     isUnlocked: (levelId) => {
       const index = LEVELS.findIndex((l) => l.id === levelId);
       if (index <= 0) return index === 0;
@@ -47,7 +56,7 @@ export const useProgressStore = create<ProgressState>()((set, get) => {
     },
 
     resetProgress: () => {
-      set({ stars: {}, boards: {}, unlockedGates: [] });
+      set({ stars: {}, boards: {}, unlockedGates: [], hints: {} });
       persist();
     },
 

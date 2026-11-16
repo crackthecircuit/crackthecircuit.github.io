@@ -30,4 +30,11 @@ describe('progress store', () => {
     store().recordPass(getLevel('level-8')!, 3);
     expect(store().unlockedGates).toEqual(['XOR']);
   });
+
+  it('remembers revealed hints per level, up to three, until progress is reset', () => {
+    for (let i = 0; i < 5; i++) store().revealHint('level-2');
+    expect(store().hints).toEqual({ 'level-2': 3 });
+    store().resetProgress();
+    expect(store().hints).toEqual({});
+  });
 });

@@ -1,12 +1,22 @@
-import { useState } from 'react';
+import { hintStarCap } from '../../engine';
 import { RichText } from '../ui/Expression';
 import styles from './Hints.module.css';
 
 const TIER_NAMES = ['Nudge', 'Expression', 'Structure'];
+const REVEAL_LABELS = ['Stuck? Show a hint', 'Show the expression', 'Show the structure'];
 
-/** Up to three hints, revealed one at a time. Remount with a new `key` per level. */
-export function Hints({ hints }: { hints: readonly string[] }) {
-  const [shown, setShown] = useState(0);
+interface HintsProps {
+  hints: readonly string[];
+  /** Hints already revealed for this level (saved with progress). */
+  shown: number;
+  onReveal: () => void;
+}
+
+/** Up to three hints, revealed one at a time. The nudge is free; the next two cap the level's stars. */
+export function Hints({ hints, shown, onReveal }: HintsProps) {
+  const cap = hintStarCap(shown);
+  const nextCap = hintStarCap(shown + 1);
+  const costs = nextCap < cap;
   return (
     <section className={styles.panel} aria-label="Hints">
       <h2 className={styles.heading}>
@@ -26,8 +36,20 @@ export function Hints({ hints }: { hints: readonly string[] }) {
         ))}
       </ol>
       {shown < hints.length && (
-        <button type="button" className={styles.reveal} onClick={() => setShown(shown + 1)}>
-          {shown === 0 ? 'Stuck? Show a hint' : 'Show another hint'}
+        <button
+          type="button"
+          className={styles.reveal}
+          onClick={onReveal}
+          aria-label={
+            costs
+              ? `${REVEAL_LABELS[shown]}. This level then gives at most ${nextCap} of 3 stars.`
+              : undefined
+          }
+        >
+          <span>{REVEAL_LABELS[shown]}</span>
+          <span className={styles.cost} data-free={!costs || undefined}>
+            {costs ? `max ${'★'.repeat(nextCap)}` : 'free'}
+          </span>
         </button>
       )}
     </section>
