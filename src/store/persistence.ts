@@ -1,11 +1,12 @@
 import type { Circuit, GateType } from '../engine';
+import { currentLevelId } from '../levels/legacy';
 
 export const STORAGE_KEY = 'crackthecircuit:v1';
 const VERSION = 1;
 
 export interface SavedProgress {
   version: 1;
-  /** Best star count per level id (1–3). A level is passed when it has an entry. */
+  /** Best star count per level id (1–3). A level is passed when it has an entry. Old `level-<n>` ids are renamed on load. */
   stars: Record<string, number>;
   /** Autosaved board per level id. */
   boards: Record<string, Circuit>;
@@ -44,12 +45,12 @@ export function loadProgress(storage: StorageLike | undefined = safeLocalStorage
     const stars: Record<string, number> = {};
     if (isRecord(data.stars)) {
       for (const [id, n] of Object.entries(data.stars)) {
-        if (typeof n === 'number' && n >= 1 && n <= 3) stars[id] = Math.floor(n);
+        if (typeof n === 'number' && n >= 1 && n <= 3) stars[currentLevelId(id)] = Math.floor(n);
       }
     }
     const boards: Record<string, Circuit> = {};
     if (isRecord(data.boards)) {
-      for (const [id, c] of Object.entries(data.boards)) if (isCircuit(c)) boards[id] = c;
+      for (const [id, c] of Object.entries(data.boards)) if (isCircuit(c)) boards[currentLevelId(id)] = c;
     }
     const unlockedGates = Array.isArray(data.unlockedGates)
       ? data.unlockedGates.filter((g): g is GateType => typeof g === 'string')
@@ -57,7 +58,7 @@ export function loadProgress(storage: StorageLike | undefined = safeLocalStorage
     const hints: Record<string, number> = {};
     if (isRecord(data.hints)) {
       for (const [id, n] of Object.entries(data.hints)) {
-        if (typeof n === 'number' && n >= 1 && n <= 3) hints[id] = Math.floor(n);
+        if (typeof n === 'number' && n >= 1 && n <= 3) hints[currentLevelId(id)] = Math.floor(n);
       }
     }
     const muted = data.muted === true;

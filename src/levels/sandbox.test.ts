@@ -6,8 +6,15 @@ import { createStartingCircuit, inputTerminalId, isUsableBoard } from './startin
 
 describe('sandbox', () => {
   it('offers the base gates, plus earned ones', () => {
-    expect(sandboxLevel(2, []).palette).toEqual(['AND', 'OR', 'NOT', 'NAND', 'NOR']);
-    expect(sandboxLevel(2, ['XOR']).palette).toContain('XOR');
+    expect(sandboxLevel(2, []).palette).toEqual(['AND', 'OR', 'NOT']);
+    expect(sandboxLevel(2, ['XOR', 'NOR', 'NAND']).palette).toEqual([
+      'AND',
+      'OR',
+      'NOT',
+      'NAND',
+      'NOR',
+      'XOR',
+    ]);
   });
 
   it('clamps the input count to 1–4', () => {

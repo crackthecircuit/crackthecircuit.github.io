@@ -8,27 +8,44 @@ import {
   rowInputs,
   simulate,
 } from '../engine';
-import { LEVELS } from './levels';
+import { LEGACY_LEVEL_IDS } from './legacy';
+import { BASIC_GATES, getLevel, LEVELS } from './levels';
 import { gateSizeRange } from './rules';
 import { buildCircuit, SOLUTIONS } from './solutions';
 import { isUsableBoard } from './startingCircuit';
 
 describe('level data', () => {
-  it('has 18 levels numbered 1–18 with unique ids', () => {
-    expect(LEVELS.map((l) => l.number)).toEqual(Array.from({ length: 18 }, (_, i) => i + 1));
+  it('has 25 levels numbered 1–25 with unique, stable ids', () => {
+    expect(LEVELS.map((l) => l.number)).toEqual(Array.from({ length: 25 }, (_, i) => i + 1));
     expect(new Set(LEVELS.map((l) => l.id)).size).toBe(LEVELS.length);
+    for (const l of LEVELS) expect(l.id).toMatch(/^[a-z]+(-[a-z]+)*$/);
   });
 
-  it('only level 8 unlocks a gate (XOR), and XOR only appears in palettes after it', () => {
-    expect(LEVELS.filter((l) => l.unlocksGate).map((l) => [l.number, l.unlocksGate])).toEqual([[8, 'XOR']]);
-    for (const l of LEVELS) if (l.palette.includes('XOR')) expect(l.number).toBeGreaterThan(8);
-  });
-
-  it('keeps levels 1–11 to 2-input gates; wide gates arrive at level 12', () => {
+  it('earns NAND, NOR and XOR by building them, and only offers a gate after it is earned', () => {
+    expect(LEVELS.filter((l) => l.unlocksGate).map((l) => [l.id, l.unlocksGate])).toEqual([
+      ['not-both', 'NAND'],
+      ['neither-switch', 'NOR'],
+      ['exactly-one', 'XOR'],
+    ]);
+    const earned = new Set<string>(BASIC_GATES);
     for (const l of LEVELS) {
-      if (l.number <= 11) expect(l.maxGateInputs ?? 2).toBe(2);
+      for (const g of l.palette) expect(earned, `${l.id} offers ${g} before it is earned`).toContain(g);
+      if (l.unlocksGate) {
+        expect(l.palette, 'a level that unlocks a gate makes you build it').not.toContain(l.unlocksGate);
+        earned.add(l.unlocksGate);
+      }
     }
-    expect(LEVELS.find((l) => l.number === 12)!.maxGateInputs).toBe(4);
+  });
+
+  it('keeps levels 1–14 to 2-input gates; wide gates arrive at level 15', () => {
+    for (const l of LEVELS) {
+      if (l.number <= 14) expect(l.maxGateInputs ?? 2).toBe(2);
+    }
+    expect(LEVELS.find((l) => l.number === 15)!.maxGateInputs).toBe(4);
+  });
+
+  it('maps every old numbered id to a level that still exists', () => {
+    for (const id of Object.values(LEGACY_LEVEL_IDS)) expect(getLevel(id), id).toBeDefined();
   });
 
   for (const level of LEVELS) {

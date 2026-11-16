@@ -25,7 +25,7 @@ describe('score', () => {
   });
 
   it('counts every gate on the board, including unused ones', () => {
-    const level1 = getLevel('level-1')!;
+    const level1 = getLevel('both-switches')!;
     const c = buildCircuit(level1, { g: 'AND', spare: 'OR' }, [
       ['A', 'g.in0'],
       ['B', 'g.in1'],

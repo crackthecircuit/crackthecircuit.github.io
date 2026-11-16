@@ -8,32 +8,41 @@ describe('progress store', () => {
   beforeEach(() => store().resetProgress());
 
   it('opens level 1 only, then each level after the previous one is passed', () => {
-    expect(store().isUnlocked('level-1')).toBe(true);
-    expect(store().isUnlocked('level-2')).toBe(false);
-    store().recordPass(getLevel('level-1')!, 1);
-    expect(store().isUnlocked('level-2')).toBe(true);
-    expect(store().isUnlocked('level-3')).toBe(false);
+    expect(store().isUnlocked('both-switches')).toBe(true);
+    expect(store().isUnlocked('either-switch')).toBe(false);
+    store().recordPass(getLevel('both-switches')!, 1);
+    expect(store().isUnlocked('either-switch')).toBe(true);
+    expect(store().isUnlocked('opposite-day')).toBe(false);
     expect(store().isUnlocked('no-such-level')).toBe(false);
   });
 
-  it('keeps the best star count when a level is replayed', () => {
-    const level = getLevel('level-1')!;
-    store().recordPass(level, 3);
-    store().recordPass(level, 1);
-    expect(store().stars['level-1']).toBe(3);
+  it('keeps a passed level open even when a new level is added before it', () => {
+    store().recordPass(getLevel('smart-lamp')!, 3);
+    expect(store().isUnlocked('smart-lamp')).toBe(true);
+    expect(store().isUnlocked('the-vault')).toBe(true);
+    expect(store().isUnlocked('nor-only')).toBe(false);
   });
 
-  it('unlocks XOR when level 8 is passed, once', () => {
-    store().recordPass(getLevel('level-7')!, 3);
+  it('keeps the best star count when a level is replayed', () => {
+    const level = getLevel('both-switches')!;
+    store().recordPass(level, 3);
+    store().recordPass(level, 1);
+    expect(store().stars['both-switches']).toBe(3);
+  });
+
+  it('earns NAND, NOR and XOR by building them, once each', () => {
+    store().recordPass(getLevel('opposite-day')!, 3);
     expect(store().unlockedGates).toEqual([]);
-    store().recordPass(getLevel('level-8')!, 2);
-    store().recordPass(getLevel('level-8')!, 3);
-    expect(store().unlockedGates).toEqual(['XOR']);
+    store().recordPass(getLevel('not-both')!, 2);
+    store().recordPass(getLevel('neither-switch')!, 3);
+    store().recordPass(getLevel('exactly-one')!, 3);
+    store().recordPass(getLevel('exactly-one')!, 3);
+    expect(store().unlockedGates).toEqual(['NAND', 'NOR', 'XOR']);
   });
 
   it('remembers revealed hints per level, up to three, until progress is reset', () => {
-    for (let i = 0; i < 5; i++) store().revealHint('level-2');
-    expect(store().hints).toEqual({ 'level-2': 3 });
+    for (let i = 0; i < 5; i++) store().revealHint('either-switch');
+    expect(store().hints).toEqual({ 'either-switch': 3 });
     store().resetProgress();
     expect(store().hints).toEqual({});
   });

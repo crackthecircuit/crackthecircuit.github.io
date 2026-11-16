@@ -3,8 +3,8 @@ import { getLevel } from '../../levels/levels';
 import { buildCircuit } from '../../levels/solutions';
 import { rowInputs, simulate } from '../simulate';
 
-const level1 = getLevel('level-1')!; // A·B
-const level7 = getLevel('level-7')!; // (A·B)+C
+const level1 = getLevel('both-switches')!; // A·B
+const level7 = getLevel('three-way-switch')!; // (A·B)+C
 
 describe('rowInputs', () => {
   it('counts in binary with the first input as the most significant bit', () => {
@@ -77,7 +77,7 @@ describe('simulate', () => {
   });
 
   it('lets one output fan out to several inputs', () => {
-    const level8 = getLevel('level-8')!;
+    const level8 = getLevel('exactly-one')!;
     const c = buildCircuit(level8, { and: 'AND' }, [
       ['A', 'and.in0'],
       ['A', 'and.in1'],

@@ -49,7 +49,7 @@ describe('parseExpression', () => {
 
 describe('circuitExpression', () => {
   it('reads the equation back from the player’s circuit', () => {
-    const level = getLevel('level-8')!;
+    const level = getLevel('exactly-one')!;
     const c = buildCircuit(level, { or: 'OR', and: 'AND', not: 'NOT', out: 'AND' }, [
       ['A', 'or.in0'],
       ['B', 'or.in1'],
@@ -64,7 +64,7 @@ describe('circuitExpression', () => {
   });
 
   it('shows NAND/NOR as complemented AND/OR and marks unconnected inputs as unknown', () => {
-    const level = getLevel('level-6')!;
+    const level = getLevel('universal-gate')!;
     const c = buildCircuit(level, { n: 'NAND' }, [
       ['A', 'n.in0'],
       ['n', 'Q'],
@@ -74,7 +74,7 @@ describe('circuitExpression', () => {
   });
 
   it('marks feedback loops instead of recursing forever', () => {
-    const level = getLevel('level-1')!;
+    const level = getLevel('both-switches')!;
     const c = buildCircuit(level, { g: 'AND' }, [
       ['A', 'g.in0'],
       ['g', 'g.in1'],

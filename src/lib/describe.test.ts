@@ -3,7 +3,7 @@ import { getLevel } from '../levels/levels';
 import { buildCircuit } from '../levels/solutions';
 import { deletionMessage, describePort, nodeName, portName } from './describe';
 
-const level = getLevel('level-4')!; // A, B → Q; AND, NOT
+const level = getLevel('not-both')!; // A, B → Q; AND, NOT
 const circuit = buildCircuit(level, { g1: 'AND', g2: 'NOT' }, [
   ['A', 'g1.in0'],
   ['g1', 'g2.in0'],

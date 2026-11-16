@@ -1,3 +1,4 @@
+import { GATE_TYPES } from '../engine';
 import type { Circuit, GateType, Level } from '../engine';
 import { createStartingCircuit } from './startingCircuit';
 
@@ -7,8 +8,8 @@ export const SANDBOX_MIN_INPUTS = 1;
 export const SANDBOX_MAX_INPUTS = 4;
 export const SANDBOX_DEFAULT_INPUTS = 2;
 
-/** Gates every player has; earned gates (XOR) join once unlocked. */
-const BASE_GATES: GateType[] = ['AND', 'OR', 'NOT', 'NAND', 'NOR'];
+/** Gates every player has; earned gates (NAND, NOR, XOR) join once unlocked. */
+const BASE_GATES: GateType[] = ['AND', 'OR', 'NOT'];
 
 /**
  * The sandbox as a Level, so the board, store and engine work unchanged. It has no target: `expected` is a
@@ -24,7 +25,7 @@ export function sandboxLevel(inputCount: number, unlockedGates: readonly GateTyp
     inputs: SANDBOX_INPUT_LABELS.slice(0, n),
     outputs: ['Q'],
     expected: { Q: Array.from({ length: 2 ** n }, () => 0 as const) },
-    palette: [...BASE_GATES, ...unlockedGates.filter((g) => !BASE_GATES.includes(g))],
+    palette: GATE_TYPES.filter((g) => BASE_GATES.includes(g) || unlockedGates.includes(g)),
     maxGateInputs: 4,
     par: 0,
     hints: ['', '', ''],

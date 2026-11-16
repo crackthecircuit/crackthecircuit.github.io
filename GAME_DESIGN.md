@@ -9,16 +9,12 @@ Karnaugh map).
 
 | Topic | Where it appears in the game |
 |---|---|
-| AND, OR, NOT; AND before OR | Levels 1–3; the live equation and hints use this precedence |
-| NAND, NOR, XOR; multi-input gates (XOR = odd number of 1s) | Levels 4–9, wide gates from level 12 |
-| Identities, De Morgan's theorem | Levels 5–6 and 16 (hints show the De Morgan step) |
+| AND, OR, NOT; AND before OR | Levels 1–3 and 6; the live equation and hints use this precedence |
+| NAND, NOR, XOR; multi-input gates (XOR = odd number of 1s) | Built and earned in levels 4, 5 and 7, used from level 6 on; wide gates from level 15 |
+| Identities, De Morgan's theorem | Levels 10–11 (NAND-only and NOR-only circuits; hints show the De Morgan step) and 22 |
 | Combinational circuit = truth table + graphical symbols + Boolean equation | Truth table, board, and the live **Your circuit** equation |
-| Sum of products / product of sums | Levels 10, 13 and 17 are SOP-shaped puzzles; hint 2 of levels 16 and 17 shows each answer's SOP and POS forms |
-| Algebraic simplification, K-maps (2–4 variables) | Stars reward fewer gates, so simplifying earns 3★. Levels 16–18 reward simplifying; level 18's hint mentions K-map grouping |
-
-Digital logic: Boolean algebra, truth tables, Boolean expressions and combinational circuits built from AND, OR,
-NOT, NAND, NOR and XOR gates.
-**Out of scope:** sequential logic, flip-flops, memory and CPU architecture.
+| Sum of products / product of sums | Levels 13, 17, 23 and 24 are SOP-shaped puzzles; hint 2 of levels 12 and 23 shows each answer's SOP form next to a shorter one |
+| Algebraic simplification, K-maps (2–4 variables) | Stars reward fewer gates, so simplifying earns 3★. Levels 21–25 reward simplifying; level 24's hint mentions K-map grouping |
 
 ## Core loop
 1. Read the level brief and the **full target truth table**.
@@ -32,43 +28,72 @@ NOT, NAND, NOR and XOR gates.
 ## Gates
 | Gate | Inputs | Notes |
 |---|---|---|
-| AND, OR, NAND, NOR | 2, widenable to 3–4 | Wide AND = all inputs 1; wide OR = any input 1; NAND/NOR invert them |
+| AND, OR | 2, widenable to 3–4 | Wide AND = all inputs 1; wide OR = any input 1 |
 | NOT | 1 | Never widens |
-| XOR | 2, widenable to 3–4 | Wide XOR = an odd number of inputs are 1. **Earned:** added to the palette after beating level 8 |
+| NAND, NOR | 2, widenable to 3–4 | Invert AND/OR. **Earned:** NAND by beating level 4, NOR by beating level 5 |
+| XOR | 2, widenable to 3–4 | Wide XOR = an odd number of inputs are 1. **Earned** by beating level 7 |
+
+**Earned gates.** Every player starts with AND, OR and NOT. NAND, NOR and XOR are each earned by building them from
+gates the player already has. The result card announces the new gate, and from then on it is in the palette of every
+later level (except the "only X" puzzles) and in the sandbox. Par assumes the player uses what they earned, so an
+earned gate is the way to 3★: Matching Switches takes 2 gates with XOR and at least 3 without it.
 
 **Gate width is a per-level rule.** Every gate is placed with 2 inputs. A level's `maxGateInputs` (default 2) sets how
-wide a gate may be made. Levels 1–11 stay 2-input, so building wider functions from 2-input gates is still the
-puzzle there. Wide gates arrive at level 12. A wide gate counts as **one** gate for par.
+wide a gate may be made. Levels 1–14 stay 2-input, so building wider functions from 2-input gates is still the
+puzzle there. Wide gates arrive at level 15. A wide gate counts as **one** gate for par.
 
 ## Level progression
 Every level is a truth-table puzzle. Objectives describe a behaviour or scenario and never give the formula; Boolean
 expressions only appear in hint 2.
 
-Levels 1–3 are tutorials that offer exactly the gate being taught. Later levels **restrict the palette**,
-and that restriction is where the puzzle comes from.
+Levels 1–3 are tutorials that offer exactly the gate being taught. After that a level offers either the **toolbox**
+(AND, OR, NOT plus every gate earned so far) or a deliberately **restricted palette**, where the restriction is the
+puzzle (build a gate you don't have yet, NAND only, NOR only, AND only).
 
-| # | Goal | Palette | Par | Teaches |
-|---|------|---------|-----|---------|
-| 1 | AND | AND | 1 | Place, wire, run |
-| 2 | OR | OR | 1 | Reading truth tables |
-| 3 | NOT | NOT | 1 | Single-input gates |
-| 4 | NAND | AND, NOT | 2 | Chaining gates |
-| 5 | NOR | OR, NOT | 2 | Chaining; De Morgan setup |
-| 6 | OR | NAND only | 3 | Universal gates |
-| 7 | (A·B)+C | AND, OR, NOT | 2 | 3 inputs, 8 rows |
-| 8 | Build XOR | AND, OR, NOT | 4 | (A+B)·¬(A·B); unlocks XOR |
-| 9 | Odd-parity lamp (3 switches) | XOR | 2 | Using an earned gate |
-| 10 | Vault: opens when ≥2 of 3 guards agree | AND, OR | 4 | Word problem → Boolean function; A(B+C)+BC |
-| 11 | Four-Key Lock: A·B·C·D | AND (2-input) | 3 | 4 inputs, 16 rows; chaining 2-input gates |
-| 12 | Any Alarm: A+B+C+D | OR (≤4 inputs) | 1 | Introduces widening a gate |
-| 13 | Two Pairs: A·B + C·D | AND, OR (≤4) | 3 | Sum of products; widening doesn't help |
-| 14 | Even Count (even number of switches on) | XOR (≤4), NOT | 2 | ¬(A⊕B⊕C⊕D); wide XOR as parity |
-| 15 | Security System: armed · (door + window) · ¬maintenance | AND, OR, NOT (≤3) | 3 | Word problem; A·(B+C)·¬D with a 3-input AND |
-| 16 | Smart Lamp: on with B, off when curtains open (A) and daytime (C) | AND, OR, NOT (≤3) | 3 | B(AC)', the simplified form of A'BC' + A'BC + ABC' |
-| 17 | Selector Switch: B picks whether Q copies A or C | AND, OR, NOT | 4 | AB' + BC, equivalent to the POS form (A + B)(B' + C) |
-| 18 | Vending Machine: powered, and coin in coin mode or card in card mode | AND, OR, NOT (≤3) | 4 | BC'D + ACD, found by grouping a 4-variable K-map |
+Difficulty climbs in steps: 2 inputs, then 3, then 4; one gate, then chains, then wide gates; plain switches, then
+word problems; and par gets harder to meet. Each chapter opens with an easy level that introduces its idea and ends with
+a harder one that combines it with what came before.
 
-Par values will be tuned in playtesting. Each level ships with a reference solution that meets par (verified by tests).
+| # | Level | Palette | Par | Teaches |
+|---|---|---|---|---|
+| | **Basics** | | | |
+| 1 | Both Switches: A·B | AND | 1 | Place, wire, run |
+| 2 | Either Switch: A + B | OR | 1 | Reading truth tables |
+| 3 | Opposite Day: A' | NOT | 1 | Single-input gates |
+| | **Build it, earn it** | | | |
+| 4 | Not Both: (AB)' | AND, NOT | 2 | Chaining gates; **earns NAND** |
+| 5 | Neither Switch: (A + B)' | OR, NOT | 2 | De Morgan setup; **earns NOR** |
+| 6 | Three-Way Switch: AB + C | toolbox | 2 | 3 inputs, 8 rows; AND before OR |
+| 7 | Exactly One: build XOR | toolbox | 3 | (A + B)(AB)' with the earned NAND; **earns XOR** |
+| | **Use what you earned** | | | |
+| 8 | Matching Switches: A = B | toolbox | 2 | (A ⊕ B)'; XOR beats AND/OR |
+| 9 | Odd One Out (3 switches) | XOR only | 2 | Chaining XOR as parity |
+| 10 | Universal Gate: OR | NAND only | 3 | NAND is universal |
+| 11 | NOR Only: AND | NOR only | 3 | NOR is universal too |
+| 12 | Smart Lamp: B, off when curtains open (A) and daytime (C) | toolbox | 2 | B(AC)' with one NAND; simplified A'BC' + A'BC + ABC' |
+| 13 | The Vault: ≥2 of 3 guards agree | toolbox | 4 | Word problem; factoring AB + AC + BC |
+| 14 | Four-Key Lock: ABCD | AND (2-input) | 3 | 4 inputs, 16 rows; chaining 2-input gates |
+| | **Four switches, wide gates** | | | |
+| 15 | Any Alarm: A + B + C + D | OR (≤4) | 1 | Widening a gate |
+| 16 | Silent Room: no sensor on | toolbox (≤4) | 1 | Wide NOR |
+| 17 | Two Pairs: AB + CD | toolbox (≤4) | 3 | Sum of products; widening doesn't help |
+| 18 | Even Count | toolbox (≤4) | 2 | (A ⊕ B ⊕ C ⊕ D)'; wide XOR as parity |
+| 19 | Mismatch Alarm: A ≠ B or C ≠ D | toolbox (≤4) | 3 | XOR as "these disagree" |
+| 20 | Security System: armed · (door + window) · maintenance off | toolbox (≤3) | 3 | Word problem; A(B + C)D' with a 3-input AND |
+| | **Real circuits** | | | |
+| 21 | Quiz Buzzer: exactly one of three pressing | toolbox (≤3) | 3 | (A ⊕ B ⊕ C)(ABC)': wide XOR and wide NAND together |
+| 22 | Equal Codes: 2-bit AB = CD | toolbox (≤4) | 3 | ((A ⊕ C) + (B ⊕ D))': De Morgan on the Mismatch Alarm |
+| 23 | Selector Switch: B picks whether Q copies A or C | toolbox (≤3) | 3 | AB' + BC takes 4 gates; A ⊕ B(A ⊕ C) takes 3 |
+| 24 | Vending Machine: powered, and coin in coin mode or card in card mode | toolbox (≤3) | 4 | BC'D + ACD, found by grouping a 4-variable K-map |
+| 25 | Bigger Number: 2-bit AB > CD | toolbox (≤3) | 5 | Comparator; AC' + BC'D' + ABD' is 6 gates, sharing A ⊕ C makes 5 |
+
+Par values will be tuned in playtesting. Each level ships with a reference solution that meets par (verified by tests),
+and every par was checked by an exhaustive search to be the fewest gates possible (levels 1–24; level 25 has no
+4-gate solution).
+
+Levels have stable ids (`smart-lamp`), used in saved progress and the URL (`#/level/smart-lamp`). Saves and links
+from the earlier 18-level numbering are moved to the new ids. A level stays open once it is passed, so a new level
+added before it never locks it again.
 
 ## Scoring
 - Passing all rows = **1★** and unlocks the next level.
@@ -202,7 +227,7 @@ menu, level screen and sandbox (or the **M** key while editing) mutes them, and 
 ## Sandbox
 Free building, opened from **Sandbox** on the main menu (`#/sandbox`). It's always available.
 - The player picks **1–4 inputs** (A–D) with an `Inputs 1 2 3 4` control. There's one output, Q.
-- The palette has every gate the player has: AND, OR, NOT, NAND, NOR, plus XOR once earned. Gates widen up to 4 inputs.
+- The palette has every gate the player has: AND, OR, NOT, plus NAND, NOR and XOR once earned. Gates widen up to 4 inputs.
 - There's no target, no Run, no stars and no par. The truth table (inputs | Q) and the **Your circuit** equation
   follow the circuit **live** on every edit. While the circuit is incomplete, Q shows `?` and the table lists up to three
   of the validation messages in place of a red overlay.

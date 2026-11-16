@@ -13,7 +13,7 @@ import {
   portPosition,
 } from './geometry';
 
-const level = getLevel('level-1')!;
+const level = getLevel('both-switches')!;
 
 describe('geometry', () => {
   it('finds the port under the pointer, within a forgiving radius', () => {
@@ -66,7 +66,12 @@ describe('geometry', () => {
       expect(n.pos.x).toBeGreaterThan(box.minX);
       expect(n.pos.x).toBeLessThan(box.maxX);
     }
-    expect(circuitBox({ nodes: [], wires: [] })).toEqual({ minX: 0, minY: 0, maxX: BOARD_WIDTH, maxY: BOARD_HEIGHT });
+    expect(circuitBox({ nodes: [], wires: [] })).toEqual({
+      minX: 0,
+      minY: 0,
+      maxX: BOARD_WIDTH,
+      maxY: BOARD_HEIGHT,
+    });
   });
 });
 
@@ -76,11 +81,14 @@ describe('screen hash', () => {
       { name: 'title' as const },
       { name: 'map' as const },
       { name: 'sandbox' as const },
-      { name: 'level' as const, levelId: 'level-7' },
+      { name: 'level' as const, levelId: 'three-way-switch' },
     ]) {
       expect(parseHash(screenHash(screen))).toEqual(screen);
     }
     expect(parseHash('#/level/99')).toEqual({ name: 'title' });
+    expect(parseHash('#/level/no-such-level')).toEqual({ name: 'title' });
+    // Old numbered links open the level that used to have that number.
+    expect(parseHash('#/level/16')).toEqual({ name: 'level', levelId: 'smart-lamp' });
     expect(parseHash('')).toEqual({ name: 'title' });
   });
 });

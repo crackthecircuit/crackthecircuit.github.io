@@ -12,7 +12,7 @@
 | Hosting | GitHub Pages at `https://crackthecircuit.github.io` (repo `crackthecircuit/crackthecircuit.github.io`) | Free; root-level site, so Vite `base` stays `/` |
 
 There's no router dependency: the current screen is a field in `appStore`, mirrored in the URL hash
-(`#/`, `#/map`, `#/sandbox`, `#/level/3`) so refresh and the back button work. A locked level opened by URL redirects to the map.
+(`#/`, `#/map`, `#/sandbox`, `#/level/smart-lamp`; old numbered links like `#/level/3` still work) so refresh and the back button work. A locked level opened by URL redirects to the map.
 
 ## Layering rule
 `src/engine/` is **pure TypeScript with no React or DOM imports**. It owns the circuit types, validation, simulation and
@@ -24,7 +24,7 @@ the engine and the UI be built in parallel.
 src/
   engine/      types.ts · gates.ts · validate.ts · simulate.ts · score.ts · expression.ts · __tests__/
   levels/      levels.ts (level data) · solutions.ts (reference circuits, tests only) · startingCircuit.ts
-               rules.ts (gate widths) · sandbox.ts (the sandbox as a Level)
+               rules.ts (gate widths) · sandbox.ts (the sandbox as a Level) · legacy.ts (old level-<n> ids)
   store/       appStore.ts (screen + URL hash) · circuitStore.ts (board, selection, undo)
                progressStore.ts + persistence.ts (stars, unlocks, autosaved boards)
   components/
@@ -96,7 +96,7 @@ interface Wire {
 interface Circuit { nodes: CircuitNode[]; wires: Wire[] }
 
 interface Level {
-  id: string;                               // 'level-1'
+  id: string;                               // stable slug: 'smart-lamp'
   number: number;
   title: string;
   brief: string;
@@ -107,7 +107,7 @@ interface Level {
   maxGateInputs?: number;                   // widest gate allowed; default 2 (src/levels/rules.ts)
   par: number;
   hints: [string, string, string];
-  unlocksGate?: GateType;                   // level 8 → 'XOR'
+  unlocksGate?: GateType;                   // 'not-both' → 'NAND', 'neither-switch' → 'NOR', 'exactly-one' → 'XOR'
 }
 ```
 
@@ -139,7 +139,7 @@ only ever compares against the arrays. `src/levels/solutions.ts` holds a referen
 ## Persistence
 A single localStorage key, `crackthecircuit:v1`:
 ```json
-{ "version": 1, "stars": { "level-1": 3 }, "boards": { "level-1": { "nodes": [], "wires": [] } }, "unlockedGates": ["XOR"], "hints": { "level-1": 1 }, "muted": false }
+{ "version": 1, "stars": { "both-switches": 3 }, "boards": { "both-switches": { "nodes": [], "wires": [] } }, "unlockedGates": ["NAND"], "hints": { "both-switches": 1 }, "muted": false }
 ```
 The sandbox board is saved under `boards.sandbox`. Every read and write is wrapped in try/catch. Missing, corrupt or unknown-version data falls back to a fresh state.
 

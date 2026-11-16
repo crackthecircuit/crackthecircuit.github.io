@@ -39,7 +39,7 @@ type GateSpec = GateType | [GateType, number];
 type Recipe = { gates: Record<string, GateSpec>; wires: [string, string][] };
 
 export const SOLUTIONS: Record<string, Recipe> = {
-  'level-1': {
+  'both-switches': {
     gates: { g1: 'AND' },
     wires: [
       ['A', 'g1.in0'],
@@ -47,7 +47,7 @@ export const SOLUTIONS: Record<string, Recipe> = {
       ['g1', 'Q'],
     ],
   },
-  'level-2': {
+  'either-switch': {
     gates: { g1: 'OR' },
     wires: [
       ['A', 'g1.in0'],
@@ -55,14 +55,14 @@ export const SOLUTIONS: Record<string, Recipe> = {
       ['g1', 'Q'],
     ],
   },
-  'level-3': {
+  'opposite-day': {
     gates: { g1: 'NOT' },
     wires: [
       ['A', 'g1.in0'],
       ['g1', 'Q'],
     ],
   },
-  'level-4': {
+  'not-both': {
     gates: { g1: 'AND', g2: 'NOT' },
     wires: [
       ['A', 'g1.in0'],
@@ -71,7 +71,7 @@ export const SOLUTIONS: Record<string, Recipe> = {
       ['g2', 'Q'],
     ],
   },
-  'level-5': {
+  'neither-switch': {
     gates: { g1: 'OR', g2: 'NOT' },
     wires: [
       ['A', 'g1.in0'],
@@ -80,7 +80,49 @@ export const SOLUTIONS: Record<string, Recipe> = {
       ['g2', 'Q'],
     ],
   },
-  'level-6': {
+  'three-way-switch': {
+    gates: { and: 'AND', or: 'OR' },
+    wires: [
+      ['A', 'and.in0'],
+      ['B', 'and.in1'],
+      ['and', 'or.in0'],
+      ['C', 'or.in1'],
+      ['or', 'Q'],
+    ],
+  },
+  'exactly-one': {
+    // (A + B)·(AB)', with the NAND earned two levels earlier
+    gates: { or: 'OR', nand: 'NAND', out: 'AND' },
+    wires: [
+      ['A', 'or.in0'],
+      ['B', 'or.in1'],
+      ['A', 'nand.in0'],
+      ['B', 'nand.in1'],
+      ['or', 'out.in0'],
+      ['nand', 'out.in1'],
+      ['out', 'Q'],
+    ],
+  },
+  'matching-switches': {
+    gates: { x: 'XOR', not: 'NOT' },
+    wires: [
+      ['A', 'x.in0'],
+      ['B', 'x.in1'],
+      ['x', 'not.in0'],
+      ['not', 'Q'],
+    ],
+  },
+  'odd-one-out': {
+    gates: { x1: 'XOR', x2: 'XOR' },
+    wires: [
+      ['A', 'x1.in0'],
+      ['B', 'x1.in1'],
+      ['x1', 'x2.in0'],
+      ['C', 'x2.in1'],
+      ['x2', 'Q'],
+    ],
+  },
+  'universal-gate': {
     gates: { nA: 'NAND', nB: 'NAND', g: 'NAND' },
     wires: [
       ['A', 'nA.in0'],
@@ -92,40 +134,30 @@ export const SOLUTIONS: Record<string, Recipe> = {
       ['g', 'Q'],
     ],
   },
-  'level-7': {
-    gates: { and: 'AND', or: 'OR' },
+  'nor-only': {
+    gates: { nA: 'NOR', nB: 'NOR', g: 'NOR' },
     wires: [
-      ['A', 'and.in0'],
-      ['B', 'and.in1'],
-      ['and', 'or.in0'],
-      ['C', 'or.in1'],
-      ['or', 'Q'],
+      ['A', 'nA.in0'],
+      ['A', 'nA.in1'],
+      ['B', 'nB.in0'],
+      ['B', 'nB.in1'],
+      ['nA', 'g.in0'],
+      ['nB', 'g.in1'],
+      ['g', 'Q'],
     ],
   },
-  'level-8': {
-    gates: { or: 'OR', and: 'AND', not: 'NOT', out: 'AND' },
+  'smart-lamp': {
+    // B·(AC)'
+    gates: { nac: 'NAND', out: 'AND' },
     wires: [
-      ['A', 'or.in0'],
-      ['B', 'or.in1'],
-      ['A', 'and.in0'],
-      ['B', 'and.in1'],
-      ['and', 'not.in0'],
-      ['or', 'out.in0'],
-      ['not', 'out.in1'],
+      ['A', 'nac.in0'],
+      ['C', 'nac.in1'],
+      ['B', 'out.in0'],
+      ['nac', 'out.in1'],
       ['out', 'Q'],
     ],
   },
-  'level-9': {
-    gates: { x1: 'XOR', x2: 'XOR' },
-    wires: [
-      ['A', 'x1.in0'],
-      ['B', 'x1.in1'],
-      ['x1', 'x2.in0'],
-      ['C', 'x2.in1'],
-      ['x2', 'Q'],
-    ],
-  },
-  'level-10': {
+  'the-vault': {
     // A·(B + C) + B·C
     gates: { bOrC: 'OR', aAnd: 'AND', bAndC: 'AND', out: 'OR' },
     wires: [
@@ -140,7 +172,7 @@ export const SOLUTIONS: Record<string, Recipe> = {
       ['out', 'Q'],
     ],
   },
-  'level-11': {
+  'four-key-lock': {
     // ((A·B)·C)·D with 2-input gates
     gates: { ab: 'AND', abc: 'AND', abcd: 'AND' },
     wires: [
@@ -153,7 +185,7 @@ export const SOLUTIONS: Record<string, Recipe> = {
       ['abcd', 'Q'],
     ],
   },
-  'level-12': {
+  'any-alarm': {
     gates: { any: ['OR', 4] },
     wires: [
       ['A', 'any.in0'],
@@ -163,7 +195,17 @@ export const SOLUTIONS: Record<string, Recipe> = {
       ['any', 'Q'],
     ],
   },
-  'level-13': {
+  'silent-room': {
+    gates: { none: ['NOR', 4] },
+    wires: [
+      ['A', 'none.in0'],
+      ['B', 'none.in1'],
+      ['C', 'none.in2'],
+      ['D', 'none.in3'],
+      ['none', 'Q'],
+    ],
+  },
+  'two-pairs': {
     gates: { ab: 'AND', cd: 'AND', or: 'OR' },
     wires: [
       ['A', 'ab.in0'],
@@ -175,7 +217,7 @@ export const SOLUTIONS: Record<string, Recipe> = {
       ['or', 'Q'],
     ],
   },
-  'level-14': {
+  'even-count': {
     // A 4-input XOR is 1 for an odd count; NOT turns that into "even".
     gates: { odd: ['XOR', 4], even: 'NOT' },
     wires: [
@@ -187,7 +229,19 @@ export const SOLUTIONS: Record<string, Recipe> = {
       ['even', 'Q'],
     ],
   },
-  'level-15': {
+  'mismatch-alarm': {
+    gates: { ab: 'XOR', cd: 'XOR', any: 'OR' },
+    wires: [
+      ['A', 'ab.in0'],
+      ['B', 'ab.in1'],
+      ['C', 'cd.in0'],
+      ['D', 'cd.in1'],
+      ['ab', 'any.in0'],
+      ['cd', 'any.in1'],
+      ['any', 'Q'],
+    ],
+  },
+  'security-system': {
     // A · (B + C) · ¬D
     gates: { entry: 'OR', notMaint: 'NOT', alarm: ['AND', 3] },
     wires: [
@@ -200,34 +254,49 @@ export const SOLUTIONS: Record<string, Recipe> = {
       ['alarm', 'Q'],
     ],
   },
-  'level-16': {
-    // Smart Lamp: B·(AC)'
-    gates: { ac: 'AND', nac: 'NOT', out: 'AND' },
+  'quiz-buzzer': {
+    // (A ⊕ B ⊕ C)·(ABC)': an odd count, but not all three
+    gates: { odd: ['XOR', 3], notAll: ['NAND', 3], out: 'AND' },
+    wires: [
+      ['A', 'odd.in0'],
+      ['B', 'odd.in1'],
+      ['C', 'odd.in2'],
+      ['A', 'notAll.in0'],
+      ['B', 'notAll.in1'],
+      ['C', 'notAll.in2'],
+      ['odd', 'out.in0'],
+      ['notAll', 'out.in1'],
+      ['out', 'Q'],
+    ],
+  },
+  'equal-codes': {
+    // ((A ⊕ C) + (B ⊕ D))'
+    gates: { hi: 'XOR', lo: 'XOR', same: 'NOR' },
+    wires: [
+      ['A', 'hi.in0'],
+      ['C', 'hi.in1'],
+      ['B', 'lo.in0'],
+      ['D', 'lo.in1'],
+      ['hi', 'same.in0'],
+      ['lo', 'same.in1'],
+      ['same', 'Q'],
+    ],
+  },
+  'selector-switch': {
+    // A ⊕ B(A ⊕ C): when B is 1 the two As cancel and C is left
+    gates: { ac: 'XOR', pick: 'AND', out: 'XOR' },
     wires: [
       ['A', 'ac.in0'],
       ['C', 'ac.in1'],
-      ['ac', 'nac.in0'],
-      ['B', 'out.in0'],
-      ['nac', 'out.in1'],
+      ['B', 'pick.in0'],
+      ['ac', 'pick.in1'],
+      ['A', 'out.in0'],
+      ['pick', 'out.in1'],
       ['out', 'Q'],
     ],
   },
-  'level-17': {
-    // Selector Switch: (A + B)(B' + C), the POS form of AB' + BC
-    gates: { ab: 'OR', nb: 'NOT', bc: 'OR', out: 'AND' },
-    wires: [
-      ['A', 'ab.in0'],
-      ['B', 'ab.in1'],
-      ['B', 'nb.in0'],
-      ['nb', 'bc.in0'],
-      ['C', 'bc.in1'],
-      ['ab', 'out.in0'],
-      ['bc', 'out.in1'],
-      ['out', 'Q'],
-    ],
-  },
-  'level-18': {
-    // Vending Machine: BC'D + ACD
+  'vending-machine': {
+    // BC'D + ACD
     gates: { nc: 'NOT', g1: ['AND', 3], g2: ['AND', 3], out: 'OR' },
     wires: [
       ['C', 'nc.in0'],
@@ -239,6 +308,23 @@ export const SOLUTIONS: Record<string, Recipe> = {
       ['D', 'g2.in2'],
       ['g1', 'out.in0'],
       ['g2', 'out.in1'],
+      ['out', 'Q'],
+    ],
+  },
+  'bigger-number': {
+    // X = A ⊕ C (high bits differ). Q = A·X + B·(X + D)'
+    gates: { x: 'XOR', high: 'AND', low: 'NOR', lowWins: 'AND', out: 'OR' },
+    wires: [
+      ['A', 'x.in0'],
+      ['C', 'x.in1'],
+      ['A', 'high.in0'],
+      ['x', 'high.in1'],
+      ['x', 'low.in0'],
+      ['D', 'low.in1'],
+      ['B', 'lowWins.in0'],
+      ['low', 'lowWins.in1'],
+      ['high', 'out.in0'],
+      ['lowWins', 'out.in1'],
       ['out', 'Q'],
     ],
   },

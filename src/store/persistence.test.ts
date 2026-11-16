@@ -14,10 +14,10 @@ describe('progress persistence', () => {
     const storage = memoryStorage();
     const progress = {
       ...freshProgress(),
-      stars: { 'level-1': 3 },
-      boards: { 'level-1': { nodes: [], wires: [] } },
+      stars: { 'both-switches': 3 },
+      boards: { 'both-switches': { nodes: [], wires: [] } },
       unlockedGates: ['XOR' as const],
-      hints: { 'level-1': 2 },
+      hints: { 'both-switches': 2 },
       muted: true,
     };
     expect(saveProgress(progress, storage)).toBe(true);
@@ -36,19 +36,33 @@ describe('progress persistence', () => {
   it('drops malformed entries but keeps the valid ones', () => {
     const raw = JSON.stringify({
       version: 1,
-      stars: { 'level-1': 2, 'level-2': 'lots', 'level-3': 9 },
-      boards: { 'level-1': { nodes: [], wires: [] }, 'level-2': 'oops' },
+      stars: { 'both-switches': 2, 'either-switch': 'lots', 'opposite-day': 9 },
+      boards: { 'both-switches': { nodes: [], wires: [] }, 'either-switch': 'oops' },
       unlockedGates: ['XOR', 42],
-      hints: { 'level-1': 1, 'level-2': 7, 'level-3': 'all' },
+      hints: { 'both-switches': 1, 'either-switch': 7, 'opposite-day': 'all' },
     });
     expect(loadProgress(memoryStorage(raw))).toEqual({
       version: 1,
-      stars: { 'level-1': 2 },
-      boards: { 'level-1': { nodes: [], wires: [] } },
+      stars: { 'both-switches': 2 },
+      boards: { 'both-switches': { nodes: [], wires: [] } },
       unlockedGates: ['XOR'],
-      hints: { 'level-1': 1 },
+      hints: { 'both-switches': 1 },
       muted: false,
     });
+  });
+
+  it('renames numbered level ids from older saves', () => {
+    const raw = JSON.stringify({
+      version: 1,
+      stars: { 'level-1': 3, 'level-16': 2 },
+      boards: { 'level-6': { nodes: [], wires: [] } },
+      unlockedGates: [],
+      hints: { 'level-17': 1 },
+    });
+    const loaded = loadProgress(memoryStorage(raw));
+    expect(loaded.stars).toEqual({ 'both-switches': 3, 'smart-lamp': 2 });
+    expect(Object.keys(loaded.boards)).toEqual(['universal-gate']);
+    expect(loaded.hints).toEqual({ 'selector-switch': 1 });
   });
 
   it('survives storage that throws', () => {

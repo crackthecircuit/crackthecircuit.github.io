@@ -6,8 +6,8 @@ import { simulate } from '../simulate';
 import type { Circuit, Level } from '../types';
 import { analyze, validate } from '../validate';
 
-const level7 = getLevel('level-7')!; // (A·B)+C, palette AND/OR/NOT
-const level1 = getLevel('level-1')!; // A·B
+const level7 = getLevel('three-way-switch')!; // (A·B)+C, palette AND/OR/NOT
+const level1 = getLevel('both-switches')!; // A·B
 
 const codes = (circuit: Circuit, level: Level) => validate(circuit, level).map((e) => e.code);
 
@@ -66,7 +66,7 @@ describe('validate', () => {
   });
 
   it('reports wires to ports a gate does not have, or to missing nodes', () => {
-    const level3 = getLevel('level-3')!;
+    const level3 = getLevel('opposite-day')!;
     const c = buildCircuit(level3, { n: 'NOT' }, [
       ['A', 'n.in0'],
       ['n', 'Q'],
@@ -128,7 +128,7 @@ describe('validate', () => {
   });
 
   it('orders gates so each comes after the gates that drive it', () => {
-    const c = buildCircuit(getLevel('level-8')!, { out: 'AND', not: 'NOT', and: 'AND', or: 'OR' }, [
+    const c = buildCircuit(getLevel('exactly-one')!, { out: 'AND', not: 'NOT', and: 'AND', or: 'OR' }, [
       ['A', 'or.in0'],
       ['B', 'or.in1'],
       ['A', 'and.in0'],
@@ -138,7 +138,7 @@ describe('validate', () => {
       ['not', 'out.in1'],
       ['out', 'Q'],
     ]);
-    const order = analyze(c, getLevel('level-8')!).evalOrder.map((g) => g.id);
+    const order = analyze(c, getLevel('exactly-one')!).evalOrder.map((g) => g.id);
     expect(order.indexOf('and')).toBeLessThan(order.indexOf('not'));
     expect(order.indexOf('not')).toBeLessThan(order.indexOf('out'));
     expect(order.indexOf('or')).toBeLessThan(order.indexOf('out'));

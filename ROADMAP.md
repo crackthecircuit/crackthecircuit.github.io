@@ -6,7 +6,9 @@
 > toggle, and an accessibility pass (full keyboard play, screen-reader labels and announcements, 4.5:1 text contrast).
 > Then mobile: tablet layouts, an open (Figma-like) canvas with edge pan and off-screen markers, and a phone layout
 > (gate tray, table sheet, row stepper, long-press delete, installable to the home screen).
-> **Next:** playtesting the 18 levels (on phones too) and tuning par and hints. Multi-output levels (half adder) are
+> Then a progression rework: 25 levels in five chapters, NAND, NOR and XOR each earned by building them and used in
+> later levels, par set so earned gates are the way to 3★, and hints that cap stars.
+> **Next:** playtesting the 25 levels (on phones too) and tuning par and hints. Multi-output levels (half adder) are
 > out of scope.
 
 Timeline: MVP in about 2 weeks, then 1 week of extra features, with a buffer up to 6 weeks in total.

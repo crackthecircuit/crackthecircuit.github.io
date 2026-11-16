@@ -5,7 +5,7 @@ import { buildCircuit } from '../levels/solutions';
 import { createStartingCircuit } from '../levels/startingCircuit';
 import { editSound, playSound } from './sound';
 
-const level = getLevel('level-7')!; // A, B, C → Q
+const level = getLevel('three-way-switch')!; // A, B, C → Q
 const empty = createStartingCircuit(level);
 const withGate = buildCircuit(level, { g1: 'AND' }, []);
 const wired = buildCircuit(level, { g1: 'AND' }, [['A', 'g1.in0']]);

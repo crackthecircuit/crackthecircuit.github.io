@@ -4,8 +4,8 @@ import { getLevel } from '../levels/levels';
 import { adaptCircuit, sandboxInputCount, sandboxLevel } from '../levels/sandbox';
 import { useCircuitStore } from './circuitStore';
 
-const level1 = getLevel('level-1')!; // palette: AND
-const level4 = getLevel('level-4')!; // palette: AND, NOT
+const level1 = getLevel('both-switches')!; // palette: AND
+const level4 = getLevel('not-both')!; // palette: AND, NOT
 const store = () => useCircuitStore.getState();
 const gates = () => store().circuit.nodes.filter((n) => n.kind === 'gate');
 
@@ -136,8 +136,8 @@ describe('circuit store', () => {
 });
 
 describe('gate width', () => {
-  const level12 = getLevel('level-12')!; // OR, up to 4 inputs
-  const level13 = getLevel('level-13')!;
+  const level12 = getLevel('any-alarm')!; // OR, up to 4 inputs
+  const level13 = getLevel('two-pairs')!;
 
   it('widens and narrows gates within the level limit, dropping wires on removed ports', () => {
     store().loadLevel(level12);
