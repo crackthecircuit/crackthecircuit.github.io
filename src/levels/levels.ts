@@ -58,7 +58,7 @@ export const LEVELS: Level[] = buildLevels([
     'both-switches',
     {
       title: 'Both Switches',
-      brief: 'The lamp Q should light only when switch A and switch B are both on.',
+      brief: 'The lamp Q should light only when switch A and switch B are both ON.',
       inputs: AB,
       palette: ['AND'],
       par: 1,
@@ -74,7 +74,7 @@ export const LEVELS: Level[] = buildLevels([
     'either-switch',
     {
       title: 'Either Switch',
-      brief: 'The lamp Q should light when switch A or switch B (or both) is on.',
+      brief: 'The lamp Q should light when switch A or switch B (or both) is ON.',
       inputs: AB,
       palette: ['OR'],
       par: 1,
@@ -90,7 +90,7 @@ export const LEVELS: Level[] = buildLevels([
     'opposite-day',
     {
       title: 'Opposite Day',
-      brief: 'The lamp Q should be on exactly when switch A is off.',
+      brief: 'The lamp Q should be ON exactly when switch A is OFF.',
       inputs: ['A'],
       palette: ['NOT'],
       par: 1,
@@ -105,7 +105,7 @@ export const LEVELS: Level[] = buildLevels([
     {
       title: 'Not Both',
       brief:
-        'Build a NAND: Q is off only when A and B are both on. There is no NAND gate yet. Beat this to earn it.',
+        'Build a NAND: Q is OFF only when A and B are both ON. There is no NAND gate yet. Beat this to earn it.',
       inputs: AB,
       palette: ['AND', 'NOT'],
       par: 2,
@@ -123,7 +123,7 @@ export const LEVELS: Level[] = buildLevels([
     {
       title: 'Neither Switch',
       brief:
-        'Build a NOR: Q is on only when both switches are off. There is no NOR gate yet. Beat this to earn it.',
+        'Build a NOR: Q is ON only when both switches are OFF. There is no NOR gate yet. Beat this to earn it.',
       inputs: AB,
       palette: ['OR', 'NOT'],
       par: 2,
@@ -140,7 +140,7 @@ export const LEVELS: Level[] = buildLevels([
     'three-way-switch',
     {
       title: 'Three-Way Switch',
-      brief: 'Q should light when A and B are both on, or when C is on.',
+      brief: 'Q should light when A and B are both ON, or when C is ON.',
       inputs: ABC,
       palette: 'toolbox',
       par: 2,
@@ -157,7 +157,7 @@ export const LEVELS: Level[] = buildLevels([
     {
       title: 'Exactly One',
       brief:
-        'Build XOR: Q is on when exactly one switch is on, but not both. Beat this to earn the XOR gate.',
+        'Build XOR: Q is ON when exactly one switch is ON, but not both. Beat this to earn the XOR gate.',
       inputs: AB,
       palette: 'toolbox',
       par: 3,
@@ -176,7 +176,7 @@ export const LEVELS: Level[] = buildLevels([
     'matching-switches',
     {
       title: 'Matching Switches',
-      brief: 'Q should light when switches A and B are in the same position: both on, or both off.',
+      brief: 'Q should light when switches A and B are in the same position: both ON, or both OFF.',
       inputs: AB,
       palette: 'toolbox',
       par: 2,
@@ -192,7 +192,7 @@ export const LEVELS: Level[] = buildLevels([
     'odd-one-out',
     {
       title: 'Odd One Out',
-      brief: 'A lamp with three switches: Q lights when an odd number of switches are on.',
+      brief: 'A lamp with three switches: Q lights when an odd number of switches are ON.',
       inputs: ABC,
       palette: ['XOR'],
       par: 2,
@@ -241,7 +241,7 @@ export const LEVELS: Level[] = buildLevels([
     {
       title: 'Smart Lamp',
       brief:
-        'B is the lamp switch. To save power, the lamp Q turns itself off when the curtains are open (A) and it is daytime (C).',
+        'B is the lamp switch. To save power, the lamp Q turns itself OFF when the curtains are open (A) and it is daytime (C).',
       inputs: ABC,
       palette: 'toolbox',
       par: 2,
@@ -274,7 +274,7 @@ export const LEVELS: Level[] = buildLevels([
     'four-key-lock',
     {
       title: 'Four-Key Lock',
-      brief: 'Four switches, 16 rows. Q should light only when all four switches A, B, C and D are on.',
+      brief: 'Four switches, 16 rows. Q should light only when all four switches A, B, C and D are ON.',
       inputs: ABCD,
       palette: ['AND'],
       par: 3,
@@ -293,7 +293,7 @@ export const LEVELS: Level[] = buildLevels([
     {
       title: 'Any Alarm',
       brief:
-        'Gates can now take more inputs: select a gate and press + to widen it. Q should light when any of the four sensors is on.',
+        'Gates can now take more inputs: select a gate and press + to widen it. Q should light when any of the four sensors is ON.',
       inputs: ABCD,
       palette: ['OR'],
       maxGateInputs: 4,
@@ -310,7 +310,7 @@ export const LEVELS: Level[] = buildLevels([
     'silent-room',
     {
       title: 'Silent Room',
-      brief: 'The all-clear light Q is on only when none of the four motion sensors detects anything.',
+      brief: 'The all-clear light Q is ON only when none of the four motion sensors detects anything.',
       inputs: ABCD,
       palette: 'toolbox',
       maxGateInputs: 4,
@@ -327,7 +327,7 @@ export const LEVELS: Level[] = buildLevels([
     'two-pairs',
     {
       title: 'Two Pairs',
-      brief: 'Q should light when both A and B are on, or both C and D are on.',
+      brief: 'Q should light when both A and B are ON, or both C and D are ON.',
       inputs: ABCD,
       palette: 'toolbox',
       maxGateInputs: 4,
@@ -344,7 +344,7 @@ export const LEVELS: Level[] = buildLevels([
     'even-count',
     {
       title: 'Even Count',
-      brief: 'Q should light when an even number of the four switches are on (none counts as even).',
+      brief: 'Q should light when an even number of the four switches are ON (none counts as even).',
       inputs: ABCD,
       palette: 'toolbox',
       maxGateInputs: 4,
@@ -380,7 +380,7 @@ export const LEVELS: Level[] = buildLevels([
     {
       title: 'Security System',
       brief:
-        'A is the arm switch, B the door sensor, C the window sensor and D maintenance mode. The siren Q sounds when the system is armed, the door or window opens, and maintenance mode is off.',
+        'A is the arm switch, B the door sensor, C the window sensor and D maintenance mode. The siren Q sounds when the system is armed, the door or window opens, and maintenance mode is OFF.',
       inputs: ABCD,
       palette: 'toolbox',
       maxGateInputs: 3,
@@ -452,7 +452,7 @@ export const LEVELS: Level[] = buildLevels([
     {
       title: 'Vending Machine',
       brief:
-        'D is the power switch, C is card mode, B is a coin and A is a card tap. The machine dispenses (Q) when it is powered and either a coin is inserted with card mode off, or a card is tapped with card mode on.',
+        'D is the power switch, C is card mode, B is a coin and A is a card tap. The machine dispenses (Q) when it is powered and either a coin is inserted with card mode OFF, or a card is tapped with card mode ON.',
       inputs: ABCD,
       palette: 'toolbox',
       maxGateInputs: 3,
