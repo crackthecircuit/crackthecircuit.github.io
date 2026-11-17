@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import type { Circuit, Level } from '../engine';
 import { LEVELS } from '../levels/levels';
-import { loadProgress, saveProgress } from './persistence';
+import { STORAGE_KEY, loadProgress, saveProgress } from './persistence';
 import type { SavedProgress } from './persistence';
 
 export interface ProgressState extends SavedProgress {
@@ -80,3 +80,13 @@ export const useProgressStore = create<ProgressState>()((set, get) => {
     },
   };
 });
+
+/**
+ * Every write saves the whole progress, so a tab holding an old copy would wipe out levels passed in another tab
+ * the next time it autosaves. Take in what other tabs write so each tab saves from the latest progress.
+ */
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (e) => {
+    if (e.key === STORAGE_KEY || e.key === null) useProgressStore.setState(withEarnedGates(loadProgress()));
+  });
+}
